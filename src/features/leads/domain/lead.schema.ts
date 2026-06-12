@@ -52,9 +52,7 @@ export const leadSchema = z.object({
     .string()
     .min(8, "Ingresá un número de WhatsApp válido")
     .regex(/^[\d\s\+\-\(\)]+$/, "Solo se permiten números, espacios y +"),
-  industry: z.enum(INDUSTRY_OPTIONS, {
-    required_error: "Seleccioná un rubro",
-  }),
+  industry: z.enum(INDUSTRY_OPTIONS, "Seleccioná un rubro"),
   companySize: z.string().min(1, "Ingresá la cantidad aproximada de personas"),
   processToImprove: z
     .string()
@@ -65,15 +63,9 @@ export const leadSchema = z.object({
   currentProblem: z
     .string()
     .min(10, "Describí el problema (mínimo 10 caracteres)"),
-  weeklyHoursLost: z.enum(HOURS_LOST_OPTIONS, {
-    required_error: "Seleccioná una opción",
-  }),
-  urgency: z.enum(URGENCY_OPTIONS, {
-    required_error: "Seleccioná una opción",
-  }),
-  budget: z.enum(BUDGET_OPTIONS, {
-    required_error: "Seleccioná una opción",
-  }),
+  weeklyHoursLost: z.enum(HOURS_LOST_OPTIONS, "Seleccioná una opción"),
+  urgency: z.enum(URGENCY_OPTIONS, "Seleccioná una opción"),
+  budget: z.enum(BUDGET_OPTIONS, "Seleccioná una opción"),
   additionalMessage: z.string().optional(),
 });
 
