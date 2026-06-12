@@ -4,7 +4,7 @@
 
 Antes de cualquier tarea, leer:
 
-- [Engineering Principles](docs/enginnering-principles.md)
+- [Engineering Principles](docs/engineering-principles.md)
 - [Agent Pipeline](docs/agent-pipeline.md)
 - [Branching & Versioning](docs/branching-versioning.md)
 
