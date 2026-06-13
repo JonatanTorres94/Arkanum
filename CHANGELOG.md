@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-13
+
+### Added
+
+- Supabase server client using `SUPABASE_SERVICE_ROLE_KEY` (server-side only).
+- `supabase/migrations/20260613000000_create_leads_table.sql` with RLS enabled.
+- `Lead` domain type and `CreateLeadResult` in `lead.types.ts`.
+- `LeadRepository` interface.
+- `SupabaseLeadRepository` implementation with camelCase → snake_case mapping.
+- `createLeadUseCase` with controlled error handling.
+- `submitDiagnosticAction` updated to persist via use case before redirect.
+- `/gracias` copy updated to truthfully confirm submission was received.
+
+### Notes
+
+- Insert happens server-side only via service role key. No public RLS policies.
+- Dashboard, auth, and read policies are out of scope until v0.5.0.
+
 ## [0.3.0] - 2026-06-13
 
 ### Added
