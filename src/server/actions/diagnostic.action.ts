@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { leadSchema, type LeadFormData } from "@/features/leads/domain/lead.schema";
+import { createLeadUseCase } from "@/features/leads/application/create-lead.use-case";
+import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
 
 export async function submitDiagnosticAction(
   data: LeadFormData
@@ -12,9 +14,12 @@ export async function submitDiagnosticAction(
     return { error: "Datos inválidos. Revisá el formulario." };
   }
 
-  // v0.3.0: data is intentionally discarded here.
-  // No database, no email, no side effects. Validated data is lost on redirect.
-  // v0.4.0 will replace this comment with: createLeadUseCase(result.data)
+  const repository = new SupabaseLeadRepository();
+  const outcome = await createLeadUseCase(result.data, repository);
+
+  if (!outcome.ok) {
+    return { error: outcome.error };
+  }
 
   redirect("/gracias");
 }
