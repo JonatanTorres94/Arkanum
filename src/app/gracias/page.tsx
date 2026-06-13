@@ -4,8 +4,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 
 export const metadata: Metadata = {
-  title: "Formulario enviado",
-  description: "Gracias por completar el formulario de diagnóstico.",
+  title: "Diagnóstico enviado",
+  description: "Gracias por completar el formulario de diagnóstico de Arkanum.",
   robots: { index: false, follow: false },
 };
 
@@ -31,13 +31,15 @@ export default function GraciasPage() {
             </svg>
           </div>
 
-          <h1 className="mb-4 text-2xl font-semibold text-slate-50">
-            Formulario completado.
-          </h1>
+          <h1 className="mb-4 text-2xl font-semibold text-slate-50">Gracias.</h1>
 
-          <p className="mb-8 text-base leading-relaxed text-slate-400">
-            Estamos habilitando el sistema de gestión de consultas. Muy pronto podrás recibir
-            respuesta de nuestro equipo directamente.
+          <p className="mb-2 text-base leading-relaxed text-slate-300">
+            Tu diagnóstico quedó validado en esta versión del flujo.
+          </p>
+
+          <p className="mb-8 text-sm leading-relaxed text-slate-400">
+            Estamos preparando la conexión final para registrar solicitudes reales. Mientras tanto,
+            podés volver al inicio o contactarnos por el canal que indiquemos públicamente.
           </p>
 
           <Link

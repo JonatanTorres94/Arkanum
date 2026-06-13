@@ -44,28 +44,23 @@ export const BUDGET_OPTIONS = [
 ] as const;
 
 export const leadSchema = z.object({
+  // Required
   fullName: z.string().min(2, "Ingresá tu nombre completo"),
-  company: z.string().min(1, "Ingresá el nombre de tu empresa"),
-  role: z.string().min(1, "Ingresá tu cargo o rol"),
   email: z.string().email("Ingresá un email válido"),
-  whatsapp: z
-    .string()
-    .min(8, "Ingresá un número de WhatsApp válido")
-    .regex(/^[\d\s\+\-\(\)]+$/, "Solo se permiten números, espacios y +"),
   industry: z.enum(INDUSTRY_OPTIONS, "Seleccioná un rubro"),
-  companySize: z.string().min(1, "Ingresá la cantidad aproximada de personas"),
-  processToImprove: z
-    .string()
-    .min(10, "Describí el proceso (mínimo 10 caracteres)"),
-  currentTools: z
-    .array(z.enum(TOOL_OPTIONS))
-    .min(1, "Seleccioná al menos una herramienta"),
-  currentProblem: z
-    .string()
-    .min(10, "Describí el problema (mínimo 10 caracteres)"),
-  weeklyHoursLost: z.enum(HOURS_LOST_OPTIONS, "Seleccioná una opción"),
+  processToImprove: z.string().min(10, "Describí el proceso (mínimo 10 caracteres)"),
+  currentProblem: z.string().min(10, "Describí el problema (mínimo 10 caracteres)"),
   urgency: z.enum(URGENCY_OPTIONS, "Seleccioná una opción"),
   budget: z.enum(BUDGET_OPTIONS, "Seleccioná una opción"),
+
+  // Optional — strings accept "" from empty inputs without error
+  company: z.string().optional(),
+  role: z.string().optional(),
+  whatsapp: z.string().optional(),
+  companySize: z.string().optional(),
+  currentTools: z.array(z.enum(TOOL_OPTIONS)).optional(),
+  // weeklyHoursLost uses z.string (not enum) so "" from unselected <select> passes
+  weeklyHoursLost: z.string().optional(),
   additionalMessage: z.string().optional(),
 });
 

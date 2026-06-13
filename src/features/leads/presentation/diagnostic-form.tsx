@@ -31,6 +31,8 @@ const inputClass = (hasError: boolean) =>
   }`;
 
 const labelClass = "mb-1.5 block text-sm font-medium text-slate-300";
+const optionalHint = <span className="ml-1 font-normal text-slate-500">(opcional)</span>;
+const requiredMark = <span className="ml-0.5 text-red-400">*</span>;
 
 export function DiagnosticForm() {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -61,7 +63,7 @@ export function DiagnosticForm() {
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="fullName" className={labelClass}>
-              Nombre y apellido <span className="text-red-400">*</span>
+              Nombre y apellido{requiredMark}
             </label>
             <input
               id="fullName"
@@ -69,7 +71,6 @@ export function DiagnosticForm() {
               placeholder="Juan García"
               autoComplete="name"
               {...register("fullName")}
-              aria-describedby={errors.fullName ? "fullName-error" : undefined}
               className={inputClass(!!errors.fullName)}
             />
             <FieldError message={errors.fullName?.message} />
@@ -77,7 +78,7 @@ export function DiagnosticForm() {
 
           <div>
             <label htmlFor="company" className={labelClass}>
-              Empresa <span className="text-red-400">*</span>
+              Empresa{optionalHint}
             </label>
             <input
               id="company"
@@ -85,14 +86,13 @@ export function DiagnosticForm() {
               placeholder="Distribuidora García"
               autoComplete="organization"
               {...register("company")}
-              className={inputClass(!!errors.company)}
+              className={inputClass(false)}
             />
-            <FieldError message={errors.company?.message} />
           </div>
 
           <div>
             <label htmlFor="role" className={labelClass}>
-              Cargo / rol <span className="text-red-400">*</span>
+              Cargo / rol{optionalHint}
             </label>
             <input
               id="role"
@@ -100,14 +100,13 @@ export function DiagnosticForm() {
               placeholder="Gerente de operaciones"
               autoComplete="organization-title"
               {...register("role")}
-              className={inputClass(!!errors.role)}
+              className={inputClass(false)}
             />
-            <FieldError message={errors.role?.message} />
           </div>
 
           <div>
             <label htmlFor="email" className={labelClass}>
-              Email <span className="text-red-400">*</span>
+              Email{requiredMark}
             </label>
             <input
               id="email"
@@ -122,7 +121,7 @@ export function DiagnosticForm() {
 
           <div className="sm:col-span-2">
             <label htmlFor="whatsapp" className={labelClass}>
-              WhatsApp <span className="text-red-400">*</span>
+              WhatsApp{optionalHint}
             </label>
             <input
               id="whatsapp"
@@ -130,9 +129,8 @@ export function DiagnosticForm() {
               placeholder="+54 11 1234-5678"
               autoComplete="tel"
               {...register("whatsapp")}
-              className={inputClass(!!errors.whatsapp)}
+              className={inputClass(false)}
             />
-            <FieldError message={errors.whatsapp?.message} />
           </div>
         </div>
       </fieldset>
@@ -146,7 +144,7 @@ export function DiagnosticForm() {
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="industry" className={labelClass}>
-              Rubro <span className="text-red-400">*</span>
+              Rubro{requiredMark}
             </label>
             <select
               id="industry"
@@ -165,16 +163,15 @@ export function DiagnosticForm() {
 
           <div>
             <label htmlFor="companySize" className={labelClass}>
-              Personas en la empresa <span className="text-red-400">*</span>
+              Personas en la empresa{optionalHint}
             </label>
             <input
               id="companySize"
               type="text"
               placeholder="ej: 15 personas"
               {...register("companySize")}
-              className={inputClass(!!errors.companySize)}
+              className={inputClass(false)}
             />
-            <FieldError message={errors.companySize?.message} />
           </div>
         </div>
       </fieldset>
@@ -187,7 +184,7 @@ export function DiagnosticForm() {
 
         <div>
           <label htmlFor="processToImprove" className={labelClass}>
-            ¿Qué proceso querés mejorar? <span className="text-red-400">*</span>
+            ¿Qué proceso querés mejorar?{requiredMark}
           </label>
           <textarea
             id="processToImprove"
@@ -201,7 +198,7 @@ export function DiagnosticForm() {
 
         <div>
           <p className={labelClass}>
-            ¿Qué herramientas usan hoy? <span className="text-red-400">*</span>
+            ¿Qué herramientas usan hoy?{optionalHint}
           </p>
           <div className="mt-2 grid gap-2.5 sm:grid-cols-2">
             {TOOL_OPTIONS.map((tool) => (
@@ -219,12 +216,11 @@ export function DiagnosticForm() {
               </label>
             ))}
           </div>
-          <FieldError message={errors.currentTools?.message} />
         </div>
 
         <div>
           <label htmlFor="currentProblem" className={labelClass}>
-            ¿Qué problema les genera? <span className="text-red-400">*</span>
+            ¿Qué problema les genera?{requiredMark}
           </label>
           <textarea
             id="currentProblem"
@@ -246,12 +242,12 @@ export function DiagnosticForm() {
         <div className="grid gap-5 sm:grid-cols-3">
           <div>
             <label htmlFor="weeklyHoursLost" className={labelClass}>
-              Horas perdidas por semana <span className="text-red-400">*</span>
+              Horas perdidas por semana{optionalHint}
             </label>
             <select
               id="weeklyHoursLost"
               {...register("weeklyHoursLost")}
-              className={`${inputClass(!!errors.weeklyHoursLost)} cursor-pointer`}
+              className={`${inputClass(false)} cursor-pointer`}
             >
               <option value="">Seleccioná</option>
               {HOURS_LOST_OPTIONS.map((opt) => (
@@ -260,12 +256,11 @@ export function DiagnosticForm() {
                 </option>
               ))}
             </select>
-            <FieldError message={errors.weeklyHoursLost?.message} />
           </div>
 
           <div>
             <label htmlFor="urgency" className={labelClass}>
-              Urgencia <span className="text-red-400">*</span>
+              Urgencia{requiredMark}
             </label>
             <select
               id="urgency"
@@ -284,7 +279,7 @@ export function DiagnosticForm() {
 
           <div>
             <label htmlFor="budget" className={labelClass}>
-              Presupuesto estimado <span className="text-red-400">*</span>
+              Presupuesto estimado{requiredMark}
             </label>
             <select
               id="budget"
@@ -306,8 +301,7 @@ export function DiagnosticForm() {
       {/* Mensaje adicional */}
       <div>
         <label htmlFor="additionalMessage" className={labelClass}>
-          Mensaje adicional{" "}
-          <span className="text-slate-500">(opcional)</span>
+          Mensaje adicional{optionalHint}
         </label>
         <textarea
           id="additionalMessage"
@@ -320,7 +314,10 @@ export function DiagnosticForm() {
 
       {/* Server error */}
       {serverError && (
-        <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <div
+          role="alert"
+          className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+        >
           {serverError}
         </div>
       )}
@@ -335,7 +332,8 @@ export function DiagnosticForm() {
           {isSubmitting ? "Enviando…" : "Solicitar diagnóstico sin cargo"}
         </button>
         <p className="mt-3 text-xs text-slate-500">
-          Sin compromiso. Si no tiene sentido construir software a medida para tu caso, también te lo vamos a decir.
+          Sin compromiso. Si no tiene sentido construir software a medida para tu caso, también te
+          lo vamos a decir.
         </p>
       </div>
     </form>
