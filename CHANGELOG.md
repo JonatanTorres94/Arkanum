@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-13
+
+### Added
+
+- `/diagnostico` page with full diagnostic form.
+- `/gracias` page with honest non-persistent copy.
+- Zod schema for lead diagnostic form (`lead.schema.ts`).
+- React Hook Form integration with client-side validation.
+- Server Action with server-side Zod re-validation (`diagnostic.action.ts`).
+- Required/optional field distinction aligned with `docs/copy.md`.
+- Loading state and double-submit protection on form submit button.
+- Server error display when server-side validation fails.
+
+### Notes
+
+- Data is intentionally discarded after server-side validation. Persistence via Supabase will be added in v0.4.0.
+
 ## [0.2.0] - 2026-06-12
 
 ### Added
