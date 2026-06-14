@@ -1,4 +1,5 @@
-export type LeadStatus = "new";
+export const LEAD_STATUSES = ["new", "contacted", "qualified", "disqualified"] as const;
+export type LeadStatus = (typeof LEAD_STATUSES)[number];
 export type LeadSource = "website";
 
 export interface Lead {
@@ -25,4 +26,8 @@ export interface Lead {
 
 export type CreateLeadResult =
   | { ok: true; id: string }
+  | { ok: false; error: string };
+
+export type UpdateLeadStatusResult =
+  | { ok: true }
   | { ok: false; error: string };
