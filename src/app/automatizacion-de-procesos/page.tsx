@@ -49,7 +49,7 @@ const faqSchema = {
 
 const useCases = [
   { label: "Gestión de pedidos",             description: "Del WhatsApp o el papel a un sistema con trazabilidad." },
-  { label: "Control de stock",               description: "Diferencias cero entre lo vendido, lo disponible y lo registrado." },
+  { label: "Control de stock",               description: "Stock más claro y actualizado entre ventas, disponibilidad y registros internos." },
   { label: "Generación de reportes",         description: "Informes automáticos sin horas de trabajo manual." },
   { label: "Seguimiento de repartos",        description: "Estado en tiempo real de cada entrega desde el celular." },
   { label: "Registro de actividad en campo", description: "Visitas, tareas y confirmaciones desde la app del empleado." },

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 
 const footerLinks = [
-  { label: "Soluciones",                   href: "#soluciones" },
-  { label: "Método",                        href: "#metodo" },
+  { label: "Soluciones",                   href: "/#soluciones" },
+  { label: "Método",                        href: "/#metodo" },
   { label: "Diagnóstico",                  href: "/diagnostico" },
   { label: "Software a medida",            href: "/software-a-medida" },
   { label: "Automatización de procesos",   href: "/automatizacion-de-procesos" },
