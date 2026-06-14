@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-06-14
+
+### Added
+
+- Security headers on all responses: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
+- `robots.txt` via Next.js App Router — blocks `/admin/` and `/gracias` from indexing.
+- `sitemap.xml` via Next.js App Router — includes `/` and `/diagnostico`.
+- Honeypot field (`website`) in the diagnostic form — silently discards bot submissions.
+- In-memory rate limiter (`src/lib/security/rate-limit.ts`) — 5 requests per IP per 15 minutes.
+- `src/instrumentation.ts` — validates required env vars at startup; throws in production, warns in development.
+- `docs/deployment.md` — full deployment guide covering Supabase, Vercel, env vars, admin setup and anti-abuse caveats.
+
+### Changed
+
+- `diagnostic.action.ts` — integrates honeypot check and rate limit before persisting; sanitizes error log to avoid leaking internal details.
+
+### Notes
+
+- Rate limiter is in-memory (best-effort). Resets on serverless cold starts. Redis/KV-backed solution deferred to a future release.
+- CSP not configured in this release. Next.js inline scripts require dedicated tuning. Deferred.
+- HSTS handled by Vercel on production domains; not set at app level.
+
 ## [0.6.0] - 2026-06-14
 
 ### Added
