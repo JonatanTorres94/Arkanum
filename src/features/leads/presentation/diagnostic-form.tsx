@@ -13,6 +13,7 @@ import {
   BUDGET_OPTIONS,
 } from "@/features/leads/domain/lead.schema";
 import { submitDiagnosticAction } from "@/server/actions/diagnostic.action";
+import { trackDiagnosticSubmitSuccess, trackDiagnosticSubmitError } from "@/lib/analytics/track";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -48,7 +49,12 @@ export function DiagnosticForm() {
   const onSubmit = async (data: LeadFormData) => {
     setServerError(null);
     const result = await submitDiagnosticAction(data);
-    if (result?.error) setServerError(result.error);
+    if (result?.error) {
+      setServerError(result.error);
+      trackDiagnosticSubmitError();
+    } else {
+      trackDiagnosticSubmitSuccess();
+    }
   };
 
   return (

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { HomeCtaButton } from "@/components/ui/tracked-cta-button";
 
 export function FinalCtaSection() {
   return (
@@ -15,9 +15,9 @@ export function FinalCtaSection() {
           digital a medida puede ayudarte a reducir carga manual, ordenar información o conectar
           sistemas.
         </p>
-        <Button href="/diagnostico" variant="primary" className="px-10 py-3.5 text-sm">
+        <HomeCtaButton location="final_cta" variant="primary" className="px-10 py-3.5 text-sm">
           Diagnosticar mi proceso sin cargo
-        </Button>
+        </HomeCtaButton>
         <p className="mt-4 text-xs text-slate-500">
           Sin compromiso. Si no tiene sentido construir software a medida para tu caso, también te
           lo vamos a decir.

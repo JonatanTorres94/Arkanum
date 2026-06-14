@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
-import { Button } from "@/components/ui/button";
+import { ServicePageCtaButton } from "@/components/ui/tracked-cta-button";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -82,9 +82,9 @@ export default function AutomatizacionDeProcesosPage() {
               Si un proceso se repite, tarda más de lo que debería o genera errores con frecuencia,
               probablemente pueda automatizarse.
             </p>
-            <Button href="/diagnostico" variant="primary" className="px-8 py-3.5 text-sm">
+            <ServicePageCtaButton page="automatizacion-de-procesos" variant="primary" className="px-8 py-3.5 text-sm">
               Diagnosticar mi proceso sin cargo
-            </Button>
+            </ServicePageCtaButton>
           </div>
         </section>
 
@@ -137,9 +137,9 @@ export default function AutomatizacionDeProcesosPage() {
               Contanos cómo trabajan hoy. Analizamos tu caso y te decimos si tiene sentido
               intervenir y por dónde empezar.
             </p>
-            <Button href="/diagnostico" variant="primary" className="px-8 py-3.5 text-sm">
+            <ServicePageCtaButton page="automatizacion-de-procesos" variant="primary" className="px-8 py-3.5 text-sm">
               Solicitar diagnóstico sin cargo
-            </Button>
+            </ServicePageCtaButton>
           </div>
         </section>
 

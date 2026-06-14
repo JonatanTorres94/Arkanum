@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { HomeCtaButton } from "@/components/ui/tracked-cta-button";
 
 export function HeroSection() {
   return (
@@ -18,9 +19,9 @@ export function HeroSection() {
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row">
-          <Button href="/diagnostico" variant="primary" className="px-8 py-3.5 text-sm">
+          <HomeCtaButton location="hero" variant="primary" className="px-8 py-3.5 text-sm">
             Diagnosticar mi proceso sin cargo
-          </Button>
+          </HomeCtaButton>
           <Button href="#soluciones" variant="secondary" className="px-8 py-3.5 text-sm">
             Ver soluciones
           </Button>

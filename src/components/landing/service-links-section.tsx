@@ -1,14 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { Section } from "@/components/ui/section";
+import { trackServiceLinkClick, type ServiceSlug } from "@/lib/analytics/track";
 
-const services = [
+const services: { href: string; slug: ServiceSlug; label: string; description: string }[] = [
   {
     href:        "/software-a-medida",
+    slug:        "software-a-medida",
     label:       "Software a medida",
     description: "Sistemas web, apps móviles e integraciones construidas para tu operación real.",
   },
   {
     href:        "/automatizacion-de-procesos",
+    slug:        "automatizacion-de-procesos",
     label:       "Automatización de procesos",
     description: "Reemplazamos planillas, tareas manuales y procesos repetitivos por herramientas que trabajan solas.",
   },
@@ -25,6 +30,7 @@ export function ServiceLinksSection() {
           <Link
             key={service.href}
             href={service.href}
+            onClick={() => trackServiceLinkClick(service.slug)}
             className="group flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900 p-6 transition-colors hover:border-slate-700"
           >
             <h3 className="text-sm font-semibold text-slate-100 group-hover:text-cyan-400 transition-colors">

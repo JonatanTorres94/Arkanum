@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
-import { Button } from "@/components/ui/button";
+import { ServicePageCtaButton } from "@/components/ui/tracked-cta-button";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -96,9 +96,9 @@ export default function SoftwareAMedidaPage() {
               Las herramientas genéricas funcionan hasta cierto punto. Cuando tu operación crece,
               los parches empiezan a costar más que una solución construida para vos.
             </p>
-            <Button href="/diagnostico" variant="primary" className="px-8 py-3.5 text-sm">
+            <ServicePageCtaButton page="software-a-medida" variant="primary" className="px-8 py-3.5 text-sm">
               Diagnosticar mi proceso sin cargo
-            </Button>
+            </ServicePageCtaButton>
           </div>
         </section>
 
@@ -151,9 +151,9 @@ export default function SoftwareAMedidaPage() {
               Primero entendemos tu operación. Si una solución a medida tiene sentido, te lo
               decimos. Si no, también.
             </p>
-            <Button href="/diagnostico" variant="primary" className="px-8 py-3.5 text-sm">
+            <ServicePageCtaButton page="software-a-medida" variant="primary" className="px-8 py-3.5 text-sm">
               Solicitar diagnóstico sin cargo
-            </Button>
+            </ServicePageCtaButton>
           </div>
         </section>
 

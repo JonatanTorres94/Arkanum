@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-06-14
+
+### Added
+
+- Vercel Analytics (`@vercel/analytics`) — page view tracking, server-side, privacy-first.
+- Vercel Speed Insights (`@vercel/speed-insights`) — Core Web Vitals monitoring.
+- Google Analytics 4 via `@next/third-parties/google` — event tracking and Search Console integration.
+- `src/lib/analytics/track.ts` — infrastructure wrapper with strongly typed, no-PII event functions:
+  - `trackCtaDiagnosticClick(location)` → `cta_diagnostic_click`
+  - `trackDiagnosticSubmitSuccess()` → `diagnostic_submit_success`
+  - `trackDiagnosticSubmitError()` → `diagnostic_submit_error`
+  - `trackServiceLinkClick(service)` → `home_service_link_click`
+  - `trackIntentPageCta(page)` → `intent_page_cta_click`
+- `src/components/ui/tracked-cta-button.tsx` — `HomeCtaButton` and `ServicePageCtaButton` client components.
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID` env var — GA4 is only mounted when the var is set.
+- `.env.example` — documented `NEXT_PUBLIC_GA_MEASUREMENT_ID` and `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` (commented, for when Search Console code is available).
+
+### Changed
+
+- `src/app/layout.tsx` — added Analytics, SpeedInsights, and conditional GoogleAnalytics.
+- `hero-section.tsx`, `final-cta-section.tsx` — CTA buttons replaced with `HomeCtaButton` (tracks `cta_diagnostic_click`).
+- `service-links-section.tsx` — converted to client component, cards track `home_service_link_click`.
+- `software-a-medida/page.tsx`, `automatizacion-de-procesos/page.tsx` — CTAs use `ServicePageCtaButton` (tracks `intent_page_cta_click`).
+- `diagnostic-form.tsx` — `onSubmit` fires `diagnostic_submit_success` or `diagnostic_submit_error` after server action resolves.
+
+### Notes
+
+- No PII is sent to analytics. All event params are generic slugs or location identifiers.
+- GA4 is conditionally mounted: if `NEXT_PUBLIC_GA_MEASUREMENT_ID` is not set, the script is not injected and tracking calls are silent no-ops.
+- Search Console verification: when you have the code, add `metadata.verification.google` in `src/app/layout.tsx`. Env var documented in `.env.example`.
+
 ## [0.9.0] - 2026-06-14
 
 ### Added
