@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-06-14
+
+### Added
+
+- `/software-a-medida` landing page with targeted metadata, 4 service types and 3 visible FAQs with JSON-LD structured data.
+- `/automatizacion-de-procesos` landing page with targeted metadata, 6 use cases and 3 visible FAQs with JSON-LD structured data.
+- `ServiceLinksSection` component on homepage linking to both intent pages.
+- `src/config/i18n.ts` — locale config: `es` active, `pt-BR` and `en` defined as future targets.
+- `docs/seo-strategy.md` — keyword strategy, page structure, Search Console checklist and UTM conventions.
+- `docs/internationalization.md` — i18n decision, future architecture and activation criteria.
+
+### Changed
+
+- Homepage (`src/app/page.tsx`) — added `metadata` export with `title: { absolute }` and SEO-targeted description.
+- `sitemap.ts` — added `/software-a-medida` and `/automatizacion-de-procesos` with `priority: 0.9`.
+- `site-footer.tsx` — added links to both intent pages for navigability and internal linking.
+
+### Notes
+
+- Both intent pages include rendered FAQ sections; JSON-LD is only present because the content is also visible to users.
+- No i18n routing activated. Spanish only. Migration path documented in `docs/internationalization.md`.
+- No false claims, metrics or testimonials added.
+
 ## [0.8.0] - 2026-06-14
 
 ### Added
