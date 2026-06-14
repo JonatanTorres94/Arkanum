@@ -5,7 +5,8 @@ import { SiteFooter } from "@/components/layout/site-footer";
 
 export const metadata: Metadata = {
   title: "Solicitud recibida",
-  description: "Recibimos tu solicitud de diagnóstico. Te vamos a contactar a la brevedad.",
+  description:
+    "Recibimos tu solicitud de diagnóstico para revisar si una solución a medida tiene sentido para tu proceso.",
   robots: { index: false, follow: false },
 };
 
