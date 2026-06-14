@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-06-14
+
+### Added
+
+- `supabase/migrations/20260614010000_create_lead_notes_table.sql` — `lead_notes` table with `on delete cascade`, indexes and RLS enabled.
+- `LeadNote` domain type with `id`, `leadId`, `content`, `createdBy` and `createdAt`.
+- `noteSchema` — Zod validation: required, min 2, max 2000 characters.
+- `NoteRepository` interface with `findByLeadId` and `create`.
+- `SupabaseNoteRepository` implementation with snake_case → camelCase mapping.
+- `getLeadNotesUseCase` — fetches notes by lead, sorted newest first.
+- `createLeadNoteUseCase` — persists a new note with author and trimmed content.
+- `createLeadNoteAction` — admin-guarded Server Action with Zod validation; captures `user.email` as `createdBy`.
+- `LeadNoteForm` — client component with `useTransition`, error display and form reset on success.
+- Notes section in `/admin/leads/[id]` — list of existing notes + form to add new ones.
+
+### Notes
+
+- Note content is never logged.
+- `created_by` stores the admin's email. Nullable if email is unavailable.
+- Notes are fetched server-side; `revalidatePath` triggers page re-render after creation.
+
 ## [0.7.0] - 2026-06-14
 
 ### Added
