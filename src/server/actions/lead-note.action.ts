@@ -21,7 +21,7 @@ export async function createLeadNoteAction(
   const repository = new SupabaseNoteRepository();
   const outcome = await createLeadNoteUseCase(
     leadId,
-    result.data.content.trim(),
+    result.data.content,
     user.email ?? null,
     repository
   );
