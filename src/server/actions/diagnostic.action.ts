@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { leadSchema, type LeadFormData } from "@/features/leads/domain/lead.schema";
 import { createLeadUseCase } from "@/features/leads/application/create-lead.use-case";
+import { notifyLeadUseCase } from "@/features/leads/application/notify-lead.use-case";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
 
 export async function submitDiagnosticAction(
@@ -20,6 +21,10 @@ export async function submitDiagnosticAction(
   if (!outcome.ok) {
     return { error: outcome.error };
   }
+
+  await notifyLeadUseCase(result.data).catch((err: unknown) => {
+    console.error("[diagnostic-action] Email notification error:", err);
+  });
 
   redirect("/gracias");
 }
