@@ -1,7 +1,11 @@
-import { resend } from "@/lib/email/resend";
 import type { LeadFormData } from "@/features/leads/domain/lead.schema";
+import type { EmailService } from "@/lib/email/email-service";
 
-export async function notifyLeadUseCase(input: LeadFormData): Promise<void> {
+export async function notifyLeadUseCase(
+  input: LeadFormData,
+  leadId: string,
+  emailService: EmailService
+): Promise<void> {
   const to = process.env.LEAD_NOTIFICATION_TO;
   const from = process.env.LEAD_NOTIFICATION_FROM;
 
@@ -10,11 +14,12 @@ export async function notifyLeadUseCase(input: LeadFormData): Promise<void> {
     return;
   }
 
-  const { error } = await resend.emails.send({
+  await emailService.send({
     from,
     to,
     subject: `Nuevo lead: ${input.fullName} — ${input.industry}`,
     text: [
+      `ID: ${leadId}`,
       `Nombre: ${input.fullName}`,
       `Email: ${input.email}`,
       input.company ? `Empresa: ${input.company}` : null,
@@ -33,8 +38,4 @@ export async function notifyLeadUseCase(input: LeadFormData): Promise<void> {
       .filter(Boolean)
       .join("\n"),
   });
-
-  if (error) {
-    console.error("[notify-lead] Failed to send email:", error);
-  }
 }

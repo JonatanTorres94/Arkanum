@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-14
+
+### Added
+
+- `EmailService` interface (`src/lib/email/email-service.ts`) decoupling the application layer from Resend.
+- `ResendEmailService` implementation (`src/lib/email/resend-email-service.ts`) wrapping the Resend SDK.
+- `notifyLeadUseCase` receives `EmailService` via dependency injection and includes `leadId` in the notification body.
+- Email notification triggered after successful lead persist; failure is non-blocking (logged server-side, user redirected to `/gracias` regardless).
+- `LEAD_NOTIFICATION_TO` and `LEAD_NOTIFICATION_FROM` added to `.env.example`.
+
+### Changed
+
+- `submitDiagnosticAction` updated to instantiate `ResendEmailService` and pass it to `notifyLeadUseCase`.
+
+### Removed
+
+- `src/lib/email/resend.ts` singleton replaced by encapsulated `ResendEmailService`.
+
 ## [0.4.0] - 2026-06-13
 
 ### Added

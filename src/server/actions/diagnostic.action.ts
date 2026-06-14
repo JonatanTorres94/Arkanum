@@ -5,6 +5,7 @@ import { leadSchema, type LeadFormData } from "@/features/leads/domain/lead.sche
 import { createLeadUseCase } from "@/features/leads/application/create-lead.use-case";
 import { notifyLeadUseCase } from "@/features/leads/application/notify-lead.use-case";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
+import { ResendEmailService } from "@/lib/email/resend-email-service";
 
 export async function submitDiagnosticAction(
   data: LeadFormData
@@ -22,7 +23,8 @@ export async function submitDiagnosticAction(
     return { error: outcome.error };
   }
 
-  await notifyLeadUseCase(result.data).catch((err: unknown) => {
+  const emailService = new ResendEmailService();
+  await notifyLeadUseCase(result.data, outcome.id, emailService).catch((err: unknown) => {
     console.error("[diagnostic-action] Email notification error:", err);
   });
 
