@@ -25,8 +25,11 @@ export async function submitDiagnosticAction(
 
   // Rate limit: best-effort in-memory (resets on cold start)
   const headersList = await headers();
-  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const { allowed } = checkRateLimit(ip);
+  const ip =
+    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    headersList.get("x-real-ip") ||
+    "unknown";
+  const { allowed } = checkRateLimit(`diagnostic:${ip}`);
 
   if (!allowed) {
     return {

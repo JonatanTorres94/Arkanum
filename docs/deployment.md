@@ -52,7 +52,7 @@ Copy `.env.example` to `.env.local` for local development.
 | `LEAD_NOTIFICATION_FROM` | Verified sender address in Resend | Yes (in prod) |
 | `NEXT_PUBLIC_SITE_URL` | Public site URL (used in sitemap and metadata) | Yes |
 
-Keys are validated at startup in production. Missing required keys will throw and prevent the app from starting.
+Core Supabase server keys are validated at startup in production. Email, admin and site URL variables are validated close to their server-side usage or through the deployment smoke test.
 
 Never commit `.env.local` or any file containing real values.
 
