@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-14
+
+### Added
+
+- Internal admin login using Supabase Auth (`/admin/login`).
+- `ADMIN_EMAILS` environment variable for allowlist-based dashboard access.
+- Server-side admin guard (`verifyAdmin`) applied to all `/admin/*` pages and actions.
+- `@supabase/ssr` for cookie-based session management in Server Components and middleware.
+- Middleware at `/admin/:path*` to refresh Supabase session token on each request.
+- Admin leads list page (`/admin/leads`) with status badges and date formatting.
+- Admin lead detail page (`/admin/leads/[id]`) with all lead fields.
+- `LeadStatusSelector` client component for inline status updates.
+- `LeadStatusBadge` component with color-coded states.
+- `getLeadsUseCase` and `updateLeadStatusUseCase` in application layer.
+- `findAll()` and `updateStatus()` methods in `LeadRepository` interface and `SupabaseLeadRepository`.
+- Server Actions: `updateLeadStatusAction` (auth-guarded), `signOutAction`, `signInAction`.
+- DB migration: `leads_status_check` constraint restricting valid status values.
+
+### Changed
+
+- `LeadStatus` type expanded to four workflow states: `new`, `contacted`, `qualified`, `disqualified`.
+- `LEAD_STATUSES` constant added to domain for runtime validation.
+
+### Notes
+
+- Dashboard is internal-only. No public read/write policies on `leads`.
+- `verifyAdmin` checks both Supabase session and `ADMIN_EMAILS` allowlist on every request.
+- `findById` is not implemented — detail page uses `findAll()` for MVP. Marked as tech debt.
+
 ## [0.5.0] - 2026-06-14
 
 ### Added
