@@ -62,6 +62,9 @@ export const leadSchema = z.object({
   // weeklyHoursLost uses z.string (not enum) so "" from unselected <select> passes
   weeklyHoursLost: z.string().optional(),
   additionalMessage: z.string().optional(),
+
+  // Honeypot — must be empty on submit; bots fill it, humans don't
+  website: z.string().optional(),
 });
 
 export type LeadFormData = z.infer<typeof leadSchema>;

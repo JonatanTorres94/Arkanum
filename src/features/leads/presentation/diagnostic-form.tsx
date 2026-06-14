@@ -53,6 +53,15 @@ export function DiagnosticForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-10">
+      {/* Honeypot: visually hidden, bots fill it, humans don't */}
+      <input
+        type="text"
+        {...register("website")}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute left-[-9999px] h-0 w-0 overflow-hidden opacity-0"
+      />
 
       {/* Tus datos */}
       <fieldset className="space-y-5">
