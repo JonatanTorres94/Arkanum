@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-06-15
+
+### Fixed
+
+- `ResendEmailService` — lazy Resend client initialization in `send()` instead of constructor. If `RESEND_API_KEY` is not set, logs a warning and returns early instead of throwing. Prevents email errors from surfacing to users when the env var is missing.
+- `lead.schema.ts` — `companySize` promoted from optional free text to required `z.enum(COMPANY_SIZE_OPTIONS)`. Predefined ranges improve data consistency and lead qualification.
+- `lead.schema.ts` — `BUDGET_OPTIONS` updated to more filtering ranges: floor raised to $500k, top range to $5M+, "No lo sé" replaced with "No tenemos cifra definida aún".
+- `diagnostic-form.tsx` — `companySize` input converted to a required select with `COMPANY_SIZE_OPTIONS`.
+- `diagnostic-form.tsx` — WhatsApp field now includes anti-spam microcopy below the input.
+
+### Notes
+
+- No Supabase migration required. `company_size` and `budget` columns remain `TEXT`; new enum values are validated at form submission time only.
+- Existing records in the DB with old budget strings or empty company_size are unaffected.
+
 ## [0.11.0] - 2026-06-14
 
 ### Added
