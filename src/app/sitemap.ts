@@ -1,31 +1,12 @@
 import type { MetadataRoute } from "next";
-import { siteConfig } from "@/config/site";
+import { publicRoutes } from "@/config/routes";
+import { getCanonicalUrl } from "@/lib/seo/canonical";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url:             siteConfig.url,
-      lastModified:    new Date(),
-      changeFrequency: "monthly",
-      priority:        1,
-    },
-    {
-      url:             `${siteConfig.url}/diagnostico`,
-      lastModified:    new Date(),
-      changeFrequency: "monthly",
-      priority:        0.8,
-    },
-    {
-      url:             `${siteConfig.url}/software-a-medida`,
-      lastModified:    new Date(),
-      changeFrequency: "monthly",
-      priority:        0.9,
-    },
-    {
-      url:             `${siteConfig.url}/automatizacion-de-procesos`,
-      lastModified:    new Date(),
-      changeFrequency: "monthly",
-      priority:        0.9,
-    },
-  ];
+  return publicRoutes.map((route) => ({
+    url:             getCanonicalUrl(route.path),
+    lastModified:    new Date(),
+    changeFrequency: route.changeFrequency,
+    priority:        route.priority,
+  }));
 }

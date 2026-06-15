@@ -1,11 +1,30 @@
-// Active locale for v0.9.0. Next.js i18n routing is NOT enabled in this release.
-// Future locales are defined here as the planned expansion target.
-// See docs/internationalization.md for the migration strategy.
+// i18n routing is NOT active. Only "es" is served.
+// See docs/internationalization.md for the activation plan and migration path.
 
-export const i18nConfig = {
-  defaultLocale: "es" as const,
-  futureLocales:  ["pt-BR", "en"] as const,
+export const locales = ["es", "pt-BR", "en"] as const;
+export type Locale = (typeof locales)[number];
+
+export const activeLocales = ["es"] as const;
+export type ActiveLocale = (typeof activeLocales)[number];
+
+export const futureLocales = ["pt-BR", "en"] as const;
+export type FutureLocale = (typeof futureLocales)[number];
+
+export const defaultLocale = "es" satisfies ActiveLocale;
+
+export const localeConfig: Record<
+  Locale,
+  { label: string; territory: string | null; direction: "ltr" | "rtl"; active: boolean }
+> = {
+  es:      { label: "Español",   territory: "AR", direction: "ltr", active: true  },
+  "pt-BR": { label: "Português", territory: "BR", direction: "ltr", active: false },
+  en:      { label: "English",   territory: null,  direction: "ltr", active: false },
 };
 
-export type DefaultLocale  = typeof i18nConfig.defaultLocale;
-export type FutureLocale   = (typeof i18nConfig.futureLocales)[number];
+export function isActiveLocale(locale: string): locale is ActiveLocale {
+  return (activeLocales as readonly string[]).includes(locale);
+}
+
+export function isFutureLocale(locale: string): locale is FutureLocale {
+  return (futureLocales as readonly string[]).includes(locale);
+}
