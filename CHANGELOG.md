@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-06-15
+
+### Added
+
+- `src/components/admin/lead-filters.tsx` — Client Component con 5 selects (estado, presupuesto, urgencia, rubro, tamaño). Auto-submit en onChange via `router.push`. "Limpiar filtros" visible solo cuando hay filtros activos.
+
+### Changed
+
+- `src/app/admin/leads/page.tsx` — acepta `searchParams`, filtra leads en memoria según los 5 campos de calificación sin modificar repositorio ni use cases. Columnas actualizadas: Nombre (+ empresa como subtext), Estado, Presupuesto, Urgencia, Rubro, Tamaño (xl+), Fecha. Contador cambia a "X de Y" cuando hay filtros activos. Filtros envueltos en `<Suspense>` por requisito de `useSearchParams`. `max-w-5xl` → `max-w-6xl`.
+- Two distinct empty states: "no leads en absoluto" vs. "no resultados para los filtros activos".
+
+### Notes
+
+- Sin cambios en repositorio, use cases, tipos de dominio ni base de datos.
+- Filtrado en memoria: apropiado para el volumen esperado en MVP. Si el listado crece, el filtro puede moverse a la query de Supabase sin cambiar la interfaz de la página.
+- Lead detail, status update y notas internas sin cambios.
+
 ## [0.13.0] - 2026-06-15
 
 ### Added
