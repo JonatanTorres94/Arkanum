@@ -10,7 +10,7 @@
 
 ### Changed
 
-- `src/app/admin/leads/page.tsx` — acepta `searchParams`, filtra leads en memoria según los 5 campos de calificación sin modificar repositorio ni use cases. Columnas actualizadas: Nombre (+ empresa como subtext), Estado, Presupuesto, Urgencia, Rubro, Fecha. Contador cambia a "X de Y" cuando hay filtros activos. Filtros envueltos en `<Suspense>` por requisito de `useSearchParams`. `max-w-5xl` → `max-w-6xl`.
+- `src/app/admin/leads/page.tsx` — acepta `searchParams`, filtra leads en memoria según los 5 campos de calificación sin modificar repositorio ni use cases. Columnas actualizadas: Nombre (+ empresa como subtext), Estado, Presupuesto, Urgencia, Rubro, Tamaño (xl+), Fecha. Contador cambia a "X de Y" cuando hay filtros activos. Filtros envueltos en `<Suspense>` por requisito de `useSearchParams`. `max-w-5xl` → `max-w-6xl`.
 - Two distinct empty states: "no leads en absoluto" vs. "no resultados para los filtros activos".
 
 ### Notes

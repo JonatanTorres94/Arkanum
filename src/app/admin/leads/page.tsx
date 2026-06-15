@@ -109,6 +109,7 @@ export default async function AdminLeadsPage({
                   <th className="hidden px-4 py-3 text-left font-medium text-slate-400 md:table-cell">Presupuesto</th>
                   <th className="hidden px-4 py-3 text-left font-medium text-slate-400 lg:table-cell">Urgencia</th>
                   <th className="hidden px-4 py-3 text-left font-medium text-slate-400 md:table-cell">Rubro</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-slate-400 xl:table-cell">Tamaño</th>
                   <th className="hidden px-4 py-3 text-left font-medium text-slate-400 sm:table-cell">Fecha</th>
                 </tr>
               </thead>
@@ -140,6 +141,9 @@ export default async function AdminLeadsPage({
                     </td>
                     <td className="hidden px-4 py-3 text-slate-400 md:table-cell">
                       {lead.industry}
+                    </td>
+                    <td className="hidden px-4 py-3 text-slate-400 xl:table-cell">
+                      {lead.companySize}
                     </td>
                     <td className="hidden px-4 py-3 text-slate-500 sm:table-cell">
                       {new Date(lead.createdAt).toLocaleDateString("es-AR", {
