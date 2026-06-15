@@ -91,12 +91,12 @@ export default async function AdminLeadsPage({
             <p className="text-sm text-slate-400">
               No hay leads que coincidan con los filtros seleccionados.
             </p>
-            <a
+            <Link
               href="/admin/leads"
               className="mt-3 inline-block text-xs text-cyan-400 transition-colors hover:text-cyan-300"
             >
               Limpiar filtros
-            </a>
+            </Link>
           </div>
 
         ) : (

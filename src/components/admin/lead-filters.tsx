@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LEAD_STATUSES, type LeadStatus } from "@/features/leads/domain/lead.types";
 import {
@@ -74,12 +75,12 @@ export function LeadFilters() {
       </select>
 
       {hasFilters && (
-        <a
+        <Link
           href="/admin/leads"
           className="text-xs text-slate-500 transition-colors hover:text-slate-300"
         >
           Limpiar filtros
-        </a>
+        </Link>
       )}
     </div>
   );
