@@ -1,7 +1,13 @@
 import { sendGAEvent } from "@next/third-parties/google";
 
 export type DiagnosticCtaLocation = "hero" | "final_cta";
-export type ServiceSlug = "software-a-medida" | "automatizacion-de-procesos";
+export type ServiceSlug =
+  | "software-a-medida"
+  | "automatizacion-de-procesos"
+  | "sistemas-para-distribuidoras"
+  | "software-para-logistica"
+  | "sistemas-de-stock"
+  | "automatizacion-con-whatsapp";
 
 export function trackCtaDiagnosticClick(location: DiagnosticCtaLocation): void {
   sendGAEvent("event", "cta_diagnostic_click", { location });
