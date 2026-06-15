@@ -7,6 +7,7 @@ import {
   leadSchema,
   type LeadFormData,
   INDUSTRY_OPTIONS,
+  COMPANY_SIZE_OPTIONS,
   TOOL_OPTIONS,
   HOURS_LOST_OPTIONS,
   URGENCY_OPTIONS,
@@ -146,6 +147,9 @@ export function DiagnosticForm() {
               {...register("whatsapp")}
               className={inputClass(false)}
             />
+            <p className="mt-1.5 text-xs text-slate-500">
+              Solo te contactamos por WhatsApp si lo mencionás en tu mensaje. No enviamos mensajes sin aviso previo.
+            </p>
           </div>
         </div>
       </fieldset>
@@ -178,15 +182,21 @@ export function DiagnosticForm() {
 
           <div>
             <label htmlFor="companySize" className={labelClass}>
-              Personas en la empresa{optionalHint}
+              Personas en la empresa{requiredMark}
             </label>
-            <input
+            <select
               id="companySize"
-              type="text"
-              placeholder="ej: 15 personas"
               {...register("companySize")}
-              className={inputClass(false)}
-            />
+              className={`${inputClass(!!errors.companySize)} cursor-pointer`}
+            >
+              <option value="">Seleccioná una opción</option>
+              {COMPANY_SIZE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+            <FieldError message={errors.companySize?.message} />
           </div>
         </div>
       </fieldset>
