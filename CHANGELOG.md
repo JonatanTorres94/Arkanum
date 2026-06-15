@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-06-14
+
+### Added
+
+- `src/config/routes.ts` — central registry of public, indexable routes (path, priority, changeFrequency). Single source of truth for sitemap and future tooling.
+- `src/lib/seo/canonical.ts` — SEO helpers: `getCanonicalUrl`, `getLocalizedUrl`, `getAlternates`. `getAlternates` returns empty object while only one locale is active — no hreflang emitted to non-existent pages.
+
+### Changed
+
+- `src/config/i18n.ts` — hardened: added `localeConfig` with label, territory, direction and active flag per locale; added `isActiveLocale` and `isFutureLocale` type guards; explicit `ActiveLocale` and `FutureLocale` types derived from const arrays.
+- `src/app/sitemap.ts` — derives entries from `publicRoutes` and `getCanonicalUrl` instead of hardcoded strings.
+- `docs/internationalization.md` — updated to v0.11.0 state, documents new helpers and activation checklist.
+
+### Notes
+
+- No i18n routing activated. Spanish only. No locale-prefixed routes created.
+- No hreflang tags emitted. `getAlternates` is safe: it produces output only when multiple locales are active.
+- When a new locale is ready to activate: add it to `activeLocales` in `i18n.ts`, add route translations to `routes.ts`, and enable routing per `docs/internationalization.md`.
+
 ## [0.10.0] - 2026-06-14
 
 ### Added

@@ -1,0 +1,18 @@
+// Central registry of public, indexable routes.
+// Used by sitemap.ts and any future breadcrumb or link validation tooling.
+// Admin routes, /gracias, and noindex pages are intentionally excluded.
+
+type ChangeFrequency = "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+
+export type PublicRoute = {
+  readonly path: string;
+  readonly priority: number;
+  readonly changeFrequency: ChangeFrequency;
+};
+
+export const publicRoutes: readonly PublicRoute[] = [
+  { path: "/",                            priority: 1.0, changeFrequency: "monthly" },
+  { path: "/software-a-medida",           priority: 0.9, changeFrequency: "monthly" },
+  { path: "/automatizacion-de-procesos",  priority: 0.9, changeFrequency: "monthly" },
+  { path: "/diagnostico",                 priority: 0.8, changeFrequency: "monthly" },
+];
