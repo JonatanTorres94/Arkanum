@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-06-15
+
+### Added
+
+- `/sistemas-para-distribuidoras` — landing de intención para distribuidoras y mayoristas. Cubre: gestión de pedidos, stock, repartos, historial de clientes, conciliación de pagos y reportes. 3 FAQs con JSON-LD.
+- `/software-para-logistica` — landing de intención para empresas de logística y repartos. Cubre: órdenes de entrega, app para choferes, confirmación de entrega, seguimiento en tiempo real y reportes. 3 FAQs con JSON-LD.
+- `/sistemas-de-stock` — landing de intención para control de inventario. Cubre: entradas/salidas, alertas de mínimo, múltiples depósitos, trazabilidad por lote y reportes. 3 FAQs con JSON-LD.
+- `/automatizacion-con-whatsapp` — landing de intención para empresas que operan por WhatsApp. Cubre: captura de pedidos, panel de gestión, notificaciones automáticas, historial trazable y roles diferenciados. 3 FAQs con JSON-LD.
+- Sección "También puede interesarte" con 2 links internos en cada página nueva.
+
+### Changed
+
+- `src/lib/analytics/track.ts` — `ServiceSlug` extendido con los 4 slugs nuevos para `intent_page_cta_click`.
+- `src/config/routes.ts` — 4 rutas nuevas registradas (priority 0.8). El sitemap las recoge automáticamente.
+
+### Notes
+
+- No hay claims falsos, métricas inventadas ni testimonios en ninguna página.
+- Todos los CTAs usan `ServicePageCtaButton` con el slug correspondiente — eventos ya trackeados.
+- Links internos: distribuidoras ↔ stock, logística ↔ distribuidoras, stock ↔ software-a-medida, whatsapp ↔ automatizacion-de-procesos.
+
 ## [0.12.0] - 2026-06-15
 
 ### Added

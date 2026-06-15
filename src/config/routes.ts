@@ -11,8 +11,12 @@ export type PublicRoute = {
 };
 
 export const publicRoutes: readonly PublicRoute[] = [
-  { path: "/",                            priority: 1.0, changeFrequency: "monthly" },
-  { path: "/software-a-medida",           priority: 0.9, changeFrequency: "monthly" },
-  { path: "/automatizacion-de-procesos",  priority: 0.9, changeFrequency: "monthly" },
-  { path: "/diagnostico",                 priority: 0.8, changeFrequency: "monthly" },
+  { path: "/",                              priority: 1.0, changeFrequency: "monthly" },
+  { path: "/software-a-medida",             priority: 0.9, changeFrequency: "monthly" },
+  { path: "/automatizacion-de-procesos",    priority: 0.9, changeFrequency: "monthly" },
+  { path: "/sistemas-para-distribuidoras",  priority: 0.8, changeFrequency: "monthly" },
+  { path: "/software-para-logistica",       priority: 0.8, changeFrequency: "monthly" },
+  { path: "/sistemas-de-stock",             priority: 0.8, changeFrequency: "monthly" },
+  { path: "/automatizacion-con-whatsapp",   priority: 0.8, changeFrequency: "monthly" },
+  { path: "/diagnostico",                   priority: 0.8, changeFrequency: "monthly" },
 ];
