@@ -28,7 +28,7 @@ const faqs = [
   {
     question: "¿Puede integrarse con facturación electrónica?",
     answer:
-      "Sí, con sistemas como AFIP, Remiito u otros según lo que uses. La integración se define en el diagnóstico inicial según tu operación.",
+      "Puede evaluarse. La integración depende del sistema de facturación que uses, de si tiene API o mecanismos de exportación/importación, y de los requisitos fiscales aplicables. Lo definimos durante el diagnóstico inicial.",
   },
   {
     question: "¿Los repartidores pueden usarlo desde el celular?",

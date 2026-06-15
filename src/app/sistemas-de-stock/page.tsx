@@ -50,7 +50,7 @@ const faqSchema = {
 const capabilities = [
   {
     title: "Registro de entradas y salidas",
-    description: "Cada movimiento queda registrado con fecha, responsable y motivo. Sin fórmulas manuales ni riesgo de sobreescritura.",
+    description: "Cada movimiento queda registrado con fecha, responsable y motivo. Menos dependencia de fórmulas manuales y planillas compartidas.",
   },
   {
     title: "Alertas de stock mínimo",
