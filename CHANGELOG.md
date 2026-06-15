@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-06-15
+
+### Added
+
+- `docs/production-launch.md` — checklist completo de lanzamiento a producción. Cubre: Vercel, Supabase, Resend, Admin, SEO, Analytics, Smoke tests, Rollback y validación post-deploy (primeras 48h). Incluye notas de arquitectura sobre rate limiter, service role key y admin whitelist.
+
+### Changed
+
+- `.env.example` — comentario en `NEXT_PUBLIC_SITE_URL` aclara que debe coincidir con el dominio real en producción.
+
+### Notes
+
+- No se agregaron features. Esta release es exclusivamente preparación operacional para producción.
+- Rollback: Vercel permite hacer Promote to Production de cualquier deploy anterior desde el dashboard en segundos.
+
 ## [0.11.1] - 2026-06-15
 
 ### Fixed
