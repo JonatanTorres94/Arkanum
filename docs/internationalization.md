@@ -18,8 +18,9 @@ El mercado inicial es Argentina. Validar la propuesta de valor en español prime
 | Registro de rutas públicas | ✅ `src/config/routes.ts` — fuente única para sitemap y futuros helpers |
 | Helpers SEO/canonical | ✅ `src/lib/seo/canonical.ts` — `getCanonicalUrl`, `getLocalizedUrl`, `getAlternates` |
 | hreflang en sitemap | ✅ No emitido — `getAlternates` retorna `{}` con un solo locale activo |
+| Archivos de mensajes | ✅ `src/messages/es.json` (fuente) y `src/messages/pt-BR.json` (piloto traducido) |
 | Routing i18n activado | ❌ No implementado |
-| Contenido separado de componentes | ❌ Pendiente para cuando se active i18n |
+| Componentes usando mensajes | ❌ Pendiente para cuando se active i18n |
 
 ---
 
@@ -133,6 +134,50 @@ Criterios antes de implementar:
 - [ ] Decisión estratégica de expandir a Brasil o mercado en inglés
 - [ ] Recursos para traducción humana (no automática) del copy de ventas
 - [ ] Validación de que el copy original funciona para conversión
+
+---
+
+---
+
+## Piloto pt-BR — v0.15.0
+
+### Qué se hizo
+
+Se creó contenido de traducción para português brasileiro sin activar routing:
+
+- `src/messages/es.json` — strings extraídos de todas las páginas actuales. Fuente de verdad para español. Namespace compartido con pt-BR para que la activación futura sea un reemplazo directo.
+- `src/messages/pt-BR.json` — traducción completa al português brasileiro de las páginas principales: home, software-a-medida, automatizacion-de-procesos, diagnóstico y gracias.
+
+Los archivos de mensajes están estructurados para ser compatibles con `next-intl` (namespaces anidados, claves semánticas en inglés). No hay ningún componente que los consuma aún.
+
+### Qué NO se hizo (guardrails)
+
+- No se activó routing `/pt-BR/` — `activeLocales` sigue siendo `["es"]`
+- No se emiten hreflang — `getAlternates` continúa retornando `{}`
+- No hay entradas en el sitemap para páginas en pt-BR
+- No se usó traducción automática — el contenido fue revisado manualmente
+- Sin cambios en admin, dashboard, base de datos ni formularios
+
+### Criterios de activación
+
+Antes de avanzar de "contenido preparado" a "rutas activas":
+
+- [ ] Al menos 5 leads calificados desde la versión en español
+- [ ] Decisión estratégica de expandir al mercado brasileño
+- [ ] Revisión del copy en pt-BR por hablante nativo de Brasil
+- [ ] Slug mapping validado (ver tabla abajo)
+
+### Slug mapping para activación
+
+| Español (actual) | Português Brasil (futuro) |
+|---|---|
+| `/` | `/pt-BR/` |
+| `/software-a-medida` | `/pt-BR/software-sob-medida` |
+| `/automatizacion-de-procesos` | `/pt-BR/automacao-de-processos` |
+| `/diagnostico` | `/pt-BR/diagnostico` |
+| `/gracias` | `/pt-BR/obrigado` |
+
+Los slugs en español de las páginas de intención (distribuidoras, logística, stock, whatsapp) necesitan análisis de SEO específico para Brasil antes de traducirse — los conceptos y términos de búsqueda pueden diferir significativamente del mercado argentino.
 
 ---
 
