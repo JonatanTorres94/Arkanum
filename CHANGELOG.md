@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-06-15
+
+### Added
+
+- `src/app/admin/leads/export/route.ts` — Route Handler GET `/admin/leads/export`. Admin-guarded, respects los 5 query params de filtro (status, industry, companySize, budget, urgency), aplica el mismo filtrado en memoria que la página. Devuelve CSV con 16 columnas: nombre, email, empresa, rol, WhatsApp, rubro, tamaño, proceso a mejorar, problema actual, herramientas actuales, horas semanales, presupuesto, urgencia, mensaje adicional, estado, fecha. Sin notas internas. Escaping seguro: campos con coma, comilla o salto de línea se envuelven en comillas dobles con escaping interno.
+- `src/components/admin/lead-summary-cards.tsx` — 4 cards de resumen operativo (Nuevos / Contactados / Calificados / Descartados). Muestra conteos sobre el total de leads, independiente de los filtros activos. Sin markup extra ni estado cliente.
+
+### Changed
+
+- `src/app/admin/leads/page.tsx` — importa `LeadSummaryCards` y lo muestra entre el header y los filtros cuando hay leads. Agrega link "Exportar CSV" en el header (junto a "Cerrar sesión"); cuando hay filtros activos dice "Exportar CSV (filtrado)" y pasa los mismos query params al endpoint. La URL de export se construye server-side.
+
+### Notes
+
+- Export es admin-only — `verifyAdmin()` corre antes de cualquier procesamiento en el Route Handler.
+- Las notas internas (`lead_notes`) no se incluyen en el export: `getLeadsUseCase` no las fetcha.
+- Sin cambios en repositorio, use cases, tipos de dominio ni base de datos.
+- El link de export usa `<a>` (no `<Link>`) — es un Route Handler que devuelve un archivo, no una página.
+
 ## [0.15.0] - 2026-06-15
 
 ### Added
