@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { verifyAdmin } from "@/lib/auth/verify-admin";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
 import { SupabaseNoteRepository } from "@/features/leads/infrastructure/supabase-note.repository";
+import { getLeadByIdUseCase } from "@/features/leads/application/get-lead-by-id.use-case";
 import { getLeadNotesUseCase } from "@/features/leads/application/get-lead-notes.use-case";
 import { LeadStatusBadge } from "@/components/admin/lead-status-badge";
 import { LeadStatusSelector } from "@/components/admin/lead-status-selector";
@@ -31,10 +32,11 @@ export default async function AdminLeadDetailPage({
   const { id } = await params;
 
   const leadRepository = new SupabaseLeadRepository();
-  const leads = await leadRepository.findAll();
-  const lead  = leads.find((l) => l.id === id);
+  const leadResult     = await getLeadByIdUseCase(id, leadRepository);
 
-  if (!lead) notFound();
+  if (!leadResult.ok) notFound();
+
+  const { lead } = leadResult;
 
   const noteRepository = new SupabaseNoteRepository();
   const notesResult    = await getLeadNotesUseCase(id, noteRepository);

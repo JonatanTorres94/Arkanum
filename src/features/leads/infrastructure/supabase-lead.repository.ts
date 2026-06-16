@@ -93,6 +93,21 @@ export class SupabaseLeadRepository implements LeadRepository {
     return (data ?? []).map(toLeadDomain);
   }
 
+  async findById(id: string): Promise<Lead | null> {
+    const supabase = createServerClient();
+
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle<LeadRow>();
+
+    if (error) throw new Error("Supabase findById failed");
+    if (!data) return null;
+
+    return toLeadDomain(data);
+  }
+
   async updateStatus(id: string, status: LeadStatus): Promise<void> {
     const supabase = createServerClient();
 

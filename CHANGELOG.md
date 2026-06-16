@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-06-15
+
+### Added
+
+- `src/features/leads/application/get-lead-by-id.use-case.ts` — use case con resultado tipado: `{ ok: true; lead }` | `{ ok: false; notFound: boolean; error: string }`. Distingue not-found de error de repositorio.
+
+### Changed
+
+- `src/features/leads/infrastructure/lead.repository.ts` — `findById(id: string): Promise<Lead | null>` agregado al contrato de `LeadRepository`.
+- `src/features/leads/infrastructure/supabase-lead.repository.ts` — implementa `findById` con `.eq("id", id).maybeSingle()`. Retorna `null` cuando no existe el registro; lanza para errores reales de Supabase.
+- `src/app/admin/leads/[id]/page.tsx` — reemplaza `findAll() + .find()` por `getLeadByIdUseCase`. Un solo query de DB, proporcional al caso de uso.
+
+### Notes
+
+- Sin migraciones de DB. Sin cambios en `create`, `findAll` ni `updateStatus`.
+- El refactor reduce la carga del detalle de O(N) queries en datos a O(1).
+- `notFound()` se llama en ambos casos de error (`notFound: true` y errores de repositorio) — comportamiento consistente con el estado previo.
+
 ## [0.16.0] - 2026-06-15
 
 ### Added
