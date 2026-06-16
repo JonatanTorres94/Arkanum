@@ -5,6 +5,7 @@ import { getLeadsUseCase } from "@/features/leads/application/get-leads.use-case
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
 import { LeadStatusBadge } from "@/components/admin/lead-status-badge";
 import { LeadFilters } from "@/components/admin/lead-filters";
+import { LeadSummaryCards } from "@/components/admin/lead-summary-cards";
 import { signOutAction } from "@/server/actions/auth.action";
 
 export const metadata = { title: "Leads — Admin", robots: { index: false, follow: false } };
@@ -27,6 +28,14 @@ export default async function AdminLeadsPage({
   const activeUrgency     = typeof filters.urgency     === "string" ? filters.urgency     : "";
 
   const hasFilters = !!(activeStatus || activeIndustry || activeCompanySize || activeBudget || activeUrgency);
+
+  const exportParams = new URLSearchParams();
+  if (activeStatus)      exportParams.set("status",      activeStatus);
+  if (activeIndustry)    exportParams.set("industry",    activeIndustry);
+  if (activeCompanySize) exportParams.set("companySize", activeCompanySize);
+  if (activeBudget)      exportParams.set("budget",      activeBudget);
+  if (activeUrgency)     exportParams.set("urgency",     activeUrgency);
+  const exportHref = `/admin/leads/export${exportParams.size > 0 ? `?${exportParams.toString()}` : ""}`;
 
   const filteredLeads = result.ok
     ? result.leads.filter((lead) => {
@@ -55,15 +64,32 @@ export default async function AdminLeadsPage({
               </span>
             )}
           </h1>
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="text-sm text-slate-500 transition-colors hover:text-slate-300"
-            >
-              Cerrar sesión
-            </button>
-          </form>
+          <div className="flex items-center gap-5">
+            {result.ok && result.leads.length > 0 && (
+              <a
+                href={exportHref}
+                className="text-sm text-slate-500 transition-colors hover:text-slate-300"
+              >
+                Exportar CSV{hasFilters ? " (filtrado)" : ""}
+              </a>
+            )}
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="text-sm text-slate-500 transition-colors hover:text-slate-300"
+              >
+                Cerrar sesión
+              </button>
+            </form>
+          </div>
         </div>
+
+        {/* Summary */}
+        {result.ok && result.leads.length > 0 && (
+          <div className="mb-6">
+            <LeadSummaryCards leads={result.leads} />
+          </div>
+        )}
 
         {/* Filters */}
         {result.ok && result.leads.length > 0 && (
