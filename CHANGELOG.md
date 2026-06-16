@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-06-15
+
+### Added
+
+- `supabase/migrations/20260615010000_create_lead_events_table.sql` — tabla `lead_events` con `id`, `lead_id` (FK con cascade), `type` (CHECK `status_changed`), `from_status`, `to_status`, `created_by`, `created_at`. RLS habilitado, sin políticas públicas.
+- `src/features/leads/domain/lead-event.types.ts` — tipos `LeadEvent`, `LeadEventType` y `CreateLeadEventInput`.
+- `src/features/leads/infrastructure/event.repository.ts` — interfaz `EventRepository` con `create` y `findByLeadId`.
+- `src/features/leads/infrastructure/supabase-event.repository.ts` — implementación Supabase. `create` hace insert; `findByLeadId` ordena por `created_at DESC`.
+- `src/features/leads/application/create-lead-event.use-case.ts` — retorna `{ ok, error }`. El caller decide si propagar el fallo.
+- `src/features/leads/application/get-lead-events.use-case.ts` — retorna `{ ok: true; events }` | `{ ok: false; error }`.
+- `src/components/admin/lead-activity-feed.tsx` — Server Component. Renderiza lista de eventos con estado anterior → nuevo, autor y fecha. Muestra "Sin actividad registrada." cuando la lista está vacía.
+
+### Changed
+
+- `src/server/actions/admin-lead.action.ts` — `updateLeadStatusAction` ahora: (1) fetch del lead actual con `getLeadByIdUseCase`, (2) guard anti-duplicado (`fromStatus === status → return {}`), (3) actualiza estado, (4) registra evento `status_changed`. Si el registro del evento falla, solo emite `console.warn` — la actualización de estado no se revierte.
+- `src/app/admin/leads/[id]/page.tsx` — agrega sección "Actividad" entre los campos del lead y las notas internas. Carga `getLeadEventsUseCase` en paralelo con `getLeadNotesUseCase`.
+
+### Notes
+
+- El registro de eventos es no-bloqueante: un fallo en `createLeadEventUseCase` no impide que el cambio de estado llegue al usuario.
+- `fromStatus` se obtiene server-side (via `getLeadByIdUseCase`) — no se acepta del cliente para el audit trail.
+- Sin cambios en `leads`, `lead_notes`, CSV export, rutas públicas ni i18n.
+
 ## [0.17.0] - 2026-06-15
 
 ### Added
