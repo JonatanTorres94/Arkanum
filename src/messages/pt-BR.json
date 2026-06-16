@@ -1,0 +1,182 @@
+{
+  "common": {
+    "ctaDiagnostic": "Diagnosticar meu processo sem custo",
+    "ctaDiagnosticAlt": "Solicitar diagnóstico sem custo",
+    "seeMore": "Ver mais →",
+    "backToHome": "← Início",
+    "noCommitment": "Sem compromisso. Se não fizer sentido desenvolver software sob medida para o seu caso, também te dizemos."
+  },
+  "nav": {
+    "home": "Início",
+    "diagnostic": "Diagnóstico"
+  },
+  "footer": {
+    "tagline": "Desenvolvemos sistemas web, apps mobile e integrações sob medida para automatizar e modernizar processos empresariais.",
+    "copyright": "Soluções digitais sob medida.",
+    "links": {
+      "solutions": "Soluções",
+      "method": "Método",
+      "diagnostic": "Diagnóstico",
+      "softwareAMedida": "Software sob medida",
+      "processAutomation": "Automação de processos"
+    }
+  },
+  "home": {
+    "meta": {
+      "title": "Arkanum — Automação operacional e software sob medida",
+      "description": "Criamos sistemas web, apps mobile e integrações sob medida para substituir planilhas, tarefas repetitivas, sistemas desconectados e processos lentos."
+    },
+    "hero": {
+      "badge": "Automação operacional e software sob medida",
+      "h1": "Automatizamos e modernizamos processos da sua empresa.",
+      "description": "Criamos sistemas web, apps mobile e integrações sob medida para substituir planilhas, tarefas repetitivas, sistemas desconectados e processos lentos.",
+      "primaryCta": "Diagnosticar meu processo sem custo",
+      "secondaryCta": "Ver soluções",
+      "disclaimer": "Primeiro entendemos sua operação. Depois definimos se uma solução sob medida faz sentido."
+    },
+    "serviceLinks": {
+      "sectionTitle": "Nossas áreas de atuação.",
+      "software": {
+        "label": "Software sob medida",
+        "description": "Sistemas web, apps mobile e integrações construídas para a sua operação real."
+      },
+      "processAutomation": {
+        "label": "Automação de processos",
+        "description": "Substituímos planilhas, tarefas manuais e processos repetitivos por ferramentas que trabalham sozinhas."
+      },
+      "seeMore": "Ver mais →"
+    },
+    "finalCta": {
+      "title": "Solicite um diagnóstico inicial sem custo.",
+      "description": "Conte o que você quer melhorar. Analisamos seu caso e indicamos se uma solução digital sob medida pode ajudar a reduzir carga manual, organizar informações ou conectar sistemas.",
+      "cta": "Diagnosticar meu processo sem custo",
+      "disclaimer": "Sem compromisso. Se não fizer sentido desenvolver software sob medida para o seu caso, também te dizemos."
+    }
+  },
+  "softwareAMedida": {
+    "meta": {
+      "title": "Software sob Medida para Empresas",
+      "description": "Desenvolvemos software sob medida para empresas que cresceram além das planilhas e dos sistemas genéricos. Sem templates, sem funcionalidades que você não usa."
+    },
+    "hero": {
+      "backLink": "← Início",
+      "h1": "Software sob medida para a sua empresa.",
+      "intro": "As ferramentas genéricas funcionam até certo ponto. Quando sua operação cresce, os remendos começam a custar mais do que uma solução construída para você.",
+      "cta": "Diagnosticar meu processo sem custo"
+    },
+    "capabilities": {
+      "sectionTitle": "Que tipo de software desenvolvemos.",
+      "sectionSubtitle": "Não partimos de um template. Analisamos sua operação e construímos exatamente o que você precisa — nem mais, nem menos.",
+      "webSystems": {
+        "title": "Sistemas web administrativos",
+        "description": "Painéis para gerenciar pedidos, clientes, estoque, tarefas e relatórios em um único lugar."
+      },
+      "mobileApps": {
+        "title": "Apps mobile para colaboradores",
+        "description": "Ferramentas para equipe em campo, entregadores ou técnicos que precisam registrar atividade pelo celular."
+      },
+      "dashboards": {
+        "title": "Dashboards de gestão",
+        "description": "Painéis para visualizar vendas, pagamentos, estoque e métricas-chave sem depender de relatórios manuais."
+      },
+      "integrations": {
+        "title": "Integrações entre sistemas",
+        "description": "Conectamos suas ferramentas atuais para eliminar trabalho duplicado e centralizar informações."
+      }
+    },
+    "faqs": {
+      "sectionTitle": "Perguntas frequentes.",
+      "timeline": {
+        "question": "Quanto tempo leva para desenvolver software sob medida?",
+        "answer": "Depende da complexidade. Um módulo funcional pode estar pronto em 4 a 8 semanas. Projetos maiores são planejados em etapas para que você comece a operar antes de ter o sistema completo."
+      },
+      "changeInNeeds": {
+        "question": "O que acontece se as minhas necessidades mudarem durante o desenvolvimento?",
+        "answer": "Faz parte do processo. Trabalhamos de forma iterativa e ajustamos o escopo conforme o que vai surgindo na operação real."
+      },
+      "noCode": {
+        "question": "Preciso saber programação para trabalhar com a Arkanum?",
+        "answer": "Não. O processo começa por entender sua operação, não por assumir que você já sabe qual solução precisa."
+      }
+    },
+    "bottomCta": {
+      "title": "Faz sentido construir algo sob medida para o seu caso?",
+      "description": "Primeiro entendemos sua operação. Se uma solução sob medida faz sentido, te dizemos. Se não, também.",
+      "cta": "Solicitar diagnóstico sem custo"
+    }
+  },
+  "processAutomation": {
+    "meta": {
+      "title": "Automação de Processos para Empresas",
+      "description": "Automatizamos processos manuais, repetitivos ou propensos a erros. Substituímos planilhas, mensagens de WhatsApp e tarefas que podem ser sistematizadas."
+    },
+    "hero": {
+      "backLink": "← Início",
+      "h1": "Automação de processos para empresas em crescimento.",
+      "intro": "Se um processo se repete, demora mais do que deveria ou gera erros com frequência, provavelmente pode ser automatizado.",
+      "cta": "Diagnosticar meu processo sem custo"
+    },
+    "useCases": {
+      "sectionTitle": "Processos que automatizamos habitualmente.",
+      "sectionSubtitle": "Nem toda automação é igual. Antes de propor uma solução, analisamos qual parte do processo gera mais atrito e onde faz sentido intervir.",
+      "orderManagement": {
+        "label": "Gestão de pedidos",
+        "description": "Do WhatsApp ou do papel para um sistema com rastreabilidade."
+      },
+      "stockControl": {
+        "label": "Controle de estoque",
+        "description": "Estoque mais claro e atualizado entre vendas, disponibilidade e registros internos."
+      },
+      "reportGeneration": {
+        "label": "Geração de relatórios",
+        "description": "Relatórios automáticos sem horas de trabalho manual."
+      },
+      "deliveryTracking": {
+        "label": "Acompanhamento de entregas",
+        "description": "Status em tempo real de cada entrega pelo celular."
+      },
+      "fieldActivity": {
+        "label": "Registro de atividade em campo",
+        "description": "Visitas, tarefas e confirmações pelo app do colaborador."
+      },
+      "paymentReconciliation": {
+        "label": "Conciliação de pagamentos",
+        "description": "Vendas, cobranças e saldos sincronizados sem planilha no meio."
+      }
+    },
+    "faqs": {
+      "sectionTitle": "Perguntas frequentes.",
+      "whatCanBeAutomated": {
+        "question": "Quais processos podem ser automatizados?",
+        "answer": "Em geral, qualquer processo repetitivo baseado em regras claras: gestão de pedidos, atualização de estoque, geração de relatórios, notificações internas, registros de atividade em campo e conciliação de pagamentos são os mais comuns."
+      },
+      "replaceAllSystems": {
+        "question": "Preciso trocar todos os meus sistemas para automatizar?",
+        "answer": "Não necessariamente. Em muitos casos conectamos o que você já usa com novas ferramentas para eliminar trabalho duplicado e reduzir erros, sem substituir tudo de uma vez."
+      },
+      "timeline": {
+        "question": "Quanto tempo leva para implementar uma automação?",
+        "answer": "Depende do processo e dos sistemas envolvidos. Uma integração pontual pode estar pronta em duas a quatro semanas. Projetos maiores são planejados em etapas."
+      }
+    },
+    "bottomCta": {
+      "title": "Quais processos da sua empresa poderiam ser automatizados?",
+      "description": "Conte como trabalham hoje. Analisamos seu caso e dizemos se faz sentido intervir e por onde começar.",
+      "cta": "Solicitar diagnóstico sem custo"
+    }
+  },
+  "diagnostic": {
+    "meta": {
+      "title": "Diagnóstico inicial",
+      "description": "Conte o que você quer melhorar. Analisamos seu caso e indicamos se uma solução digital sob medida faz sentido."
+    },
+    "eyebrow": "Diagnóstico inicial sem custo",
+    "h1": "Conte seu processo. Nós dizemos se tem solução.",
+    "intro": "Analisamos sua operação atual e indicamos se uma solução digital sob medida pode ajudar a reduzir carga manual, organizar informações ou conectar sistemas. Se não fizer sentido, também te dizemos."
+  },
+  "thanks": {
+    "h1": "Obrigado. Recebemos sua solicitação de diagnóstico.",
+    "description": "Vamos analisar as informações que você compartilhou para avaliar se uma solução sob medida faz sentido para o seu processo.",
+    "backLink": "Voltar ao início"
+  }
+}

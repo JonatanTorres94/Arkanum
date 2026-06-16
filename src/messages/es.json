@@ -1,0 +1,182 @@
+{
+  "common": {
+    "ctaDiagnostic": "Diagnosticar mi proceso sin cargo",
+    "ctaDiagnosticAlt": "Solicitar diagnóstico sin cargo",
+    "seeMore": "Ver más →",
+    "backToHome": "← Inicio",
+    "noCommitment": "Sin compromiso. Si no tiene sentido construir software a medida para tu caso, también te lo vamos a decir."
+  },
+  "nav": {
+    "home": "Inicio",
+    "diagnostic": "Diagnóstico"
+  },
+  "footer": {
+    "tagline": "Desarrollamos sistemas web, apps móviles e integraciones a medida para automatizar y modernizar procesos empresariales.",
+    "copyright": "Soluciones digitales a medida.",
+    "links": {
+      "solutions": "Soluciones",
+      "method": "Método",
+      "diagnostic": "Diagnóstico",
+      "softwareAMedida": "Software a medida",
+      "processAutomation": "Automatización de procesos"
+    }
+  },
+  "home": {
+    "meta": {
+      "title": "Arkanum — Automatización operativa y software a medida",
+      "description": "Creamos sistemas web, apps móviles e integraciones a medida para reemplazar planillas, tareas repetitivas, sistemas desconectados y procesos lentos."
+    },
+    "hero": {
+      "badge": "Automatización operativa y software a medida",
+      "h1": "Automatizamos y modernizamos procesos de tu empresa.",
+      "description": "Creamos sistemas web, apps móviles e integraciones a medida para reemplazar planillas, tareas repetitivas, sistemas desconectados y procesos lentos.",
+      "primaryCta": "Diagnosticar mi proceso sin cargo",
+      "secondaryCta": "Ver soluciones",
+      "disclaimer": "Primero entendemos tu operación. Después definimos si una solución a medida tiene sentido."
+    },
+    "serviceLinks": {
+      "sectionTitle": "Nuestras áreas de trabajo.",
+      "software": {
+        "label": "Software a medida",
+        "description": "Sistemas web, apps móviles e integraciones construidas para tu operación real."
+      },
+      "processAutomation": {
+        "label": "Automatización de procesos",
+        "description": "Reemplazamos planillas, tareas manuales y procesos repetitivos por herramientas que trabajan solas."
+      },
+      "seeMore": "Ver más →"
+    },
+    "finalCta": {
+      "title": "Solicitá un diagnóstico inicial sin cargo.",
+      "description": "Contanos qué proceso querés mejorar. Revisamos tu caso y te indicamos si una solución digital a medida puede ayudarte a reducir carga manual, ordenar información o conectar sistemas.",
+      "cta": "Diagnosticar mi proceso sin cargo",
+      "disclaimer": "Sin compromiso. Si no tiene sentido construir software a medida para tu caso, también te lo vamos a decir."
+    }
+  },
+  "softwareAMedida": {
+    "meta": {
+      "title": "Software a Medida para Empresas",
+      "description": "Desarrollamos software a medida para empresas que crecieron más allá de las planillas y los sistemas genéricos. Sin templates, sin funciones que no usás."
+    },
+    "hero": {
+      "backLink": "← Inicio",
+      "h1": "Software a medida para tu empresa.",
+      "intro": "Las herramientas genéricas funcionan hasta cierto punto. Cuando tu operación crece, los parches empiezan a costar más que una solución construida para vos.",
+      "cta": "Diagnosticar mi proceso sin cargo"
+    },
+    "capabilities": {
+      "sectionTitle": "Qué tipo de software desarrollamos.",
+      "sectionSubtitle": "No partimos de un template. Analizamos tu operación y construimos exactamente lo que necesitás — ni más ni menos.",
+      "webSystems": {
+        "title": "Sistemas web administrativos",
+        "description": "Paneles para gestionar pedidos, clientes, stock, tareas y reportes desde un solo lugar."
+      },
+      "mobileApps": {
+        "title": "Apps móviles para empleados",
+        "description": "Herramientas para personal en campo, repartidores o técnicos que necesitan registrar actividad desde el celular."
+      },
+      "dashboards": {
+        "title": "Dashboards de gestión",
+        "description": "Tableros para visualizar ventas, pagos, stock y métricas clave sin depender de reportes manuales."
+      },
+      "integrations": {
+        "title": "Integraciones entre sistemas",
+        "description": "Conectamos tus herramientas actuales para eliminar carga duplicada y centralizar información."
+      }
+    },
+    "faqs": {
+      "sectionTitle": "Preguntas frecuentes.",
+      "timeline": {
+        "question": "¿Cuánto tarda desarrollar software a medida?",
+        "answer": "Depende de la complejidad. Un módulo funcional puede estar listo en 4 a 8 semanas. Proyectos más amplios se planifican en etapas para que empieces a operar antes de tener el sistema completo."
+      },
+      "changeInNeeds": {
+        "question": "¿Qué pasa si cambian mis necesidades durante el desarrollo?",
+        "answer": "Es parte del proceso. Trabajamos de forma iterativa y ajustamos el alcance según lo que va apareciendo en la operación real."
+      },
+      "noCode": {
+        "question": "¿Necesito saber programación para trabajar con Arkanum?",
+        "answer": "No. El proceso empieza por entender tu operación, no por asumir que ya sabés qué solución necesitás."
+      }
+    },
+    "bottomCta": {
+      "title": "¿Tiene sentido construir algo a medida para tu caso?",
+      "description": "Primero entendemos tu operación. Si una solución a medida tiene sentido, te lo decimos. Si no, también.",
+      "cta": "Solicitar diagnóstico sin cargo"
+    }
+  },
+  "processAutomation": {
+    "meta": {
+      "title": "Automatización de Procesos para Empresas",
+      "description": "Automatizamos procesos manuales, repetitivos o propensos a error. Reemplazamos planillas, mensajes de WhatsApp y tareas que se pueden sistematizar."
+    },
+    "hero": {
+      "backLink": "← Inicio",
+      "h1": "Automatización de procesos para empresas en crecimiento.",
+      "intro": "Si un proceso se repite, tarda más de lo que debería o genera errores con frecuencia, probablemente pueda automatizarse.",
+      "cta": "Diagnosticar mi proceso sin cargo"
+    },
+    "useCases": {
+      "sectionTitle": "Procesos que automatizamos habitualmente.",
+      "sectionSubtitle": "No toda automatización es igual. Antes de proponer una solución, analizamos qué parte del proceso genera más fricción y dónde tiene sentido intervenir.",
+      "orderManagement": {
+        "label": "Gestión de pedidos",
+        "description": "Del WhatsApp o el papel a un sistema con trazabilidad."
+      },
+      "stockControl": {
+        "label": "Control de stock",
+        "description": "Stock más claro y actualizado entre ventas, disponibilidad y registros internos."
+      },
+      "reportGeneration": {
+        "label": "Generación de reportes",
+        "description": "Informes automáticos sin horas de trabajo manual."
+      },
+      "deliveryTracking": {
+        "label": "Seguimiento de repartos",
+        "description": "Estado en tiempo real de cada entrega desde el celular."
+      },
+      "fieldActivity": {
+        "label": "Registro de actividad en campo",
+        "description": "Visitas, tareas y confirmaciones desde la app del empleado."
+      },
+      "paymentReconciliation": {
+        "label": "Conciliación de pagos",
+        "description": "Ventas, cobros y saldos sincronizados sin Excel de por medio."
+      }
+    },
+    "faqs": {
+      "sectionTitle": "Preguntas frecuentes.",
+      "whatCanBeAutomated": {
+        "question": "¿Qué procesos se pueden automatizar?",
+        "answer": "En general, cualquier proceso repetitivo basado en reglas claras: gestión de pedidos, actualización de stock, generación de reportes, notificaciones internas, registros de actividad en campo y conciliación de pagos son los más comunes."
+      },
+      "replaceAllSystems": {
+        "question": "¿Necesito cambiar todos mis sistemas para automatizar?",
+        "answer": "No necesariamente. En muchos casos conectamos lo que ya usás con herramientas nuevas para eliminar doble carga y reducir errores, sin reemplazar todo de una vez."
+      },
+      "timeline": {
+        "question": "¿Cuánto tarda implementar una automatización?",
+        "answer": "Depende del proceso y los sistemas involucrados. Una integración puntual puede estar lista en dos a cuatro semanas. Proyectos más amplios se planifican en etapas."
+      }
+    },
+    "bottomCta": {
+      "title": "¿Qué procesos de tu empresa podrían automatizarse?",
+      "description": "Contanos cómo trabajan hoy. Analizamos tu caso y te decimos si tiene sentido intervenir y por dónde empezar.",
+      "cta": "Solicitar diagnóstico sin cargo"
+    }
+  },
+  "diagnostic": {
+    "meta": {
+      "title": "Diagnóstico inicial",
+      "description": "Contanos qué proceso querés mejorar. Analizamos tu caso y te indicamos si una solución digital a medida tiene sentido."
+    },
+    "eyebrow": "Diagnóstico inicial sin cargo",
+    "h1": "Contanos tu proceso. Nosotros te decimos si tiene solución.",
+    "intro": "Analizamos tu operación actual y te indicamos si una solución digital a medida puede ayudarte a reducir carga manual, ordenar información o conectar sistemas. Si no tiene sentido, también te lo vamos a decir."
+  },
+  "thanks": {
+    "h1": "Gracias. Recibimos tu solicitud de diagnóstico.",
+    "description": "Vamos a revisar la información que nos compartiste para evaluar si una solución a medida tiene sentido para tu proceso.",
+    "backLink": "Volver al inicio"
+  }
+}

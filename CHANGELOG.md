@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-06-15
+
+### Added
+
+- `src/messages/es.json` — strings extraídos de todas las páginas públicas actuales (home, software-a-medida, automatizacion-de-procesos, diagnóstico, gracias, nav, footer). Fuente de verdad para español, estructurada para ser compatible con next-intl cuando se active el routing i18n.
+- `src/messages/pt-BR.json` — traducción completa al português brasileiro de los mismos namespaces. Contenido revisado manualmente; no se usó traducción automática. Incluye traducción de CTAs, hero, capacidades, casos de uso, FAQs, sección de agradecimiento, nav y footer.
+
+### Changed
+
+- `docs/internationalization.md` — nueva sección "Piloto pt-BR — v0.15.0" documenta qué se hizo, qué guardrails se respetaron, la tabla de slug mapping para activación futura y los criterios de activación pendientes.
+
+### Notes
+
+- `activeLocales` sigue siendo `["es"]` — no se activó routing. No hay hreflang, no hay entradas de sitemap en pt-BR.
+- Las páginas de intención (distribuidoras, logística, stock, whatsapp) están fuera del piloto deliberadamente — sus slugs en Brasil requieren análisis de SEO local antes de traducir.
+- Activación completa requiere: revisión por hablante nativo, análisis de slugs, instalación de next-intl (o equivalente), refactor de componentes para usar mensajes, y routing `[locale]` en App Router.
+
 ## [0.14.0] - 2026-06-15
 
 ### Added
