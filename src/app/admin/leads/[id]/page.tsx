@@ -4,9 +4,12 @@ import { verifyAdmin } from "@/lib/auth/verify-admin";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
 import { SupabaseNoteRepository } from "@/features/leads/infrastructure/supabase-note.repository";
 import { getLeadByIdUseCase } from "@/features/leads/application/get-lead-by-id.use-case";
+import { getLeadEventsUseCase } from "@/features/leads/application/get-lead-events.use-case";
 import { getLeadNotesUseCase } from "@/features/leads/application/get-lead-notes.use-case";
+import { SupabaseEventRepository } from "@/features/leads/infrastructure/supabase-event.repository";
 import { LeadStatusBadge } from "@/components/admin/lead-status-badge";
 import { LeadStatusSelector } from "@/components/admin/lead-status-selector";
+import { LeadActivityFeed } from "@/components/admin/lead-activity-feed";
 import { LeadNoteForm } from "@/components/admin/lead-note-form";
 import { signOutAction } from "@/server/actions/auth.action";
 
@@ -38,8 +41,10 @@ export default async function AdminLeadDetailPage({
 
   const { lead } = leadResult;
 
-  const noteRepository = new SupabaseNoteRepository();
-  const notesResult    = await getLeadNotesUseCase(id, noteRepository);
+  const [eventsResult, notesResult] = await Promise.all([
+    getLeadEventsUseCase(id, new SupabaseEventRepository()),
+    getLeadNotesUseCase(id, new SupabaseNoteRepository()),
+  ]);
 
   return (
     <div className="min-h-screen px-6 py-10">
@@ -99,6 +104,18 @@ export default async function AdminLeadDetailPage({
             <Field label="Problema actual"   value={lead.currentProblem} />
             <Field label="Mensaje adicional" value={lead.additionalMessage} />
           </div>
+        </div>
+
+        {/* Activity section */}
+        <div className="mt-8">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-slate-500">
+            Actividad
+          </h2>
+          {eventsResult.ok ? (
+            <LeadActivityFeed events={eventsResult.events} />
+          ) : (
+            <p className="text-sm text-red-400">{eventsResult.error}</p>
+          )}
         </div>
 
         {/* Notes section */}
