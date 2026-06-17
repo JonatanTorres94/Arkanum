@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getBilingualAlternates } from "@/lib/seo/canonical";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { HeroSection } from "@/components/landing/hero-section";
@@ -16,6 +17,9 @@ export const metadata: Metadata = {
   },
   description:
     "Desarrollamos sistemas web, apps móviles e integraciones a medida para reemplazar planillas, automatizar procesos y ordenar la operación de tu empresa.",
+  alternates: {
+    languages: getBilingualAlternates("/", "/pt-BR"),
+  },
 };
 
 export default function HomePage() {

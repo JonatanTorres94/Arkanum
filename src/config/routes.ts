@@ -19,4 +19,7 @@ export const publicRoutes: readonly PublicRoute[] = [
   { path: "/sistemas-de-stock",             priority: 0.8, changeFrequency: "monthly" },
   { path: "/automatizacion-con-whatsapp",   priority: 0.8, changeFrequency: "monthly" },
   { path: "/diagnostico",                   priority: 0.8, changeFrequency: "monthly" },
+  { path: "/pt-BR",                         priority: 0.9, changeFrequency: "monthly" },
+  { path: "/pt-BR/software-sob-medida",     priority: 0.9, changeFrequency: "monthly" },
+  { path: "/pt-BR/diagnostico",             priority: 0.7, changeFrequency: "monthly" },
 ];

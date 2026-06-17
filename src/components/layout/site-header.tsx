@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 import { siteConfig } from "@/config/site";
 
 const navLinks = [
@@ -31,9 +32,12 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <Button href="/diagnostico" variant="primary" className="text-xs px-4 py-2">
-          Diagnosticar mi proceso
-        </Button>
+        <div className="flex items-center gap-4">
+          <LocaleSwitcher />
+          <Button href="/diagnostico" variant="primary" className="text-xs px-4 py-2">
+            Diagnosticar mi proceso
+          </Button>
+        </div>
       </div>
     </header>
   );
