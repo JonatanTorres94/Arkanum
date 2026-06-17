@@ -41,11 +41,10 @@ export default async function AdminLeadDetailPage({
 
   const { lead } = leadResult;
 
-  const eventRepository  = new SupabaseEventRepository();
-  const eventsResult     = await getLeadEventsUseCase(id, eventRepository);
-
-  const noteRepository = new SupabaseNoteRepository();
-  const notesResult    = await getLeadNotesUseCase(id, noteRepository);
+  const [eventsResult, notesResult] = await Promise.all([
+    getLeadEventsUseCase(id, new SupabaseEventRepository()),
+    getLeadNotesUseCase(id, new SupabaseNoteRepository()),
+  ]);
 
   return (
     <div className="min-h-screen px-6 py-10">

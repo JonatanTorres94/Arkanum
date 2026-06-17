@@ -17,7 +17,7 @@
 ### Changed
 
 - `src/server/actions/admin-lead.action.ts` — `updateLeadStatusAction` ahora: (1) fetch del lead actual con `getLeadByIdUseCase`, (2) guard anti-duplicado (`fromStatus === status → return {}`), (3) actualiza estado, (4) registra evento `status_changed`. Si el registro del evento falla, solo emite `console.warn` — la actualización de estado no se revierte.
-- `src/app/admin/leads/[id]/page.tsx` — agrega sección "Actividad" entre los campos del lead y las notas internas. Carga `getLeadEventsUseCase` en paralelo con `getLeadNotesUseCase`.
+- `src/app/admin/leads/[id]/page.tsx` — agrega sección "Actividad" entre los campos del lead y las notas internas. `getLeadEventsUseCase` y `getLeadNotesUseCase` se ejecutan en paralelo con `Promise.all`.
 
 ### Notes
 
