@@ -9,9 +9,18 @@ import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase
 import { ResendEmailService } from "@/lib/email/resend-email-service";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 
+export type DiagnosticRedirectTarget = "/gracias" | "/pt-BR/obrigado";
+
+const ALLOWED_REDIRECTS: readonly DiagnosticRedirectTarget[] = ["/gracias", "/pt-BR/obrigado"];
+
 export async function submitDiagnosticAction(
-  data: LeadFormData
+  data: LeadFormData,
+  redirectTo: DiagnosticRedirectTarget = "/gracias"
 ): Promise<{ error: string }> {
+  // Defense in depth: redirectTo is typed at the call site, but a raw
+  // server action invocation could bypass that, so re-validate here.
+  const target = ALLOWED_REDIRECTS.includes(redirectTo) ? redirectTo : "/gracias";
+
   const result = leadSchema.safeParse(data);
 
   if (!result.success) {
@@ -20,7 +29,7 @@ export async function submitDiagnosticAction(
 
   // Honeypot: bots fill this field, humans don't — silent discard
   if (result.data.website) {
-    redirect("/gracias");
+    redirect(target);
   }
 
   // Rate limit: best-effort in-memory (resets on cold start)
@@ -53,5 +62,5 @@ export async function submitDiagnosticAction(
     );
   });
 
-  redirect("/gracias");
+  redirect(target);
 }

@@ -42,7 +42,7 @@ const services = [
 export default function PtBRHomePage() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale="pt-BR" />
       <main>
 
         {/* Hero */}
@@ -123,7 +123,7 @@ export default function PtBRHomePage() {
         </section>
 
       </main>
-      <SiteFooter />
+      <SiteFooter locale="pt-BR" />
     </>
   );
 }

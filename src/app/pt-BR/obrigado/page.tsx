@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function ObrigadoPage() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale="pt-BR" />
       <main className="flex min-h-screen flex-col items-center justify-center px-6 py-16">
         <div className="max-w-lg text-center">
           <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10">
@@ -49,7 +49,7 @@ export default function ObrigadoPage() {
           </Link>
         </div>
       </main>
-      <SiteFooter />
+      <SiteFooter locale="pt-BR" />
     </>
   );
 }

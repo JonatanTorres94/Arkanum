@@ -81,7 +81,7 @@ export default function SoftwareSobMedidaPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <SiteHeader />
+      <SiteHeader locale="pt-BR" />
       <main>
 
         {/* Hero */}
@@ -168,7 +168,7 @@ export default function SoftwareSobMedidaPage() {
         </section>
 
       </main>
-      <SiteFooter />
+      <SiteFooter locale="pt-BR" />
     </>
   );
 }

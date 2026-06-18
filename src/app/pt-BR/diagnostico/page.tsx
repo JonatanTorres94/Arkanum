@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default function PtBRDiagnosticoPage() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale="pt-BR" />
       <main className="min-h-screen px-6 py-16">
         <div className="mx-auto max-w-2xl">
           <div className="mb-10">
@@ -34,12 +34,10 @@ export default function PtBRDiagnosticoPage() {
             </p>
           </div>
 
-          {/* DiagnosticForm reused — form labels remain in Spanish for this pilot.
-              Full pt-BR form translation is deferred to the next i18n release. */}
-          <DiagnosticForm />
+          <DiagnosticForm locale="pt-BR" redirectTo="/pt-BR/obrigado" />
         </div>
       </main>
-      <SiteFooter />
+      <SiteFooter locale="pt-BR" />
     </>
   );
 }
