@@ -1,6 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server";
 import type { LeadFormData } from "@/features/leads/domain/lead.schema";
-import type { Lead, LeadStatus } from "@/features/leads/domain/lead.types";
+import type { Lead, LeadStatus, QualifiedStage } from "@/features/leads/domain/lead.types";
 import type { LeadRepository } from "./lead.repository";
 
 type LeadRow = {
@@ -20,6 +20,7 @@ type LeadRow = {
   weekly_hours_lost: string | null;
   additional_message: string | null;
   status: string;
+  qualified_stage: string | null;
   source: string;
   created_at: string;
   updated_at: string;
@@ -43,6 +44,7 @@ function toLeadDomain(row: LeadRow): Lead {
     weeklyHoursLost:  row.weekly_hours_lost,
     additionalMessage: row.additional_message,
     status:           row.status as LeadStatus,
+    qualifiedStage:   row.qualified_stage as QualifiedStage | null,
     source:           row.source as "website",
     createdAt:        row.created_at,
     updatedAt:        row.updated_at,
@@ -117,5 +119,16 @@ export class SupabaseLeadRepository implements LeadRepository {
       .eq("id", id);
 
     if (error) throw new Error("Supabase updateStatus failed");
+  }
+
+  async updateQualifiedStage(id: string, stage: QualifiedStage | null): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("leads")
+      .update({ qualified_stage: stage })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase updateQualifiedStage failed");
   }
 }

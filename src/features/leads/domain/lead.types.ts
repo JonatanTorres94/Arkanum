@@ -1,5 +1,17 @@
 export const LEAD_STATUSES = ["new", "contacted", "qualified", "disqualified"] as const;
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
+
+export const QUALIFIED_STAGES = [
+  "discovery_pending",
+  "proposal_pending",
+  "proposal_sent",
+  "waiting_client",
+  "accepted",
+  "rejected",
+  "project_started",
+] as const;
+export type QualifiedStage = (typeof QUALIFIED_STAGES)[number];
+
 export type LeadSource = "website";
 
 export interface Lead {
@@ -19,6 +31,7 @@ export interface Lead {
   weeklyHoursLost: string | null;
   additionalMessage: string | null;
   status: LeadStatus;
+  qualifiedStage: QualifiedStage | null;
   source: LeadSource;
   createdAt: string;
   updatedAt: string;
@@ -29,5 +42,9 @@ export type CreateLeadResult =
   | { ok: false; error: string };
 
 export type UpdateLeadStatusResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export type UpdateLeadQualifiedStageResult =
   | { ok: true }
   | { ok: false; error: string };

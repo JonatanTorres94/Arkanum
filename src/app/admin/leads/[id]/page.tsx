@@ -9,6 +9,7 @@ import { getLeadNotesUseCase } from "@/features/leads/application/get-lead-notes
 import { SupabaseEventRepository } from "@/features/leads/infrastructure/supabase-event.repository";
 import { LeadStatusBadge } from "@/components/admin/lead-status-badge";
 import { LeadStatusSelector } from "@/components/admin/lead-status-selector";
+import { LeadQualifiedStageSelector } from "@/components/admin/lead-qualified-stage-selector";
 import { LeadActivityFeed } from "@/components/admin/lead-activity-feed";
 import { LeadNoteForm } from "@/components/admin/lead-note-form";
 import { signOutAction } from "@/server/actions/auth.action";
@@ -82,6 +83,14 @@ export default async function AdminLeadDetailPage({
           <span className="text-sm text-slate-400">Estado:</span>
           <LeadStatusSelector leadId={lead.id} currentStatus={lead.status} />
         </div>
+
+        {/* Qualified stage selector — only relevant once the lead is qualified */}
+        {lead.status === "qualified" && (
+          <div className="mb-6 flex items-center gap-3">
+            <span className="text-sm text-slate-400">Etapa:</span>
+            <LeadQualifiedStageSelector leadId={lead.id} currentStage={lead.qualifiedStage} />
+          </div>
+        )}
 
         {/* Lead fields */}
         <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
