@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-06-18
+
+### Added
+
+- `supabase/migrations/20260618000000_add_lead_qualified_stage.sql` — columna `qualified_stage` (nullable) en `leads`, con CHECK constraint que la limita a los 7 valores del pipeline (`discovery_pending`, `proposal_pending`, `proposal_sent`, `waiting_client`, `accepted`, `rejected`, `project_started`). Índice `leads_qualified_stage_idx`.
+- `supabase/migrations/20260618010000_extend_lead_events_type_check.sql` — extiende el CHECK de `lead_events.type` para aceptar `qualified_stage_changed` además de `status_changed`.
+- `src/features/leads/domain/lead.types.ts` — `QUALIFIED_STAGES`, `QualifiedStage`, campo `qualifiedStage` en `Lead`, `UpdateLeadQualifiedStageResult`.
+- `src/features/leads/application/update-lead-qualified-stage.use-case.ts` — mismo patrón que `update-lead-status.use-case.ts`.
+- `src/components/admin/lead-qualified-stage-selector.tsx` — Client Component. Select con las 7 etapas + opción "Sin etapa asignada" (`null`). Llama a `updateLeadQualifiedStageAction`.
+- `src/server/actions/admin-lead.action.ts` — nueva `updateLeadQualifiedStageAction`: valida auth, valida etapa, exige `status === "qualified"` server-side (no confía solo en que el selector esté oculto en el cliente), guard anti-duplicado, registra evento `qualified_stage_changed` reusando las columnas genéricas `from_status`/`to_status` de `lead_events`.
+
+### Changed
+
+- `src/features/leads/domain/lead-event.types.ts` — `LeadEventType` ahora es `"status_changed" | "qualified_stage_changed"`.
+- `src/features/leads/infrastructure/lead.repository.ts` / `supabase-lead.repository.ts` — agregan `updateQualifiedStage(id, stage)`; `LeadRow`/`toLeadDomain` incluyen `qualified_stage`.
+- `src/components/admin/lead-activity-feed.tsx` — agrega rama de render para eventos `qualified_stage_changed` (mismo patrón visual que `status_changed`, con labels propias).
+- `src/app/admin/leads/[id]/page.tsx` — muestra `LeadQualifiedStageSelector` únicamente cuando `lead.status === "qualified"`.
+
+### Notes
+
+- Pipeline liviano, no CRM: sin recordatorios, tareas, asignaciones, automatizaciones ni follow-up por WhatsApp/email (issue #30).
+- Sin cambios públicos, SEO ni i18n.
+- CSV export (`/admin/leads/export`) queda sin tocar — no incluye `qualified_stage`.
+- El registro del evento es no-bloqueante, igual que `status_changed`: si falla, solo se emite `console.warn`.
+
 ## [0.19.0] - 2026-06-16
 
 ### Added
