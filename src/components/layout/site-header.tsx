@@ -20,6 +20,11 @@ const ctaByLocale = {
   "pt-BR": { href: "/pt-BR/diagnostico", label: "Diagnosticar meu processo" },
 } as const;
 
+const homeHrefByLocale = {
+  es: "/",
+  "pt-BR": "/pt-BR",
+} as const;
+
 interface SiteHeaderProps {
   locale?: "es" | "pt-BR";
 }
@@ -32,7 +37,7 @@ export function SiteHeader({ locale = "es" }: SiteHeaderProps) {
     <header className="sticky top-0 z-50 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link
-          href="/"
+          href={homeHrefByLocale[locale]}
           className="text-lg font-semibold tracking-tight text-slate-50 hover:text-cyan-400 transition-colors"
         >
           {siteConfig.name}
