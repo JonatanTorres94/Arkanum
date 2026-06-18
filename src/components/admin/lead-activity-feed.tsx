@@ -38,7 +38,7 @@ function QualifiedStageLabel({ value }: { value: string | null }) {
 
 export function LeadActivityFeed({ events }: { events: LeadEvent[] }) {
   if (events.length === 0) {
-    return <p className="text-sm text-slate-600">Sin actividad registrada.</p>;
+    return <p className="text-sm text-slate-600">Sin actividad registrada todavía.</p>;
   }
 
   return (
