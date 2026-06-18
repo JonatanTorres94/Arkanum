@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-06-16
+
+### Added
+
+- `src/components/ui/locale-switcher.tsx` — Client Component ("use client"). Usa `usePathname()` para determinar la ruta actual y muestra un link al locale alternativo (ES/PT) con un mapa estático de alternates. Retorna `null` para rutas sin equivalente traducido (admin, páginas SEO de intención, gracias).
+- `src/app/pt-BR/page.tsx` — Home en portugués: hero, sección de servicios (2 cards), CTA final. Piloto: incluye secciones principales. Secciones secundarias (Problemas, Proceso, Confianza) quedan para la activación completa.
+- `src/app/pt-BR/software-sob-medida/page.tsx` — Equivalente pt-BR de `/software-a-medida`. Capacidades, FAQs con JSON-LD, CTA. Contenido traducido manualmente.
+- `src/app/pt-BR/diagnostico/page.tsx` — Wrapper pt-BR con header/intro en portugués que reutiliza `DiagnosticForm`. Los labels del formulario permanecen en español (limitación del piloto, documentada).
+- `src/app/pt-BR/obrigado/page.tsx` — Página de confirmación pt-BR. `robots: noindex`. No está conectada al redirect del Server Action aún (deferred).
+
+### Changed
+
+- `src/config/i18n.ts` — `activeLocales` pasa de `["es"]` a `["es", "pt-BR"]`. `futureLocales` queda solo `["en"]`. `localeConfig["pt-BR"].active` → `true`.
+- `src/config/routes.ts` — 3 rutas pt-BR agregadas al sitemap: `/pt-BR` (0.9), `/pt-BR/software-sob-medida` (0.9), `/pt-BR/diagnostico` (0.7).
+- `src/lib/seo/canonical.ts` — Nuevo helper `getBilingualAlternates(esPath, ptBrPath)` para hreflang en páginas con slugs traducidos. `getAlternates()` conserva su implementación pero recibe una nota de que no aplica a slugs distintos entre locales.
+- `src/components/layout/site-header.tsx` — Agrega `<LocaleSwitcher />` junto al CTA. Se muestra PT/ES solo en rutas con equivalente en el otro locale; invisible en el resto del sitio.
+- `src/app/page.tsx` — `alternates.languages` con `getBilingualAlternates("/", "/pt-BR")`.
+- `src/app/software-a-medida/page.tsx` — `alternates.languages` con `getBilingualAlternates("/software-a-medida", "/pt-BR/software-sob-medida")`.
+- `src/app/diagnostico/page.tsx` — `alternates.languages` con `getBilingualAlternates("/diagnostico", "/pt-BR/diagnostico")`.
+- `docs/internationalization.md` — Sección de decisión actualizada a v0.19.0; documenta limitación de `<html lang>`.
+
+### Notes
+
+- `<html lang>` es `"es"` para todas las rutas incluyendo pt-BR — limitación de la arquitectura sin `[locale]` route groups. Hreflang está correctamente implementado (lo que Google usa para targeting de idioma).
+- No hay redirects automáticos por idioma, no hay middleware de detección de locale, no hay `/es/` prefijo.
+- El formulario de diagnóstico en `/pt-BR/diagnostico` envía datos correctamente al mismo Server Action y redirige a `/gracias` (español). El redirect a `/pt-BR/obrigado` es trabajo futuro.
+- Las 4 páginas SEO de intención (distribuidoras, logística, stock, whatsapp) quedan sin equivalente pt-BR — `LocaleSwitcher` retorna null para ellas.
+- Sin cambios en admin, dashboard, base de datos, CSV export ni rutas SEO en español.
+
 ## [0.18.0] - 2026-06-15
 
 ### Added

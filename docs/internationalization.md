@@ -1,11 +1,11 @@
 
 # Internationalization — Arkanum
 
-## Decisión actual (v0.11.0)
+## Decisión actual (v0.19.0)
 
-**Español únicamente.** Next.js i18n routing no está habilitado.
+**Español (por defecto) + Português Brasil (piloto activo).** Next.js i18n routing con `[locale]` NO está habilitado. Las rutas pt-BR son segmentos literales bajo `app/pt-BR/`.
 
-El mercado inicial es Argentina. Validar la propuesta de valor en español primero antes de invertir en traducción y localización.
+Limitación conocida: `<html lang>` es `"es"` para todas las rutas, incluyendo pt-BR. El atributo se corregirá cuando se migre a la arquitectura `[locale]` con route groups. La etiqueta `hreflang` es lo que Google usa para detección de idioma/región; está implementada correctamente en todas las páginas con equivalentes en ambos idiomas.
 
 ---
 

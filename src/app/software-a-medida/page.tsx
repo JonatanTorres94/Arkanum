@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { ServicePageCtaButton } from "@/components/ui/tracked-cta-button";
 import { siteConfig } from "@/config/site";
+import { getBilingualAlternates } from "@/lib/seo/canonical";
 
 export const metadata: Metadata = {
   title: "Software a Medida para Empresas",
@@ -17,6 +18,9 @@ export const metadata: Metadata = {
     type: "website",
   },
   robots: { index: true, follow: true },
+  alternates: {
+    languages: getBilingualAlternates("/software-a-medida", "/pt-BR/software-sob-medida"),
+  },
 };
 
 const faqs = [
