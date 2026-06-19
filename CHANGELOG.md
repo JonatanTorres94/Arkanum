@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-06-19
+
+### Added
+
+- `supabase/migrations/20260620000000_extend_lead_events_type_check_intent_fields.sql` — extiende el CHECK de `lead_events.type` para aceptar `intent_fields_updated`. Sin columnas nuevas en `leads` (los 4 campos ya existían).
+- `src/features/leads/domain/lead.types.ts` — `LeadIntentFieldsInput`, `UpdateLeadIntentFieldsResult`.
+- `src/features/leads/application/update-lead-intent-fields.use-case.ts` — mismo patrón que los demás use-cases de update.
+- `src/components/admin/lead-intent-fields-form.tsx` — Client Component. 4 selects (Rubro, Tamaño de empresa, Urgencia, Presupuesto) usando los enums existentes de `lead.schema.ts`. Card "Editar intención" en `/admin/leads/[id]`, después de "Contexto operativo".
+- `src/server/actions/admin-lead.action.ts` — nueva `updateLeadIntentFieldsAction`: valida los 4 valores contra sus enums server-side (rechaza cualquier valor fuera de `INDUSTRY_OPTIONS`/`COMPANY_SIZE_OPTIONS`/`URGENCY_OPTIONS`/`BUDGET_OPTIONS`), guard anti-duplicado (sin escritura ni evento si nada cambió), registra evento `intent_fields_updated` con snapshot antes/después de los 4 campos en `from_status`/`to_status`.
+
+### Changed
+
+- `src/features/leads/infrastructure/lead.repository.ts` / `supabase-lead.repository.ts` — agregan `updateIntentFields(id, input)`.
+- `src/components/admin/lead-activity-feed.tsx` — agrega rama de render para eventos `intent_fields_updated` (bloque "antes/después" con el snapshot guardado).
+
+### Notes
+
+- Solo edición manual de campos existentes (issue #43): sin nuevos campos de lead, sin cambios al formulario público, sin migration en `leads` (solo se extendió el CHECK de `lead_events`), sin CRM automation, sin reminders/notifications/assignments/kanban.
+- Sin cambios públicos/SEO/i18n. Filtros y CSV export sin tocar.
+- No afecta los workflows de estado, etapa calificada ni seguimiento — son cards independientes.
+- No pude verificar visualmente en navegador — `/admin/leads/[id]` requiere sesión admin no disponible en este entorno.
+
 ## [0.25.0] - 2026-06-19
 
 ### Added

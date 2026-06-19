@@ -72,6 +72,17 @@ export function LeadActivityFeed({ events }: { events: LeadEvent[] }) {
               <span className="font-medium text-slate-200">{event.toStatus}</span>
             </p>
           )}
+          {event.type === "intent_fields_updated" && (
+            <div className="space-y-1 text-sm text-slate-400">
+              <p>Campos de intención actualizados:</p>
+              <p className="text-xs text-slate-500">
+                Antes: <span className="text-slate-300">{event.fromStatus}</span>
+              </p>
+              <p className="text-xs text-slate-500">
+                Después: <span className="text-slate-300">{event.toStatus}</span>
+              </p>
+            </div>
+          )}
           <p className="mt-1.5 text-xs text-slate-600">
             {event.createdBy ?? "Administrador"}
             {" · "}

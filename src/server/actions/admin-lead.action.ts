@@ -5,6 +5,7 @@ import { getAdminUser } from "@/lib/auth/verify-admin";
 import { updateLeadStatusUseCase } from "@/features/leads/application/update-lead-status.use-case";
 import { updateLeadQualifiedStageUseCase } from "@/features/leads/application/update-lead-qualified-stage.use-case";
 import { updateLeadFollowUpUseCase } from "@/features/leads/application/update-lead-follow-up.use-case";
+import { updateLeadIntentFieldsUseCase } from "@/features/leads/application/update-lead-intent-fields.use-case";
 import { getLeadByIdUseCase } from "@/features/leads/application/get-lead-by-id.use-case";
 import { createLeadEventUseCase } from "@/features/leads/application/create-lead-event.use-case";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
@@ -14,7 +15,14 @@ import {
   QUALIFIED_STAGES,
   type LeadStatus,
   type QualifiedStage,
+  type LeadIntentFieldsInput,
 } from "@/features/leads/domain/lead.types";
+import {
+  INDUSTRY_OPTIONS,
+  COMPANY_SIZE_OPTIONS,
+  URGENCY_OPTIONS,
+  BUDGET_OPTIONS,
+} from "@/features/leads/domain/lead.schema";
 
 // New Date() silently normalizes impossible calendar dates (e.g. 2026-02-31
 // rolls over to March) instead of rejecting them, so validate the parsed
@@ -45,6 +53,21 @@ function formatFollowUpSnapshot(nextAction: string | null, followUpDate: string 
   if (nextAction)   parts.push(`Acción: ${nextAction}`);
   if (followUpDate) parts.push(`Fecha: ${followUpDate}`);
   return parts.join(" · ");
+}
+
+// Form values arrive as plain strings, not the option tuple's literal union,
+// so .includes() needs a string[]-typed view to type-check.
+function isValidEnumValue<T extends string>(options: readonly T[], value: string): value is T {
+  return (options as readonly string[]).includes(value);
+}
+
+function formatIntentFieldsSnapshot(
+  industry: string,
+  companySize: string,
+  urgency: string,
+  budget: string
+): string {
+  return `Rubro: ${industry} · Tamaño: ${companySize} · Urgencia: ${urgency} · Presupuesto: ${budget}`;
 }
 
 export async function updateLeadStatusAction(
@@ -186,6 +209,78 @@ export async function updateLeadFollowUpAction(
 
   if (!eventOutcome.ok) {
     console.warn("[audit] Failed to record follow_up_updated event:", eventOutcome.error);
+  }
+
+  revalidatePath(`/admin/leads/${id}`);
+  revalidatePath("/admin/leads");
+
+  return {};
+}
+
+export async function updateLeadIntentFieldsAction(
+  id: string,
+  input: LeadIntentFieldsInput
+): Promise<{ error?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  if (!isValidEnumValue(INDUSTRY_OPTIONS, input.industry)) {
+    return { error: "Rubro inválido." };
+  }
+  if (!isValidEnumValue(COMPANY_SIZE_OPTIONS, input.companySize)) {
+    return { error: "Tamaño de empresa inválido." };
+  }
+  if (!isValidEnumValue(URGENCY_OPTIONS, input.urgency)) {
+    return { error: "Urgencia inválida." };
+  }
+  if (!isValidEnumValue(BUDGET_OPTIONS, input.budget)) {
+    return { error: "Presupuesto inválido." };
+  }
+
+  const leadRepository  = new SupabaseLeadRepository();
+  const eventRepository = new SupabaseEventRepository();
+
+  const leadResult = await getLeadByIdUseCase(id, leadRepository);
+  if (!leadResult.ok) return { error: "Lead no encontrado." };
+
+  const previous            = leadResult.lead;
+  const previousCompanySize = previous.companySize ?? "";
+
+  if (
+    previous.industry === input.industry &&
+    previousCompanySize === input.companySize &&
+    previous.urgency === input.urgency &&
+    previous.budget === input.budget
+  ) {
+    return {};
+  }
+
+  const outcome = await updateLeadIntentFieldsUseCase(id, input, leadRepository);
+  if (!outcome.ok) return { error: outcome.error };
+
+  const eventOutcome = await createLeadEventUseCase(
+    {
+      leadId:     id,
+      type:       "intent_fields_updated",
+      fromStatus: formatIntentFieldsSnapshot(
+        previous.industry,
+        previousCompanySize,
+        previous.urgency,
+        previous.budget
+      ),
+      toStatus: formatIntentFieldsSnapshot(
+        input.industry,
+        input.companySize,
+        input.urgency,
+        input.budget
+      ),
+      createdBy: user.email ?? null,
+    },
+    eventRepository
+  );
+
+  if (!eventOutcome.ok) {
+    console.warn("[audit] Failed to record intent_fields_updated event:", eventOutcome.error);
   }
 
   revalidatePath(`/admin/leads/${id}`);
