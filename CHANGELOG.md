@@ -6,7 +6,7 @@
 
 ### Added
 
-- `src/app/pt-BR/automacao-de-processos/page.tsx`, `sistemas-para-distribuidoras/page.tsx`, `software-para-logistica/page.tsx`, `sistemas-de-estoque/page.tsx`, `automacao-com-whatsapp/page.tsx` — equivalentes pt-BR de las 4 páginas SEO de intención que quedaban solo en español, con terminología brasileña auténtica ("automação", "estoque", "sem custo"). FAQ schema JSON-LD propio, capacidades/casos de uso y páginas relacionadas traducidos por completo.
+- `src/app/pt-BR/automacao-de-processos/page.tsx`, `sistemas-para-distribuidoras/page.tsx`, `software-para-logistica/page.tsx`, `sistemas-de-estoque/page.tsx`, `automacao-com-whatsapp/page.tsx` — equivalentes pt-BR de las 5 páginas públicas de intención que quedaban solo en español, con terminología brasileña auténtica ("automação", "estoque", "sem custo"). FAQ schema JSON-LD propio, capacidades/casos de uso y páginas relacionadas traducidos por completo.
 
 ### Changed
 
