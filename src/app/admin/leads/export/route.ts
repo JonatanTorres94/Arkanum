@@ -60,12 +60,13 @@ const HEADER = [
 export async function GET(request: NextRequest) {
   await verifyAdmin();
 
-  const params           = request.nextUrl.searchParams;
-  const activeStatus      = params.get("status")      ?? "";
-  const activeIndustry    = params.get("industry")    ?? "";
-  const activeCompanySize = params.get("companySize") ?? "";
-  const activeBudget      = params.get("budget")      ?? "";
-  const activeUrgency     = params.get("urgency")     ?? "";
+  const params              = request.nextUrl.searchParams;
+  const activeStatus         = params.get("status")         ?? "";
+  const activeIndustry       = params.get("industry")       ?? "";
+  const activeCompanySize    = params.get("companySize")    ?? "";
+  const activeBudget         = params.get("budget")         ?? "";
+  const activeUrgency        = params.get("urgency")        ?? "";
+  const activeQualifiedStage = params.get("qualifiedStage") ?? "";
 
   const repository = new SupabaseLeadRepository();
   const result     = await getLeadsUseCase(repository);
@@ -80,6 +81,16 @@ export async function GET(request: NextRequest) {
     if (activeCompanySize && lead.companySize !== activeCompanySize) return false;
     if (activeBudget      && lead.budget      !== activeBudget)      return false;
     if (activeUrgency     && lead.urgency     !== activeUrgency)     return false;
+    // A qualified-stage filter only ever matches qualified leads —
+    // "unassigned" means qualified but without a stage yet.
+    if (activeQualifiedStage) {
+      if (lead.status !== "qualified") return false;
+      if (activeQualifiedStage === "unassigned") {
+        if (lead.qualifiedStage !== null) return false;
+      } else if (lead.qualifiedStage !== activeQualifiedStage) {
+        return false;
+      }
+    }
     return true;
   });
 
