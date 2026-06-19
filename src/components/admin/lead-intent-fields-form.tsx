@@ -83,6 +83,9 @@ export function LeadIntentFieldsForm({
             disabled={isPending}
             className={selectClass}
           >
+            <option value="" disabled>
+              Seleccionar tamaño
+            </option>
             {COMPANY_SIZE_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
