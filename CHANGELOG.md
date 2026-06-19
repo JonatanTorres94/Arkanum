@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-06-19
+
+### Added
+
+- `supabase/migrations/20260621010000_create_project_repositories_and_environments.sql` — tablas `project_repositories` (`provider` CHECK `github`/`other`, `name`/`repo_url` requeridos, `owner`/`default_branch`/`notes` nullable) y `project_environments` (`type` CHECK con 5 valores, `status` CHECK con 3 valores, `url`/`notes` nullable). Ambas con FK a `projects` `ON DELETE CASCADE` (son metadata que pertenece al proyecto, a diferencia de `projects → clients` que es `RESTRICT`). RLS habilitado, sin políticas públicas.
+- `src/features/projects/domain/project-repository-link.types.ts` — `ProjectRepositoryLink`, `REPOSITORY_PROVIDERS`, `RepositoryProvider`, `CreateProjectRepositoryLinkInput/Result`.
+- `src/features/projects/domain/project-environment.types.ts` — `ProjectEnvironment`, `ENVIRONMENT_TYPES`, `ENVIRONMENT_STATUSES`, tipos asociados.
+- `src/features/projects/infrastructure/project-repository-link.repository.ts` / `supabase-project-repository-link.repository.ts` y los equivalentes de `project-environment` — mismo patrón que el resto del dominio, con `findByProjectId` (no hay listado global, solo scoped al proyecto).
+- `src/features/projects/application/create-project-repository-link.use-case.ts`, `get-project-repository-links.use-case.ts`, `create-project-environment.use-case.ts`, `get-project-environments.use-case.ts`.
+- `src/server/actions/admin-project-metadata.action.ts` — `createProjectRepositoryAction`/`createProjectEnvironmentAction`: re-validan que el proyecto exista server-side, validan enums y URL `http(s)` (vía `new URL()`), persisten strings opcionales vacíos como `null`.
+- `src/components/admin/project-repository-form.tsx`, `project-environment-form.tsx` — formularios inline (patrón `LeadNoteForm`: `useTransition` + `revalidatePath`, sin redirect) en las nuevas secciones "Repositorios" y "Entornos" de `/admin/projects/[id]`.
+
+### Notes
+
+- Tercer módulo del dominio Delivery/Projects (issue #51, ver `docs/internal-operations-architecture.md`). Un repositorio no es un proyecto, un entorno no es un proyecto — ambos son metadata operativa manual que pertenece al proyecto.
+- **Desviación del naming sugerido por el issue**: la entidad "repo vinculado a un proyecto" se llama `ProjectRepositoryLink`, no `ProjectRepository` como sugería el issue — ese nombre ya lo usa la interfaz de persistencia del entity `Project` (`infrastructure/project.repository.ts`, desde v0.29.0), y ambos se importan juntos en las mismas páginas/actions.
+- Sin GitHub API, sin OAuth, sin webhooks, sin sync de PRs/issues, sin work items, sin releases, sin tickets de soporte, sin conversión lead-to-project, sin miembros/responsables de proyecto.
+- Sin edición ni borrado (solo alta) de repositorios/entornos en esta release. Sin cambios públicos/SEO/i18n, sin CSV export, sin notificaciones.
+- No hay rutas nuevas — todo vive como secciones dentro de `/admin/projects/[id]`, ya cubierto por el gate de auth verificado en v0.29.0.
+
 ## [0.29.0] - 2026-06-19
 
 ### Added
