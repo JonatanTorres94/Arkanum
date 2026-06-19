@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-06-19
+
+### Added
+
+- `supabase/migrations/20260622000000_create_project_work_items_table.sql` — tabla `project_work_items`: `category` (CHECK con 7 valores, default `'task'`), `status` (CHECK con 8 valores, default `'backlog'`), `priority` (CHECK con 4 valores, default `'medium'`), `title` requerido, `description`/`notes` nullable. FK a `projects` `ON DELETE CASCADE`, mismo criterio que repositorios/entornos. RLS habilitado, sin políticas públicas.
+- `src/features/projects/domain/project-work-item.types.ts` — `ProjectWorkItem`, `WORK_ITEM_CATEGORIES`, `WORK_ITEM_STATUSES`, `WORK_ITEM_PRIORITIES` y tipos asociados.
+- `src/features/projects/infrastructure/project-work-item.repository.ts` / `supabase-project-work-item.repository.ts`, `application/create-project-work-item.use-case.ts`, `get-project-work-items.use-case.ts` — mismo patrón que repositorios/entornos, scoped por `project_id`.
+- `src/server/actions/admin-project-work-item.action.ts` — `createProjectWorkItemAction`: re-valida que el proyecto exista, valida los 3 enums server-side, persiste opcionales vacíos como `null`.
+- `src/components/admin/project-work-item-form.tsx` — formulario inline (mismo patrón `useTransition` + `revalidatePath` que repositorios/entornos) en la nueva sección "Work items" de `/admin/projects/[id]`: contador, empty state, lista (título, badges de categoría/estado/prioridad, preview de descripción, fecha) y alta.
+
+### Notes
+
+- Cuarto módulo del dominio Delivery/Projects (issue #54, ver `docs/internal-operations-architecture.md`). Primer flujo tipo Jira liviano, pero propio de Arkanum — sin Kanban, sin GitHub issue/PR sync, sin asignaciones, sin due dates, sin estimates/time tracking, sin comments, sin audit trail en este MVP.
+- Sin tickets de soporte, sin conversión lead-to-client/project (eso es v0.34.0, ver issue #52 — explícitamente no es parte de esta release), sin releases.
+- Sin edición ni borrado (solo alta), igual que repositorios/entornos. Sin cambios públicos/SEO/i18n, sin CSV export, sin notificaciones.
+- No hay rutas nuevas — todo vive como sección dentro de `/admin/projects/[id]`, ya cubierto por el gate de auth verificado en v0.29.0.
+
 ## [0.30.0] - 2026-06-19
 
 ### Added
