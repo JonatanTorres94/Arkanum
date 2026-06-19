@@ -12,6 +12,7 @@ import { LeadStatusSelector } from "@/components/admin/lead-status-selector";
 import { LeadQualifiedStageSelector } from "@/components/admin/lead-qualified-stage-selector";
 import { LeadActivityFeed } from "@/components/admin/lead-activity-feed";
 import { LeadFollowUpForm } from "@/components/admin/lead-follow-up-form";
+import { LeadIntentFieldsForm } from "@/components/admin/lead-intent-fields-form";
 import { LeadNoteForm } from "@/components/admin/lead-note-form";
 import { LeadDetailSection } from "@/components/admin/lead-detail-section";
 import { signOutAction } from "@/server/actions/auth.action";
@@ -154,6 +155,17 @@ export default async function AdminLeadDetailPage({
           <div className="mt-4">
             <Field label="Mensaje adicional" value={lead.additionalMessage} />
           </div>
+        </LeadDetailSection>
+
+        {/* Editar intención */}
+        <LeadDetailSection title="Editar intención">
+          <LeadIntentFieldsForm
+            leadId={lead.id}
+            industry={lead.industry}
+            companySize={lead.companySize}
+            urgency={lead.urgency}
+            budget={lead.budget}
+          />
         </LeadDetailSection>
 
         {/* Actividad */}
