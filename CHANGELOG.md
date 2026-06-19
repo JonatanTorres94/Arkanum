@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-06-19
+
+### Added
+
+- `docs/internal-operations-architecture.md` — arquitectura de los 4 dominios operativos internos (Commercial/CRM, Client Management, Delivery/Projects, Support/Post-delivery): decisiones cerradas ("CRM vende, Delivery construye, Support sostiene"; Support no es development; sin Jira; GitHub híbrido), modelo de work items y de tickets de soporte, concepto de conversión lead → cliente/proyecto, boundaries explícitos entre dominios, y el roadmap completo v0.28.0 a v0.35.0.
+
+### Notes
+
+- Release de documentación únicamente (issue #45): sin migrations, sin tablas nuevas, sin rutas admin nuevas, sin UI nueva, sin integración GitHub API, sin Jira, sin módulos de cliente/proyecto/soporte implementados, sin cambios públicos/SEO/i18n.
+- Esta pausa documental precede a v0.28.0 (Internal Clients Foundation) — el roadmap completo queda fijado en el documento antes de la primera migration de un dominio nuevo.
+
 ## [0.26.0] - 2026-06-19
 
 ### Added
