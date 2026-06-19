@@ -32,10 +32,17 @@ export interface Lead {
   additionalMessage: string | null;
   status: LeadStatus;
   qualifiedStage: QualifiedStage | null;
+  nextAction: string | null;
+  followUpDate: string | null;
   source: LeadSource;
   createdAt: string;
   updatedAt: string;
 }
+
+export type LeadFollowUpInput = {
+  nextAction: string | null;
+  followUpDate: string | null;
+};
 
 export type CreateLeadResult =
   | { ok: true; id: string }
@@ -46,5 +53,9 @@ export type UpdateLeadStatusResult =
   | { ok: false; error: string };
 
 export type UpdateLeadQualifiedStageResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export type UpdateLeadFollowUpResult =
   | { ok: true }
   | { ok: false; error: string };

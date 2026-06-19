@@ -11,6 +11,7 @@ import { LeadStatusBadge } from "@/components/admin/lead-status-badge";
 import { LeadStatusSelector } from "@/components/admin/lead-status-selector";
 import { LeadQualifiedStageSelector } from "@/components/admin/lead-qualified-stage-selector";
 import { LeadActivityFeed } from "@/components/admin/lead-activity-feed";
+import { LeadFollowUpForm } from "@/components/admin/lead-follow-up-form";
 import { LeadNoteForm } from "@/components/admin/lead-note-form";
 import { LeadDetailSection } from "@/components/admin/lead-detail-section";
 import { signOutAction } from "@/server/actions/auth.action";
@@ -104,6 +105,15 @@ export default async function AdminLeadDetailPage({
               <LeadQualifiedStageSelector leadId={lead.id} currentStage={lead.qualifiedStage} />
             </div>
           )}
+        </LeadDetailSection>
+
+        {/* Seguimiento */}
+        <LeadDetailSection title="Seguimiento">
+          <LeadFollowUpForm
+            leadId={lead.id}
+            nextAction={lead.nextAction}
+            followUpDate={lead.followUpDate}
+          />
         </LeadDetailSection>
 
         {/* Datos de contacto */}

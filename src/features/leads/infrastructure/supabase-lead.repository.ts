@@ -1,6 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server";
 import type { LeadFormData } from "@/features/leads/domain/lead.schema";
-import type { Lead, LeadStatus, QualifiedStage } from "@/features/leads/domain/lead.types";
+import type { Lead, LeadFollowUpInput, LeadStatus, QualifiedStage } from "@/features/leads/domain/lead.types";
 import type { LeadRepository } from "./lead.repository";
 
 type LeadRow = {
@@ -21,6 +21,8 @@ type LeadRow = {
   additional_message: string | null;
   status: string;
   qualified_stage: string | null;
+  next_action: string | null;
+  follow_up_date: string | null;
   source: string;
   created_at: string;
   updated_at: string;
@@ -45,6 +47,8 @@ function toLeadDomain(row: LeadRow): Lead {
     additionalMessage: row.additional_message,
     status:           row.status as LeadStatus,
     qualifiedStage:   row.qualified_stage as QualifiedStage | null,
+    nextAction:       row.next_action,
+    followUpDate:     row.follow_up_date,
     source:           row.source as "website",
     createdAt:        row.created_at,
     updatedAt:        row.updated_at,
@@ -130,5 +134,16 @@ export class SupabaseLeadRepository implements LeadRepository {
       .eq("id", id);
 
     if (error) throw new Error("Supabase updateQualifiedStage failed");
+  }
+
+  async updateFollowUp(id: string, input: LeadFollowUpInput): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("leads")
+      .update({ next_action: input.nextAction, follow_up_date: input.followUpDate })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase updateFollowUp failed");
   }
 }

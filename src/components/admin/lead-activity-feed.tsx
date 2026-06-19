@@ -64,6 +64,14 @@ export function LeadActivityFeed({ events }: { events: LeadEvent[] }) {
               <QualifiedStageLabel value={event.toStatus} />
             </p>
           )}
+          {event.type === "follow_up_updated" && (
+            <p className="text-sm text-slate-400">
+              Seguimiento:{" "}
+              <span className="font-medium text-slate-200">{event.fromStatus}</span>
+              <span className="mx-2 text-slate-600">→</span>
+              <span className="font-medium text-slate-200">{event.toStatus}</span>
+            </p>
+          )}
           <p className="mt-1.5 text-xs text-slate-600">
             {event.createdBy ?? "Administrador"}
             {" · "}
