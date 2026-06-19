@@ -90,6 +90,7 @@ const messages = {
       currentProblem: "Describí el problema (mínimo 10 caracteres)",
       urgency: "Seleccioná una opción",
       budget: "Seleccioná una opción",
+      currentTools: "Hubo un problema con esta selección. Probá tildar o destildar una opción.",
     },
   },
   "pt-BR": {
@@ -140,6 +141,7 @@ const messages = {
       currentProblem: "Descreva o problema (mínimo de 10 caracteres)",
       urgency: "Selecione uma opção",
       budget: "Selecione uma opção",
+      currentTools: "Houve um problema com esta seleção. Tente marcar ou desmarcar uma opção.",
     },
   },
 } as const;
@@ -159,6 +161,11 @@ export function DiagnosticForm({ locale = "es", redirectTo = "/gracias" }: Diagn
     formState: { errors, isSubmitting },
   } = useForm<LeadFormData>({
     resolver: zodResolver(leadSchema),
+    // Without this, react-hook-form tracks an unchecked checkbox group as
+    // `false` instead of `[]`, which fails the array schema silently —
+    // there's no visible FieldError for this field, so submit just does
+    // nothing if nobody checks at least one tool.
+    defaultValues: { currentTools: [] },
   });
 
   const onSubmit = async (data: LeadFormData) => {
@@ -358,6 +365,7 @@ export function DiagnosticForm({ locale = "es", redirectTo = "/gracias" }: Diagn
               </label>
             ))}
           </div>
+          <FieldError message={errors.currentTools ? t.errors.currentTools : undefined} />
         </div>
 
         <div>
