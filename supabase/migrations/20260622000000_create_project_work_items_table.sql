@@ -43,9 +43,11 @@ alter table public.project_work_items
   add constraint project_work_items_priority_check
   check (priority in ('low', 'medium', 'high', 'urgent'));
 
-create index if not exists project_work_items_project_id_idx on public.project_work_items(project_id);
-create index if not exists project_work_items_status_idx     on public.project_work_items(status);
-create index if not exists project_work_items_category_idx   on public.project_work_items(category);
+create index if not exists project_work_items_project_id_idx  on public.project_work_items(project_id);
+create index if not exists project_work_items_status_idx      on public.project_work_items(status);
+create index if not exists project_work_items_category_idx    on public.project_work_items(category);
+create index if not exists project_work_items_priority_idx    on public.project_work_items(priority);
+create index if not exists project_work_items_created_at_idx  on public.project_work_items(created_at desc);
 
 -- RLS: server-side access via service role key only, same as the rest of the domain.
 alter table public.project_work_items enable row level security;
