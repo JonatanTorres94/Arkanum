@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-06-18
+
+### Added
+
+- `src/components/admin/lead-detail-section.tsx` — wrapper de card reutilizable (título + contenido) para las secciones de `/admin/leads/[id]`.
+
+### Changed
+
+- `src/app/admin/leads/[id]/page.tsx` — reorganizado en cards: header con nombre, empresa/rol, email/WhatsApp y fecha de creación; card "Workflow" con el selector de estado y el de etapa calificada; datos del lead agrupados en "Datos de contacto", "Empresa", "Proceso a mejorar" y "Contexto operativo"; "Actividad" y "Notas internas" como cards separadas. Sin cambios de lógica ni de datos — es una reorganización de render sobre los mismos `Field`/use-cases existentes.
+- `src/components/admin/lead-activity-feed.tsx` — copy del estado vacío actualizado a "Sin actividad registrada todavía."
+- Estado vacío de notas internas actualizado a "Sin notas registradas todavía." (mismo tono que el de actividad).
+
+### Notes
+
+- Solo UX/frontend (issue #32): sin migrations, sin nuevos campos de lead, sin automatización de CRM, sin cambios públicos/SEO/i18n, sin tocar CSV export.
+- Mobile: layout a una sola columna, `break-words` agregado donde podía haber overflow (nombre, empresa/rol, email, WhatsApp, notas).
+- `package-lock.json` — version bump a `0.21.0` (estaba desincronizado desde la v0.16.0, sin tocar el árbol de dependencias).
+
 ## [0.20.0] - 2026-06-18
 
 ### Added
