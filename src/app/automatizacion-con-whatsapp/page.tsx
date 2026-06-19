@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { ServicePageCtaButton } from "@/components/ui/tracked-cta-button";
 import { siteConfig } from "@/config/site";
+import { getBilingualAlternates } from "@/lib/seo/canonical";
 
 export const metadata: Metadata = {
   title: "Automatización para Empresas que Operan por WhatsApp",
@@ -17,6 +18,9 @@ export const metadata: Metadata = {
     type: "website",
   },
   robots: { index: true, follow: true },
+  alternates: {
+    languages: getBilingualAlternates("/automatizacion-con-whatsapp", "/pt-BR/automacao-com-whatsapp"),
+  },
 };
 
 const faqs = [

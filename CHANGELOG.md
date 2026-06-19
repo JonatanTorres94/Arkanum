@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-06-19
+
+### Added
+
+- `src/app/pt-BR/automacao-de-processos/page.tsx`, `sistemas-para-distribuidoras/page.tsx`, `software-para-logistica/page.tsx`, `sistemas-de-estoque/page.tsx`, `automacao-com-whatsapp/page.tsx` — equivalentes pt-BR de las 5 páginas públicas de intención que quedaban solo en español, con terminología brasileña auténtica ("automação", "estoque", "sem custo"). FAQ schema JSON-LD propio, capacidades/casos de uso y páginas relacionadas traducidos por completo.
+
+### Changed
+
+- `src/components/ui/locale-switcher.tsx` — 10 entradas nuevas en `ALTERNATE` (5 pares ES↔PT).
+- `src/config/routes.ts` — 5 rutas pt-BR agregadas al sitemap, con la misma prioridad que su equivalente en español.
+- `src/app/automatizacion-de-procesos/page.tsx`, `sistemas-para-distribuidoras/page.tsx`, `software-para-logistica/page.tsx`, `sistemas-de-stock/page.tsx`, `automatizacion-con-whatsapp/page.tsx` — agregan `alternates.languages` vía `getBilingualAlternates`, completando el hreflang bidireccional con su par pt-BR.
+- `docs/internationalization.md` — tabla de slug mapping actualizada con los 5 pares nuevos; nota obsoleta sobre "necesita análisis de SEO para Brasil" reemplazada por el estado real (ya traducido).
+
+### Notes
+
+- Las CTAs de las páginas pt-BR nuevas usan `<Link>` simple a `/pt-BR/diagnostico`, no `ServicePageCtaButton` — ese componente está atado a `ServiceSlug` (tipo solo-español para analytics) y a un `href` fijo a `/diagnostico`. Mismo patrón que ya usaba `/pt-BR/software-sob-medida`.
+- Verificado en navegador headless (issue #39): las 5 rutas renderizan sin errores de consola, el `LocaleSwitcher` resuelve correctamente en ambas direcciones, hreflang es bidireccional y correcto, el sitemap incluye los 5 paths nuevos.
+- Sin `/es`, sin redirects automáticos, sin detección de idioma del browser, sin rutas en inglés, sin i18n de admin, sin cambios de DB, sin cambios al formulario de diagnóstico ni a los emails, sin framework de i18n nuevo.
+
 ## [0.23.0] - 2026-06-19
 
 ### Added
