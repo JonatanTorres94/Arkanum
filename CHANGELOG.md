@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-06-19
+
+### Added
+
+- `supabase/migrations/20260619000000_add_lead_follow_up_fields.sql` — columnas `next_action` (text, nullable) y `follow_up_date` (date, nullable) en `leads`. Índice `leads_follow_up_date_idx`.
+- `supabase/migrations/20260619010000_extend_lead_events_type_check_follow_up.sql` — extiende el CHECK de `lead_events.type` para aceptar `follow_up_updated`.
+- `src/features/leads/domain/lead.types.ts` — `LeadFollowUpInput`, `UpdateLeadFollowUpResult`, campos `nextAction`/`followUpDate` en `Lead`.
+- `src/features/leads/application/update-lead-follow-up.use-case.ts` — mismo patrón que los use-cases de status/etapa.
+- `src/components/admin/lead-follow-up-form.tsx` — Client Component. Textarea de próxima acción + input de fecha + botón "Guardar seguimiento". Muestra "Sin próxima acción definida." cuando ambos campos están vacíos.
+- `src/server/actions/admin-lead.action.ts` — nueva `updateLeadFollowUpAction`: valida auth, valida la fecha server-side (regex + `Date.parse`, independiente de la validación del `<input type="date">` del cliente), normaliza strings vacíos a `null`, guard anti-duplicado (sin escritura ni evento si ningún campo cambió), registra evento `follow_up_updated` reusando `from_status`/`to_status` de `lead_events` como un snapshot de texto único ("Acción: ... · Fecha: ...").
+
+### Changed
+
+- `src/features/leads/infrastructure/lead.repository.ts` / `supabase-lead.repository.ts` — agregan `updateFollowUp(id, input)`; `LeadRow`/`toLeadDomain` incluyen `next_action`/`follow_up_date`.
+- `src/components/admin/lead-activity-feed.tsx` — agrega rama de render para eventos `follow_up_updated` (muestra el snapshot guardado directamente, sin label lookup — ya es texto legible).
+- `src/app/admin/leads/[id]/page.tsx` — agrega la card "Seguimiento" justo después de "Workflow".
+
+### Notes
+
+- Seguimiento manual únicamente (issue #41): sin reminders automáticos, sin notificaciones por email/WhatsApp, sin integración de calendario, sin asignaciones, sin task management, sin kanban, sin CRM completo.
+- Sin cambios públicos/SEO/i18n. CSV export sin tocar.
+- El registro del evento es no-bloqueante, igual que `status_changed`/`qualified_stage_changed`: si falla, solo se emite `console.warn`.
+- No pude verificar visualmente en navegador — `/admin/leads/[id]` requiere sesión admin no disponible en este entorno.
+
 ## [0.24.0] - 2026-06-19
 
 ### Added
