@@ -23,20 +23,24 @@ export default async function AdminLeadsPage({
   const repository = new SupabaseLeadRepository();
   const result     = await getLeadsUseCase(repository);
 
-  const activeStatus      = typeof filters.status      === "string" ? filters.status      : "";
-  const activeIndustry    = typeof filters.industry    === "string" ? filters.industry    : "";
-  const activeCompanySize = typeof filters.companySize === "string" ? filters.companySize : "";
-  const activeBudget      = typeof filters.budget      === "string" ? filters.budget      : "";
-  const activeUrgency     = typeof filters.urgency     === "string" ? filters.urgency     : "";
+  const activeStatus         = typeof filters.status         === "string" ? filters.status         : "";
+  const activeIndustry       = typeof filters.industry       === "string" ? filters.industry       : "";
+  const activeCompanySize    = typeof filters.companySize    === "string" ? filters.companySize    : "";
+  const activeBudget         = typeof filters.budget         === "string" ? filters.budget         : "";
+  const activeUrgency        = typeof filters.urgency        === "string" ? filters.urgency        : "";
+  const activeQualifiedStage = typeof filters.qualifiedStage === "string" ? filters.qualifiedStage : "";
 
-  const hasFilters = !!(activeStatus || activeIndustry || activeCompanySize || activeBudget || activeUrgency);
+  const hasFilters = !!(
+    activeStatus || activeIndustry || activeCompanySize || activeBudget || activeUrgency || activeQualifiedStage
+  );
 
   const exportParams = new URLSearchParams();
-  if (activeStatus)      exportParams.set("status",      activeStatus);
-  if (activeIndustry)    exportParams.set("industry",    activeIndustry);
-  if (activeCompanySize) exportParams.set("companySize", activeCompanySize);
-  if (activeBudget)      exportParams.set("budget",      activeBudget);
-  if (activeUrgency)     exportParams.set("urgency",     activeUrgency);
+  if (activeStatus)         exportParams.set("status",         activeStatus);
+  if (activeIndustry)       exportParams.set("industry",       activeIndustry);
+  if (activeCompanySize)    exportParams.set("companySize",    activeCompanySize);
+  if (activeBudget)         exportParams.set("budget",         activeBudget);
+  if (activeUrgency)        exportParams.set("urgency",        activeUrgency);
+  if (activeQualifiedStage) exportParams.set("qualifiedStage", activeQualifiedStage);
   const exportHref = `/admin/leads/export${exportParams.size > 0 ? `?${exportParams.toString()}` : ""}`;
 
   const filteredLeads = result.ok
@@ -46,6 +50,16 @@ export default async function AdminLeadsPage({
         if (activeCompanySize && lead.companySize !== activeCompanySize) return false;
         if (activeBudget      && lead.budget      !== activeBudget)      return false;
         if (activeUrgency     && lead.urgency     !== activeUrgency)     return false;
+        // A qualified-stage filter only ever matches qualified leads —
+        // "unassigned" means qualified but without a stage yet.
+        if (activeQualifiedStage) {
+          if (lead.status !== "qualified") return false;
+          if (activeQualifiedStage === "unassigned") {
+            if (lead.qualifiedStage !== null) return false;
+          } else if (lead.qualifiedStage !== activeQualifiedStage) {
+            return false;
+          }
+        }
         return true;
       })
     : [];

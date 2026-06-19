@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LEAD_STATUSES, type LeadStatus } from "@/features/leads/domain/lead.types";
+import {
+  LEAD_STATUSES,
+  QUALIFIED_STAGES,
+  type LeadStatus,
+  type QualifiedStage,
+} from "@/features/leads/domain/lead.types";
 import {
   INDUSTRY_OPTIONS,
   COMPANY_SIZE_OPTIONS,
@@ -15,6 +20,16 @@ const STATUS_LABELS: Record<LeadStatus, string> = {
   contacted:    "Contactado",
   qualified:    "Calificado",
   disqualified: "Descartado",
+};
+
+const QUALIFIED_STAGE_LABELS: Record<QualifiedStage, string> = {
+  discovery_pending: "Discovery pendiente",
+  proposal_pending:  "Propuesta pendiente",
+  proposal_sent:     "Propuesta enviada",
+  waiting_client:    "Esperando respuesta del cliente",
+  accepted:          "Aceptado",
+  rejected:          "Rechazado",
+  project_started:   "Proyecto iniciado",
 };
 
 const selectClass =
@@ -33,9 +48,14 @@ export function LeadFilters() {
 
   const val = (name: string) => params.get(name) ?? "";
 
-  const hasFilters = ["status", "industry", "companySize", "budget", "urgency"].some(
-    (k) => params.get(k)
-  );
+  const hasFilters = [
+    "status",
+    "industry",
+    "companySize",
+    "budget",
+    "urgency",
+    "qualifiedStage",
+  ].some((k) => params.get(k));
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -71,6 +91,18 @@ export function LeadFilters() {
         <option value="">Tamaño</option>
         {COMPANY_SIZE_OPTIONS.map((o) => (
           <option key={o} value={o}>{o}</option>
+        ))}
+      </select>
+
+      <select
+        className={selectClass}
+        value={val("qualifiedStage")}
+        onChange={(e) => set("qualifiedStage", e.target.value)}
+      >
+        <option value="">Etapa calificada</option>
+        <option value="unassigned">Sin etapa asignada</option>
+        {QUALIFIED_STAGES.map((s) => (
+          <option key={s} value={s}>{QUALIFIED_STAGE_LABELS[s]}</option>
         ))}
       </select>
 

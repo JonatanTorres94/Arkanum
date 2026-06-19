@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-06-19
+
+### Added
+
+- `src/components/admin/lead-filters.tsx` — select "Etapa calificada" con `unassigned` + las 7 etapas del pipeline, vía query param `qualifiedStage`.
+
+### Changed
+
+- `src/app/admin/leads/page.tsx` y `src/app/admin/leads/export/route.ts` — agregan la misma cláusula de filtro: `qualifiedStage` solo matchea leads con `status === "qualified"`; `unassigned` matchea `qualifiedStage === null`, cualquier otro valor matchea esa etapa exacta. Conteo `(X de Y)`, resto de filtros y export CSV sin cambios.
+
+### Notes
+
+- Solo filtrado en memoria sobre leads ya cargados (issue #37): sin migrations, sin nuevos campos, sin nuevas etapas, sin CRM automation, sin cambios al esquema del CSV.
+
 ## [0.22.0] - 2026-06-19
 
 ### Added
