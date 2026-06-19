@@ -1,7 +1,7 @@
 
 # Internationalization — Arkanum
 
-## Decisión actual (v0.19.0)
+## Decisión actual (v0.24.0)
 
 **Español (por defecto) + Português Brasil (piloto activo).** Next.js i18n routing con `[locale]` NO está habilitado. Las rutas pt-BR son segmentos literales bajo `app/pt-BR/`.
 
@@ -167,17 +167,37 @@ Antes de avanzar de "contenido preparado" a "rutas activas":
 - [ ] Revisión del copy en pt-BR por hablante nativo de Brasil
 - [ ] Slug mapping validado (ver tabla abajo)
 
-### Slug mapping para activación
+### Slug mapping (activo desde v0.24.0)
 
-| Español (actual) | Português Brasil (futuro) |
+| Español | Português Brasil |
 |---|---|
-| `/` | `/pt-BR/` |
+| `/` | `/pt-BR` |
 | `/software-a-medida` | `/pt-BR/software-sob-medida` |
 | `/automatizacion-de-procesos` | `/pt-BR/automacao-de-processos` |
+| `/sistemas-para-distribuidoras` | `/pt-BR/sistemas-para-distribuidoras` |
+| `/software-para-logistica` | `/pt-BR/software-para-logistica` |
+| `/sistemas-de-stock` | `/pt-BR/sistemas-de-estoque` |
+| `/automatizacion-con-whatsapp` | `/pt-BR/automacao-com-whatsapp` |
 | `/diagnostico` | `/pt-BR/diagnostico` |
 | `/gracias` | `/pt-BR/obrigado` |
 
-Los slugs en español de las páginas de intención (distribuidoras, logística, stock, whatsapp) necesitan análisis de SEO específico para Brasil antes de traducirse — los conceptos y términos de búsqueda pueden diferir significativamente del mercado argentino.
+Las 4 páginas de intención SEO (distribuidoras, logística, stock, whatsapp) ya cuentan con su equivalente pt-BR completo desde v0.24.0, usando terminología brasileña auténtica ("automação", "estoque", "sem custo") en vez de traducción literal del español.
+
+---
+
+## Piloto pt-BR — v0.24.0
+
+Cobertura pública completa: las 4 páginas de intención SEO que quedaban solo en español ya tienen equivalente pt-BR.
+
+- `/pt-BR/automacao-de-processos`
+- `/pt-BR/sistemas-para-distribuidoras`
+- `/pt-BR/software-para-logistica`
+- `/pt-BR/sistemas-de-estoque`
+- `/pt-BR/automacao-com-whatsapp`
+
+Cada página agrega `alternates.languages` (vía `getBilingualAlternates`) tanto en la versión es como en la pt-BR, entrada en el sitemap (`src/config/routes.ts`) y mapeo en `LocaleSwitcher`. Las CTAs de estas páginas pt-BR usan `<Link>` simple a `/pt-BR/diagnostico` en vez de `ServicePageCtaButton` — ese componente está atado a `ServiceSlug` (solo slugs en español) y a un `href` fijo a `/diagnostico`, mismo patrón ya usado en `/pt-BR/software-sob-medida`.
+
+Sin cambios en admin, base de datos, formulario de diagnóstico ni emails — alcance puramente de contenido público/SEO.
 
 ---
 

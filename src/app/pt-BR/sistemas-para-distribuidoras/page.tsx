@@ -2,42 +2,43 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
-import { ServicePageCtaButton } from "@/components/ui/tracked-cta-button";
 import { siteConfig } from "@/config/site";
-import { getBilingualAlternates } from "@/lib/seo/canonical";
+import { getBilingualAlternates, getCanonicalUrl } from "@/lib/seo/canonical";
 
 export const metadata: Metadata = {
-  title: "Sistemas para Distribuidoras y Mayoristas",
+  title: "Sistemas para Distribuidoras e Atacadistas",
   description:
-    "Desarrollamos sistemas de gestión a medida para distribuidoras y empresas mayoristas. Pedidos, stock, repartos y cuentas corrientes en un solo lugar.",
+    "Desenvolvemos sistemas de gestão sob medida para distribuidoras e empresas atacadistas. Pedidos, estoque, entregas e contas correntes em um só lugar.",
   openGraph: {
-    title: "Sistemas para Distribuidoras y Mayoristas | Arkanum",
+    title: "Sistemas para Distribuidoras e Atacadistas | Arkanum",
     description:
-      "Desarrollamos sistemas de gestión a medida para distribuidoras y empresas mayoristas. Pedidos, stock, repartos y cuentas corrientes en un solo lugar.",
-    url: `${siteConfig.url}/sistemas-para-distribuidoras`,
+      "Desenvolvemos sistemas de gestão sob medida para distribuidoras e empresas atacadistas. Pedidos, estoque, entregas e contas correntes em um só lugar.",
+    url: `${siteConfig.url}/pt-BR/sistemas-para-distribuidoras`,
+    locale: "pt_BR",
     type: "website",
   },
   robots: { index: true, follow: true },
   alternates: {
+    canonical: getCanonicalUrl("/pt-BR/sistemas-para-distribuidoras"),
     languages: getBilingualAlternates("/sistemas-para-distribuidoras", "/pt-BR/sistemas-para-distribuidoras"),
   },
 };
 
 const faqs = [
   {
-    question: "¿Cuánto tarda desarrollar el sistema?",
+    question: "Quanto tempo leva para desenvolver o sistema?",
     answer:
-      "Depende de la complejidad. Un módulo de pedidos y stock puede estar listo en 6 a 10 semanas. Proyectos con múltiples módulos se planifican en etapas para que empieces a operar antes de tener el sistema completo.",
+      "Depende da complexidade. Um módulo de pedidos e estoque pode estar pronto em 6 a 10 semanas. Projetos com vários módulos são planejados em etapas para que você comece a operar antes de ter o sistema completo.",
   },
   {
-    question: "¿Puede integrarse con facturación electrónica?",
+    question: "Pode ser integrado com nota fiscal eletrônica?",
     answer:
-      "Puede evaluarse. La integración depende del sistema de facturación que uses, de si tiene API o mecanismos de exportación/importación, y de los requisitos fiscales aplicables. Lo definimos durante el diagnóstico inicial.",
+      "Pode ser avaliado. A integração depende do sistema de emissão que você usa, se ele tem API ou mecanismos de exportação/importação, e dos requisitos fiscais aplicáveis. Definimos isso durante o diagnóstico inicial.",
   },
   {
-    question: "¿Los repartidores pueden usarlo desde el celular?",
+    question: "Os entregadores podem usar pelo celular?",
     answer:
-      "Sí. La parte de repartos se desarrolla como una app móvil o web responsive que funciona desde cualquier teléfono sin necesidad de instalar nada.",
+      "Sim. A parte de entregas é desenvolvida como um app mobile ou web responsivo que funciona em qualquer celular sem precisar instalar nada.",
   },
 ];
 
@@ -53,78 +54,77 @@ const faqSchema = {
 
 const capabilities = [
   {
-    title: "Gestión de pedidos de clientes",
-    description: "Del ingreso del pedido a la preparación y el despacho, con trazabilidad de cada etapa.",
+    title: "Gestão de pedidos de clientes",
+    description: "Da entrada do pedido até a preparação e o despacho, com rastreabilidade de cada etapa.",
   },
   {
-    title: "Control de stock",
-    description: "Entradas, salidas, stock mínimo y alertas antes de quedarte sin mercadería.",
+    title: "Controle de estoque",
+    description: "Entradas, saídas, estoque mínimo e alertas antes de você ficar sem mercadoria.",
   },
   {
-    title: "Seguimiento de repartos",
-    description: "Estado de cada entrega en tiempo real, desde la carga hasta la confirmación del cliente.",
+    title: "Acompanhamento de entregas",
+    description: "Status de cada entrega em tempo real, do carregamento até a confirmação do cliente.",
   },
   {
-    title: "Historial de clientes",
-    description: "Precios por cliente, condiciones de pago y registro de compras anteriores en un solo lugar.",
+    title: "Histórico de clientes",
+    description: "Preços por cliente, condições de pagamento e registro de compras anteriores em um só lugar.",
   },
   {
-    title: "Conciliación de pagos",
-    description: "Cuentas corrientes, pagos parciales y saldos sin depender de planillas compartidas.",
+    title: "Conciliação de pagamentos",
+    description: "Contas correntes, pagamentos parciais e saldos sem depender de planilhas compartilhadas.",
   },
   {
-    title: "Reportes operativos",
-    description: "Movimientos de stock, ventas por período y desempeño por zona o vendedor.",
+    title: "Relatórios operacionais",
+    description: "Movimentos de estoque, vendas por período e desempenho por região ou vendedor.",
   },
 ];
 
 const relatedPages = [
   {
-    href: "/sistemas-de-stock",
-    label: "Sistemas de control de stock",
-    description: "Entradas, salidas, alertas y múltiples depósitos sin Excel.",
+    href: "/pt-BR/sistemas-de-estoque",
+    label: "Sistemas de controle de estoque",
+    description: "Entradas, saídas, alertas e múltiplos depósitos sem Excel.",
   },
   {
-    href: "/software-a-medida",
-    label: "Software a medida",
-    description: "Sistemas web, apps móviles e integraciones construidas para tu operación real.",
+    href: "/pt-BR/software-sob-medida",
+    label: "Software sob medida",
+    description: "Sistemas web, apps mobile e integrações construídas para a sua operação real.",
   },
 ];
 
-export default function SistemasParaDistribuidorasPage() {
+export default function SistemasParaDistribuidorasPtBRPage() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <SiteHeader />
+      <SiteHeader locale="pt-BR" />
       <main>
 
         {/* Hero */}
         <section className="border-b border-slate-800 px-6 py-16">
           <div className="mx-auto max-w-4xl">
             <Link
-              href="/"
+              href="/pt-BR"
               className="mb-8 inline-flex items-center gap-2 text-xs text-slate-500 transition-colors hover:text-slate-300"
             >
-              ← Inicio
+              ← Início
             </Link>
             <h1 className="mb-6 text-4xl font-semibold leading-tight tracking-tight text-slate-50 md:text-5xl">
-              Sistemas de gestión para distribuidoras y mayoristas.
+              Sistemas de gestão para distribuidoras e atacadistas.
             </h1>
             <p className="mb-8 max-w-2xl text-lg leading-relaxed text-slate-400">
-              Cuando el negocio crece, gestionar pedidos, stock y repartos por WhatsApp y planillas
-              se vuelve insostenible. Desarrollamos sistemas a medida que ordenan la operación sin
-              reemplazar lo que ya funciona.
+              Quando o negócio cresce, gerenciar pedidos, estoque e entregas por WhatsApp e
+              planilhas se torna insustentável. Desenvolvemos sistemas sob medida que organizam a
+              operação sem substituir o que já funciona.
             </p>
-            <ServicePageCtaButton
-              page="sistemas-para-distribuidoras"
-              variant="primary"
-              className="px-8 py-3.5 text-sm"
+            <Link
+              href="/pt-BR/diagnostico"
+              className="inline-flex items-center justify-center rounded-lg bg-cyan-400 px-8 py-3.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300"
             >
-              Diagnosticar mi proceso sin cargo
-            </ServicePageCtaButton>
+              Diagnosticar meu processo sem custo
+            </Link>
           </div>
         </section>
 
@@ -132,11 +132,11 @@ export default function SistemasParaDistribuidorasPage() {
         <section className="border-t border-slate-800 bg-slate-900/40 px-6 py-16">
           <div className="mx-auto max-w-4xl">
             <h2 className="mb-3 text-2xl font-semibold text-slate-50">
-              Qué desarrollamos para distribuidoras.
+              O que desenvolvemos para distribuidoras.
             </h2>
             <p className="mb-10 max-w-2xl text-base leading-relaxed text-slate-400">
-              No partimos de un template genérico. Analizamos cómo opera tu distribuidora y
-              construimos lo que necesitás — ni más, ni menos.
+              Não partimos de um template genérico. Analisamos como a sua distribuidora opera e
+              construímos o que você precisa — nem mais, nem menos.
             </p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {capabilities.map((item) => (
@@ -155,7 +155,7 @@ export default function SistemasParaDistribuidorasPage() {
         {/* FAQ */}
         <section className="border-t border-slate-800 px-6 py-16">
           <div className="mx-auto max-w-2xl">
-            <h2 className="mb-10 text-2xl font-semibold text-slate-50">Preguntas frecuentes.</h2>
+            <h2 className="mb-10 text-2xl font-semibold text-slate-50">Perguntas frequentes.</h2>
             <div className="space-y-8">
               {faqs.map((faq) => (
                 <div key={faq.question}>
@@ -170,7 +170,7 @@ export default function SistemasParaDistribuidorasPage() {
         {/* Páginas relacionadas */}
         <section className="border-t border-slate-800 px-6 py-12">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-6 text-lg font-semibold text-slate-50">También puede interesarte.</h2>
+            <h2 className="mb-6 text-lg font-semibold text-slate-50">Também pode te interessar.</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {relatedPages.map((page) => (
                 <Link
@@ -192,24 +192,23 @@ export default function SistemasParaDistribuidorasPage() {
         <section className="border-t border-slate-800 bg-slate-900/40 px-6 py-16">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="mb-4 text-2xl font-semibold text-slate-50">
-              ¿Cómo trabaja tu distribuidora hoy?
+              Como a sua distribuidora trabalha hoje?
             </h2>
             <p className="mb-8 text-base leading-relaxed text-slate-400">
-              Contanos el proceso. Revisamos si una solución a medida tiene sentido para tu
-              operación y por dónde empezar.
+              Conte o processo. Analisamos se uma solução sob medida faz sentido para a sua
+              operação e por onde começar.
             </p>
-            <ServicePageCtaButton
-              page="sistemas-para-distribuidoras"
-              variant="primary"
-              className="px-8 py-3.5 text-sm"
+            <Link
+              href="/pt-BR/diagnostico"
+              className="inline-flex items-center justify-center rounded-lg bg-cyan-400 px-8 py-3.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300"
             >
-              Solicitar diagnóstico sin cargo
-            </ServicePageCtaButton>
+              Solicitar diagnóstico sem custo
+            </Link>
           </div>
         </section>
 
       </main>
-      <SiteFooter />
+      <SiteFooter locale="pt-BR" />
     </>
   );
 }

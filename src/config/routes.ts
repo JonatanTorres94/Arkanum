@@ -21,5 +21,10 @@ export const publicRoutes: readonly PublicRoute[] = [
   { path: "/diagnostico",                   priority: 0.8, changeFrequency: "monthly" },
   { path: "/pt-BR",                         priority: 0.9, changeFrequency: "monthly" },
   { path: "/pt-BR/software-sob-medida",     priority: 0.9, changeFrequency: "monthly" },
+  { path: "/pt-BR/automacao-de-processos",  priority: 0.9, changeFrequency: "monthly" },
+  { path: "/pt-BR/sistemas-para-distribuidoras", priority: 0.8, changeFrequency: "monthly" },
+  { path: "/pt-BR/software-para-logistica", priority: 0.8, changeFrequency: "monthly" },
+  { path: "/pt-BR/sistemas-de-estoque",     priority: 0.8, changeFrequency: "monthly" },
+  { path: "/pt-BR/automacao-com-whatsapp",  priority: 0.8, changeFrequency: "monthly" },
   { path: "/pt-BR/diagnostico",             priority: 0.7, changeFrequency: "monthly" },
 ];

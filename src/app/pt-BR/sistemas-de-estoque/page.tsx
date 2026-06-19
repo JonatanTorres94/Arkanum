@@ -2,42 +2,43 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
-import { ServicePageCtaButton } from "@/components/ui/tracked-cta-button";
 import { siteConfig } from "@/config/site";
-import { getBilingualAlternates } from "@/lib/seo/canonical";
+import { getBilingualAlternates, getCanonicalUrl } from "@/lib/seo/canonical";
 
 export const metadata: Metadata = {
-  title: "Sistemas de Control de Stock para Empresas",
+  title: "Sistemas de Controle de Estoque para Empresas",
   description:
-    "Desarrollamos sistemas de control de stock a medida. Entradas, salidas, stock mínimo, múltiples depósitos y reportes sin depender de planillas de Excel.",
+    "Desenvolvemos sistemas de controle de estoque sob medida. Entradas, saídas, estoque mínimo, múltiplos depósitos e relatórios sem depender de planilhas de Excel.",
   openGraph: {
-    title: "Sistemas de Control de Stock para Empresas | Arkanum",
+    title: "Sistemas de Controle de Estoque para Empresas | Arkanum",
     description:
-      "Desarrollamos sistemas de control de stock a medida. Entradas, salidas, stock mínimo, múltiples depósitos y reportes sin depender de planillas de Excel.",
-    url: `${siteConfig.url}/sistemas-de-stock`,
+      "Desenvolvemos sistemas de controle de estoque sob medida. Entradas, saídas, estoque mínimo, múltiplos depósitos e relatórios sem depender de planilhas de Excel.",
+    url: `${siteConfig.url}/pt-BR/sistemas-de-estoque`,
+    locale: "pt_BR",
     type: "website",
   },
   robots: { index: true, follow: true },
   alternates: {
+    canonical: getCanonicalUrl("/pt-BR/sistemas-de-estoque"),
     languages: getBilingualAlternates("/sistemas-de-stock", "/pt-BR/sistemas-de-estoque"),
   },
 };
 
 const faqs = [
   {
-    question: "¿El sistema puede manejar múltiples depósitos?",
+    question: "O sistema pode gerenciar múltiplos depósitos?",
     answer:
-      "Sí. El sistema puede mostrar el stock por depósito o sucursal y permitir transferencias entre ellos con registro de cada movimiento.",
+      "Sim. O sistema pode mostrar o estoque por depósito ou filial e permitir transferências entre eles com registro de cada movimento.",
   },
   {
-    question: "¿Cómo se actualiza el stock cuando se hace una venta?",
+    question: "Como o estoque é atualizado quando uma venda é feita?",
     answer:
-      "El sistema se conecta con el módulo de ventas o pedidos. Cuando se confirma una operación, el stock se actualiza automáticamente sin intervención manual.",
+      "O sistema se conecta com o módulo de vendas ou pedidos. Quando uma operação é confirmada, o estoque é atualizado automaticamente sem intervenção manual.",
   },
   {
-    question: "¿Podemos importar el inventario actual desde Excel?",
+    question: "Podemos importar o inventário atual do Excel?",
     answer:
-      "Sí. Hacemos la carga inicial desde tu planilla existente para que no tengas que ingresar todo de nuevo. El proceso de migración lo coordinamos durante la implementación.",
+      "Sim. Fazemos a carga inicial a partir da sua planilha existente para que você não precise digitar tudo de novo. O processo de migração é coordenado durante a implementação.",
   },
 ];
 
@@ -53,78 +54,77 @@ const faqSchema = {
 
 const capabilities = [
   {
-    title: "Registro de entradas y salidas",
-    description: "Cada movimiento queda registrado con fecha, responsable y motivo. Menos dependencia de fórmulas manuales y planillas compartidas.",
+    title: "Registro de entradas e saídas",
+    description: "Cada movimento fica registrado com data, responsável e motivo. Menos dependência de fórmulas manuais e planilhas compartilhadas.",
   },
   {
-    title: "Alertas de stock mínimo",
-    description: "El sistema avisa cuando un producto cae por debajo del umbral definido, antes de que afecte la operación.",
+    title: "Alertas de estoque mínimo",
+    description: "O sistema avisa quando um produto fica abaixo do limite definido, antes que afete a operação.",
   },
   {
-    title: "Control por depósito o sucursal",
-    description: "Para empresas con más de un punto de stock: visibilidad consolidada y detalle por ubicación.",
+    title: "Controle por depósito ou filial",
+    description: "Para empresas com mais de um ponto de estoque: visibilidade consolidada e detalhe por localização.",
   },
   {
-    title: "Trazabilidad por lote o serie",
-    description: "Para productos con vencimientos, garantías o identificación individual que requieren seguimiento específico.",
+    title: "Rastreabilidade por lote ou série",
+    description: "Para produtos com validade, garantia ou identificação individual que exigem acompanhamento específico.",
   },
   {
-    title: "Integración con pedidos y ventas",
-    description: "Cuando se confirma un pedido o venta, el stock se descuenta automáticamente sin pasos manuales.",
+    title: "Integração com pedidos e vendas",
+    description: "Quando um pedido ou venda é confirmado, o estoque é baixado automaticamente sem etapas manuais.",
   },
   {
-    title: "Reportes de movimientos",
-    description: "Historial completo, valorización de inventario y análisis de rotación por período.",
+    title: "Relatórios de movimentos",
+    description: "Histórico completo, valorização de inventário e análise de giro por período.",
   },
 ];
 
 const relatedPages = [
   {
-    href: "/sistemas-para-distribuidoras",
+    href: "/pt-BR/sistemas-para-distribuidoras",
     label: "Sistemas para distribuidoras",
-    description: "Pedidos, repartos y cuentas corrientes integrados con el control de stock.",
+    description: "Pedidos, entregas e contas correntes integrados ao controle de estoque.",
   },
   {
-    href: "/software-a-medida",
-    label: "Software a medida",
-    description: "Sistemas web, apps móviles e integraciones construidas para tu operación real.",
+    href: "/pt-BR/software-sob-medida",
+    label: "Software sob medida",
+    description: "Sistemas web, apps mobile e integrações construídas para a sua operação real.",
   },
 ];
 
-export default function SistemasDeStockPage() {
+export default function SistemasDeEstoquePage() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <SiteHeader />
+      <SiteHeader locale="pt-BR" />
       <main>
 
         {/* Hero */}
         <section className="border-b border-slate-800 px-6 py-16">
           <div className="mx-auto max-w-4xl">
             <Link
-              href="/"
+              href="/pt-BR"
               className="mb-8 inline-flex items-center gap-2 text-xs text-slate-500 transition-colors hover:text-slate-300"
             >
-              ← Inicio
+              ← Início
             </Link>
             <h1 className="mb-6 text-4xl font-semibold leading-tight tracking-tight text-slate-50 md:text-5xl">
-              Sistemas de control de stock para empresas que ya superaron Excel.
+              Sistemas de controle de estoque para empresas que já superaram o Excel.
             </h1>
             <p className="mb-8 max-w-2xl text-lg leading-relaxed text-slate-400">
-              Cuando el inventario se maneja en planillas compartidas, los errores, los descuadres
-              y la falta de visibilidad en tiempo real son inevitables. Construimos sistemas que se
-              adaptan a tu operación específica.
+              Quando o inventário é gerenciado em planilhas compartilhadas, erros, divergências e
+              a falta de visibilidade em tempo real são inevitáveis. Construímos sistemas que se
+              adaptam à sua operação específica.
             </p>
-            <ServicePageCtaButton
-              page="sistemas-de-stock"
-              variant="primary"
-              className="px-8 py-3.5 text-sm"
+            <Link
+              href="/pt-BR/diagnostico"
+              className="inline-flex items-center justify-center rounded-lg bg-cyan-400 px-8 py-3.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300"
             >
-              Diagnosticar mi proceso sin cargo
-            </ServicePageCtaButton>
+              Diagnosticar meu processo sem custo
+            </Link>
           </div>
         </section>
 
@@ -132,11 +132,11 @@ export default function SistemasDeStockPage() {
         <section className="border-t border-slate-800 bg-slate-900/40 px-6 py-16">
           <div className="mx-auto max-w-4xl">
             <h2 className="mb-3 text-2xl font-semibold text-slate-50">
-              Qué desarrollamos para control de stock.
+              O que desenvolvemos para controle de estoque.
             </h2>
             <p className="mb-10 max-w-2xl text-base leading-relaxed text-slate-400">
-              Antes de proponer una solución, analizamos cómo funciona tu inventario hoy y dónde
-              se generan los problemas reales.
+              Antes de propor uma solução, analisamos como o seu inventário funciona hoje e onde
+              os problemas reais acontecem.
             </p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {capabilities.map((item) => (
@@ -155,7 +155,7 @@ export default function SistemasDeStockPage() {
         {/* FAQ */}
         <section className="border-t border-slate-800 px-6 py-16">
           <div className="mx-auto max-w-2xl">
-            <h2 className="mb-10 text-2xl font-semibold text-slate-50">Preguntas frecuentes.</h2>
+            <h2 className="mb-10 text-2xl font-semibold text-slate-50">Perguntas frequentes.</h2>
             <div className="space-y-8">
               {faqs.map((faq) => (
                 <div key={faq.question}>
@@ -170,7 +170,7 @@ export default function SistemasDeStockPage() {
         {/* Páginas relacionadas */}
         <section className="border-t border-slate-800 px-6 py-12">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-6 text-lg font-semibold text-slate-50">También puede interesarte.</h2>
+            <h2 className="mb-6 text-lg font-semibold text-slate-50">Também pode te interessar.</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {relatedPages.map((page) => (
                 <Link
@@ -192,24 +192,23 @@ export default function SistemasDeStockPage() {
         <section className="border-t border-slate-800 bg-slate-900/40 px-6 py-16">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="mb-4 text-2xl font-semibold text-slate-50">
-              ¿Cómo controlás el stock hoy?
+              Como você controla o estoque hoje?
             </h2>
             <p className="mb-8 text-base leading-relaxed text-slate-400">
-              Contanos qué herramientas usás y qué problemas genera. Revisamos si un sistema a
-              medida tiene sentido para tu caso.
+              Conte quais ferramentas você usa e quais problemas isso gera. Analisamos se um
+              sistema sob medida faz sentido para o seu caso.
             </p>
-            <ServicePageCtaButton
-              page="sistemas-de-stock"
-              variant="primary"
-              className="px-8 py-3.5 text-sm"
+            <Link
+              href="/pt-BR/diagnostico"
+              className="inline-flex items-center justify-center rounded-lg bg-cyan-400 px-8 py-3.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300"
             >
-              Solicitar diagnóstico sin cargo
-            </ServicePageCtaButton>
+              Solicitar diagnóstico sem custo
+            </Link>
           </div>
         </section>
 
       </main>
-      <SiteFooter />
+      <SiteFooter locale="pt-BR" />
     </>
   );
 }
