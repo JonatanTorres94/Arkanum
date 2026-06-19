@@ -16,11 +16,25 @@ import {
   type QualifiedStage,
 } from "@/features/leads/domain/lead.types";
 
-const FOLLOW_UP_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
+// New Date() silently normalizes impossible calendar dates (e.g. 2026-02-31
+// rolls over to March) instead of rejecting them, so validate the parsed
+// parts round-trip back to the same date instead of trusting Date parsing.
 function isValidFollowUpDate(value: string): boolean {
-  if (!FOLLOW_UP_DATE_PATTERN.test(value)) return false;
-  return !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime());
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+
+  const [, yearRaw, monthRaw, dayRaw] = match;
+  const year  = Number(yearRaw);
+  const month = Number(monthRaw);
+  const day   = Number(dayRaw);
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
 }
 
 // Single-string snapshot of both follow-up fields so the audit trail can
