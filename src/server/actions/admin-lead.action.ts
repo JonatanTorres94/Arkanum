@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getAdminUser } from "@/lib/auth/verify-admin";
 import { updateLeadStatusUseCase } from "@/features/leads/application/update-lead-status.use-case";
 import { updateLeadQualifiedStageUseCase } from "@/features/leads/application/update-lead-qualified-stage.use-case";
+import { updateLeadFollowUpUseCase } from "@/features/leads/application/update-lead-follow-up.use-case";
 import { getLeadByIdUseCase } from "@/features/leads/application/get-lead-by-id.use-case";
 import { createLeadEventUseCase } from "@/features/leads/application/create-lead-event.use-case";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
@@ -14,6 +15,23 @@ import {
   type LeadStatus,
   type QualifiedStage,
 } from "@/features/leads/domain/lead.types";
+
+const FOLLOW_UP_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function isValidFollowUpDate(value: string): boolean {
+  if (!FOLLOW_UP_DATE_PATTERN.test(value)) return false;
+  return !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime());
+}
+
+// Single-string snapshot of both follow-up fields so the audit trail can
+// reuse the generic from_status/to_status columns without new schema.
+function formatFollowUpSnapshot(nextAction: string | null, followUpDate: string | null): string {
+  if (!nextAction && !followUpDate) return "Sin acción definida";
+  const parts: string[] = [];
+  if (nextAction)   parts.push(`Acción: ${nextAction}`);
+  if (followUpDate) parts.push(`Fecha: ${followUpDate}`);
+  return parts.join(" · ");
+}
 
 export async function updateLeadStatusAction(
   id: string,
@@ -99,6 +117,61 @@ export async function updateLeadQualifiedStageAction(
 
   if (!eventOutcome.ok) {
     console.warn("[audit] Failed to record qualified_stage_changed event:", eventOutcome.error);
+  }
+
+  revalidatePath(`/admin/leads/${id}`);
+  revalidatePath("/admin/leads");
+
+  return {};
+}
+
+export async function updateLeadFollowUpAction(
+  id: string,
+  input: { nextAction: string; followUpDate: string }
+): Promise<{ error?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  if (input.followUpDate && !isValidFollowUpDate(input.followUpDate)) {
+    return { error: "Fecha inválida." };
+  }
+
+  const nextAction   = input.nextAction.trim() || null;
+  const followUpDate = input.followUpDate || null;
+
+  const leadRepository  = new SupabaseLeadRepository();
+  const eventRepository = new SupabaseEventRepository();
+
+  const leadResult = await getLeadByIdUseCase(id, leadRepository);
+  if (!leadResult.ok) return { error: "Lead no encontrado." };
+
+  const previousNextAction   = leadResult.lead.nextAction;
+  const previousFollowUpDate = leadResult.lead.followUpDate;
+
+  if (previousNextAction === nextAction && previousFollowUpDate === followUpDate) {
+    return {};
+  }
+
+  const outcome = await updateLeadFollowUpUseCase(
+    id,
+    { nextAction, followUpDate },
+    leadRepository
+  );
+  if (!outcome.ok) return { error: outcome.error };
+
+  const eventOutcome = await createLeadEventUseCase(
+    {
+      leadId:     id,
+      type:       "follow_up_updated",
+      fromStatus: formatFollowUpSnapshot(previousNextAction, previousFollowUpDate),
+      toStatus:   formatFollowUpSnapshot(nextAction, followUpDate),
+      createdBy:  user.email ?? null,
+    },
+    eventRepository
+  );
+
+  if (!eventOutcome.ok) {
+    console.warn("[audit] Failed to record follow_up_updated event:", eventOutcome.error);
   }
 
   revalidatePath(`/admin/leads/${id}`);
