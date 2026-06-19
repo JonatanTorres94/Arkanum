@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-06-19
+
+### Added
+
+- `supabase/migrations/20260620010000_create_clients_table.sql` — tabla `clients`: `name` (text, requerido), `company`/`contact_name`/`contact_email`/`contact_phone`/`industry`/`notes` (text, nullable), `status` (default `'active'`, CHECK `active`/`paused`/`former`), `created_at`/`updated_at` con el mismo trigger `set_updated_at()` que ya usaba `leads`. Índices `clients_status_idx` y `clients_created_at_idx`. RLS habilitado, sin políticas públicas.
+- `src/features/clients/domain/client.types.ts` — `Client`, `CLIENT_STATUSES`, `ClientStatus`, `CreateClientInput`, `CreateClientResult`.
+- `src/features/clients/infrastructure/client.repository.ts` / `supabase-client.repository.ts` — mismo patrón que `LeadRepository`/`SupabaseLeadRepository`.
+- `src/features/clients/application/get-clients.use-case.ts`, `get-client-by-id.use-case.ts`, `create-client.use-case.ts`.
+- `src/server/actions/admin-client.action.ts` — `createClientAction`: valida `name` (requerido, trim, máx. 200 caracteres), `status` (debe ser uno de `CLIENT_STATUSES`) y formato de `contactEmail` (solo si se completa); strings opcionales vacíos persisten como `null`. Usa `useActionState` igual que el login de admin, y redirige a `/admin/clients/[id]` al crear con éxito.
+- `src/components/admin/client-create-form.tsx`, `client-status-badge.tsx`.
+- `src/app/admin/clients/page.tsx` — listado con botón "Crear cliente" y empty state "Todavía no hay clientes registrados.".
+- `src/app/admin/clients/new/page.tsx` — formulario de creación.
+- `src/app/admin/clients/[id]/page.tsx` — detalle de solo lectura (contacto, email, teléfono, rubro, notas, creado/actualizado).
+
+### Notes
+
+- Primer módulo real del dominio Client Management (issue #47, ver `docs/internal-operations-architecture.md`). Un cliente es una entidad nueva creada manualmente desde admin — **no** es un lead editado. La conversión lead → cliente queda para v0.34.0.
+- Sin conversión lead-to-client, sin proyectos, sin repositorios/entornos, sin work items, sin tickets de soporte, sin portal cliente, sin integración GitHub API, sin audit trail, sin edición de cliente (solo alta), sin notificaciones, sin facturación.
+- Sin cambios públicos/SEO/i18n, sin tocar CSV export de leads, sin regresión en leads (lint/build/typecheck verificados sobre todo el proyecto, no solo el módulo nuevo).
+- Verificado en navegador headless: `/admin/clients`, `/admin/clients/new` y `/admin/clients/[id]` redirigen correctamente a `/admin/login` sin sesión. No pude verificar el flujo de creación/listado real con datos — requiere sesión admin no disponible en este entorno.
+
 ## [0.27.0] - 2026-06-19
 
 ### Added
