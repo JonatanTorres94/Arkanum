@@ -1,6 +1,12 @@
 import { createServerClient } from "@/lib/supabase/server";
 import type { LeadFormData } from "@/features/leads/domain/lead.schema";
-import type { Lead, LeadFollowUpInput, LeadStatus, QualifiedStage } from "@/features/leads/domain/lead.types";
+import type {
+  Lead,
+  LeadFollowUpInput,
+  LeadIntentFieldsInput,
+  LeadStatus,
+  QualifiedStage,
+} from "@/features/leads/domain/lead.types";
 import type { LeadRepository } from "./lead.repository";
 
 type LeadRow = {
@@ -145,5 +151,21 @@ export class SupabaseLeadRepository implements LeadRepository {
       .eq("id", id);
 
     if (error) throw new Error("Supabase updateFollowUp failed");
+  }
+
+  async updateIntentFields(id: string, input: LeadIntentFieldsInput): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("leads")
+      .update({
+        industry:     input.industry,
+        company_size: input.companySize,
+        urgency:      input.urgency,
+        budget:       input.budget,
+      })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase updateIntentFields failed");
   }
 }
