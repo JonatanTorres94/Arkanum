@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { verifyAdmin } from "@/lib/auth/verify-admin";
 import { SupabaseClientRepository } from "@/features/clients/infrastructure/supabase-client.repository";
 import { getClientByIdUseCase } from "@/features/clients/application/get-client-by-id.use-case";
+import { getProjectsByClientIdUseCase } from "@/features/projects/application/get-projects-by-client-id.use-case";
+import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
 import { ClientStatusBadge } from "@/components/admin/client-status-badge";
+import { ProjectStatusBadge } from "@/components/admin/project-status-badge";
 import { signOutAction } from "@/server/actions/auth.action";
 
 export const metadata = { title: "Cliente — Admin", robots: { index: false, follow: false } };
@@ -33,6 +36,8 @@ export default async function AdminClientDetailPage({
   if (!result.ok) notFound();
 
   const { client } = result;
+
+  const projectsResult = await getProjectsByClientIdUseCase(id, new SupabaseProjectRepository());
 
   return (
     <div className="min-h-screen px-6 py-10">
@@ -84,6 +89,44 @@ export default async function AdminClientDetailPage({
             <div className="mt-6 border-t border-slate-800 pt-6">
               <Field label="Notas internas" value={client.notes} />
             </div>
+          )}
+        </div>
+
+        {/* Proyectos */}
+        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">
+              Proyectos
+            </h2>
+            <Link
+              href={`/admin/projects/new?clientId=${client.id}`}
+              className="text-xs text-cyan-400 transition-colors hover:text-cyan-300"
+            >
+              Crear proyecto
+            </Link>
+          </div>
+
+          {!projectsResult.ok ? (
+            <p className="text-sm text-red-400">{projectsResult.error}</p>
+          ) : projectsResult.projects.length === 0 ? (
+            <p className="text-sm text-slate-600">Este cliente todavía no tiene proyectos.</p>
+          ) : (
+            <ul className="space-y-2">
+              {projectsResult.projects.map((project) => (
+                <li
+                  key={project.id}
+                  className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3"
+                >
+                  <Link
+                    href={`/admin/projects/${project.id}`}
+                    className="text-sm font-medium text-slate-100 hover:text-cyan-400"
+                  >
+                    {project.name}
+                  </Link>
+                  <ProjectStatusBadge status={project.status} />
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
