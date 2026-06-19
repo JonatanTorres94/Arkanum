@@ -6,6 +6,8 @@ import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase
 import { LeadStatusBadge } from "@/components/admin/lead-status-badge";
 import { LeadFilters } from "@/components/admin/lead-filters";
 import { LeadSummaryCards } from "@/components/admin/lead-summary-cards";
+import { LeadOperationalMetrics } from "@/components/admin/lead-operational-metrics";
+import { LeadPipelineDistribution } from "@/components/admin/lead-pipeline-distribution";
 import { signOutAction } from "@/server/actions/auth.action";
 
 export const metadata = { title: "Leads — Admin", robots: { index: false, follow: false } };
@@ -83,6 +85,14 @@ export default async function AdminLeadsPage({
             </form>
           </div>
         </div>
+
+        {/* Operational metrics */}
+        {result.ok && result.leads.length > 0 && (
+          <div className="mb-6 space-y-4">
+            <LeadOperationalMetrics leads={result.leads} />
+            <LeadPipelineDistribution leads={result.leads} />
+          </div>
+        )}
 
         {/* Summary */}
         {result.ok && result.leads.length > 0 && (

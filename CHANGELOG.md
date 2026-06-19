@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-06-19
+
+### Added
+
+- `src/components/admin/lead-operational-metrics.tsx` — 4 cards con datos derivados sobre el set de leads ya cargado: últimos 7 días (por `createdAt`), calificados, alta urgencia (`urgency === "Lo necesitamos cuanto antes"`) y con presupuesto definido (`budget !== "No tenemos cifra definida aún"`).
+- `src/components/admin/lead-pipeline-distribution.tsx` — distribución de leads calificados por `qualifiedStage` (incluye bucket "Sin etapa asignada"). No renderiza nada (`return null`) si no hay leads calificados.
+
+### Changed
+
+- `src/app/admin/leads/page.tsx` — agrega la sección de métricas operativas y distribución de pipeline entre el header y los cards de estado existentes (`LeadSummaryCards`). Ambos componentes nuevos reciben `result.leads` (set completo, sin filtrar) — mismo criterio que ya usaba `LeadSummaryCards`. Filtros, tabla y export CSV sin cambios.
+
+### Notes
+
+- Solo lectura/cálculo derivado sobre datos existentes (issue #34): sin migrations, sin nuevos campos, sin tipos de evento nuevos, sin automatización de CRM, sin charting library, sin cambios públicos/SEO/i18n.
+- "Alta urgencia" y "presupuesto definido" se determinan comparando contra los valores literales del enum (`URGENCY_OPTIONS`/`BUDGET_OPTIONS`), documentado con comentario en el componente — no son flags propios, así que un cambio de copy en esos enums rompería silenciosamente la métrica.
+
 ## [0.21.0] - 2026-06-18
 
 ### Added
