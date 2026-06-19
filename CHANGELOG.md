@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-06-19
+
+### Added
+
+- `supabase/migrations/20260621000000_create_projects_table.sql` — tabla `projects`: `client_id` (FK a `clients`, `ON DELETE RESTRICT`), `name` (requerido), `description`/`start_date`/`target_date`/`notes` (nullable), `status` (default `'planning'`, CHECK con 8 valores: `discovery`, `planning`, `in_development`, `testing`, `deployed`, `maintenance`, `paused`, `cancelled`). Mismo trigger `set_updated_at()` que `leads`/`clients`. Índices por `client_id`, `status` y `created_at`. RLS habilitado, sin políticas públicas.
+- `src/features/projects/domain/project.types.ts` — `Project`, `PROJECT_STATUSES`, `ProjectStatus`, `CreateProjectInput`, `CreateProjectResult`.
+- `src/features/projects/infrastructure/project.repository.ts` / `supabase-project.repository.ts` — mismo patrón que `clients`, con `findByClientId` adicional para la integración en el detalle del cliente.
+- `src/features/projects/application/get-projects.use-case.ts`, `get-project-by-id.use-case.ts`, `get-projects-by-client-id.use-case.ts`, `create-project.use-case.ts`.
+- `src/lib/validation/calendar-date.ts` — `isValidCalendarDate`, extraída de `admin-lead.action.ts` (validación estricta de fecha calendario que rechaza fechas imposibles como `2026-02-31`) para reutilizarla en `projects`.
+- `src/server/actions/admin-project.action.ts` — `createProjectAction`: valida que `clientId` referencie un cliente existente, `name` (requerido, trim, máx. 200 caracteres), `status` (debe ser uno de `PROJECT_STATUSES`), formato de `startDate`/`targetDate` (vía `isValidCalendarDate`), y rechaza `targetDate` anterior a `startDate`. Usa `useActionState` igual que `clients`, redirige a `/admin/projects/[id]` al crear con éxito.
+- `src/components/admin/project-status-badge.tsx`, `project-create-form.tsx`.
+- `src/app/admin/projects/page.tsx` — listado con nombre de cliente resuelto vía lookup, botón "Crear proyecto" y empty state "Todavía no hay proyectos registrados.".
+- `src/app/admin/projects/new/page.tsx` — formulario de creación; si no hay clientes todavía, muestra mensaje y link para crear el primero (un proyecto siempre necesita un cliente).
+- `src/app/admin/projects/[id]/page.tsx` — detalle de solo lectura con link al cliente asociado.
+
+### Changed
+
+- `src/app/admin/clients/[id]/page.tsx` — agrega sección "Proyectos" mínima: lista los proyectos del cliente (nombre + badge de estado) y un link "Crear proyecto" que precompleta `clientId` por query param en `/admin/projects/new`.
+- `src/server/actions/admin-lead.action.ts` — usa `isValidCalendarDate` desde la lib compartida en vez de la función local duplicada.
+
+### Notes
+
+- Segundo módulo del dominio Delivery/Projects (issue #49, ver `docs/internal-operations-architecture.md`). Un proyecto pertenece a un cliente, no es un lead, no es un ticket de soporte, no es un repositorio de GitHub — es el contenedor business/delivery del trabajo vendido.
+- Sin repositorios/entornos, sin work items, sin releases, sin tickets de soporte, sin conversión lead-to-client/project, sin integración GitHub API, sin miembros/responsables de proyecto, sin audit trail de proyectos.
+- Sin cambios públicos/SEO/i18n, sin CSV export, sin notificaciones, sin facturación.
+- Verificado en navegador headless: `/admin/projects`, `/admin/projects/new` y `/admin/projects/[id]` redirigen correctamente a `/admin/login` sin sesión. No pude verificar el flujo de creación/listado real con datos — requiere sesión admin no disponible en este entorno.
+
 ## [0.28.0] - 2026-06-19
 
 ### Added
