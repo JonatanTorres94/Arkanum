@@ -23,27 +23,7 @@ import {
   URGENCY_OPTIONS,
   BUDGET_OPTIONS,
 } from "@/features/leads/domain/lead.schema";
-
-// New Date() silently normalizes impossible calendar dates (e.g. 2026-02-31
-// rolls over to March) instead of rejecting them, so validate the parsed
-// parts round-trip back to the same date instead of trusting Date parsing.
-function isValidFollowUpDate(value: string): boolean {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return false;
-
-  const [, yearRaw, monthRaw, dayRaw] = match;
-  const year  = Number(yearRaw);
-  const month = Number(monthRaw);
-  const day   = Number(dayRaw);
-
-  const date = new Date(Date.UTC(year, month - 1, day));
-
-  return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month - 1 &&
-    date.getUTCDate() === day
-  );
-}
+import { isValidCalendarDate } from "@/lib/validation/calendar-date";
 
 // Single-string snapshot of both follow-up fields so the audit trail can
 // reuse the generic from_status/to_status columns without new schema.
@@ -169,7 +149,7 @@ export async function updateLeadFollowUpAction(
   const user = await getAdminUser();
   if (!user) return { error: "No autorizado." };
 
-  if (input.followUpDate && !isValidFollowUpDate(input.followUpDate)) {
+  if (input.followUpDate && !isValidCalendarDate(input.followUpDate)) {
     return { error: "Fecha inválida." };
   }
 
