@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-06-19
+
+### Added
+
+- `supabase/migrations/20260622010000_create_support_tickets_table.sql` — tabla `support_tickets`: `client_id` (FK a `clients`, `ON DELETE RESTRICT` — es un registro de negocio real, no metadata), `project_id` opcional (FK a `projects`, `ON DELETE SET NULL`), `source`/`category`/`status`/`priority` con CHECK y defaults (`manual`/`question`/`new`/`medium`), `resolved_at` reservado para uso futuro (sin workflow de cambio de estado todavía). Índices en `client_id`, `project_id`, `status`, `category`, `priority` y `created_at desc` — los seis desde el arranque, después del review de v0.31.0 que señaló índices faltantes.
+- `src/features/support/domain/support-ticket.types.ts` — `SupportTicket`, `TICKET_SOURCES`, `TICKET_CATEGORIES`, `TICKET_STATUSES`, `TICKET_PRIORITIES` y tipos asociados.
+- `src/features/support/infrastructure/support-ticket.repository.ts` / `supabase-support-ticket.repository.ts`, `application/create-support-ticket.use-case.ts`, `get-support-tickets.use-case.ts`, `get-support-ticket-by-id.use-case.ts` — mismo patrón que `clients`/`projects` (`create`, `findAll`, `findById`; sin `findByClientId`, no lo necesita nada todavía).
+- `src/server/actions/admin-support-ticket.action.ts` — `createSupportTicketAction`: valida que `clientId` exista, y si se manda `projectId`, que el proyecto exista **y pertenezca al cliente seleccionado** (no cualquier proyecto). Valida los 4 enums server-side, persiste opcionales vacíos como `null`. Usa `useActionState` igual que `clients`/`projects`, redirige a `/admin/support/[id]` al crear.
+- `src/components/admin/support-ticket-badges.tsx` — `TicketStatusBadge`, `TicketPriorityBadge`, `TicketCategoryBadge` (componente separado, sugerido explícitamente por el issue — a diferencia de los work items, los tickets se muestran tanto en el listado como en el detalle).
+- `src/components/admin/support-ticket-form.tsx` — formulario de creación; el select de "Proyecto" se filtra en el cliente según el cliente elegido, para que sea difícil llegar a un mismatch antes de la validación server-side.
+- `src/app/admin/support/page.tsx`, `new/page.tsx`, `[id]/page.tsx` — listado, creación (con guardia de "no hay clientes todavía") y detalle de solo lectura con links al cliente y al proyecto asociado.
+
+### Notes
+
+- Primer módulo del dominio Support/Post-delivery Operations (issue #56, ver `docs/internal-operations-architecture.md`). Support no es Development: un ticket no es un work item.
+- Sin escalación a work item, sin link a work item, sin notas de soporte, sin audit trail, sin attachments, sin ingestion de email/WhatsApp, sin client portal, sin workflow de cambio de estado, sin SLA timers, sin asignación/responsables.
+- Sin conversión lead→cliente (eso es v0.34.0, issue #52 — leído solo como contexto futuro, no implementado).
+- Sin cambios públicos/SEO/i18n. Verificado regresión en leads/clients/projects (lint/build/typecheck sobre todo el proyecto).
+- Verificado en navegador headless: `/admin/support`, `/admin/support/new` y `/admin/support/[id]` redirigen correctamente a `/admin/login` sin sesión.
+
 ## [0.31.0] - 2026-06-19
 
 ### Added
