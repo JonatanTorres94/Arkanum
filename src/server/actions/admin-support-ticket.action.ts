@@ -1,8 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getAdminUser } from "@/lib/auth/verify-admin";
 import { createSupportTicketUseCase } from "@/features/support/application/create-support-ticket.use-case";
+import { getSupportTicketByIdUseCase } from "@/features/support/application/get-support-ticket-by-id.use-case";
+import { updateSupportTicketStatusUseCase } from "@/features/support/application/update-support-ticket-status.use-case";
+import { escalateSupportTicketUseCase } from "@/features/support/application/escalate-support-ticket.use-case";
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import {
   TICKET_SOURCES,
@@ -18,8 +22,26 @@ import { getClientByIdUseCase } from "@/features/clients/application/get-client-
 import { SupabaseClientRepository } from "@/features/clients/infrastructure/supabase-client.repository";
 import { getProjectByIdUseCase } from "@/features/projects/application/get-project-by-id.use-case";
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
+import { createProjectWorkItemUseCase } from "@/features/projects/application/create-project-work-item.use-case";
+import { SupabaseProjectWorkItemRepository } from "@/features/projects/infrastructure/supabase-project-work-item.repository";
+import type { WorkItemCategory } from "@/features/projects/domain/project-work-item.types";
 
 const TITLE_MAX_LENGTH = 200;
+
+// Tickets that map cleanly to a dev-work shape keep that shape (bug/improvement/
+// task) so the work item reads naturally in the project's backlog. Categories
+// without a clean technical equivalent fall back to support_escalation — the
+// work item category that exists specifically for support-originated work.
+const CATEGORY_TO_WORK_ITEM_CATEGORY: Record<TicketCategory, WorkItemCategory> = {
+  bug_report:     "bug",
+  incident:       "bug",
+  change_request: "improvement",
+  configuration:  "task",
+  question:       "support_escalation",
+  training:       "support_escalation",
+  billing:        "support_escalation",
+  access_issue:   "support_escalation",
+};
 
 function normalize(value: FormDataEntryValue | null): string | null {
   const str = typeof value === "string" ? value.trim() : "";
@@ -88,4 +110,105 @@ export async function createSupportTicketAction(
   if (!result.ok) return { error: result.error };
 
   redirect(`/admin/support/${result.id}`);
+}
+
+export async function updateSupportTicketStatusAction(
+  id: string,
+  status: string
+): Promise<{ error?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  if (!isValidEnumValue(TICKET_STATUSES, status)) return { error: "Estado inválido." };
+
+  const repository = new SupabaseSupportTicketRepository();
+  const ticketResult = await getSupportTicketByIdUseCase(id, repository);
+  if (!ticketResult.ok) return { error: "Ticket no encontrado." };
+
+  const { ticket } = ticketResult;
+
+  if (ticket.status === status) return {};
+
+  let resolvedAt = ticket.resolvedAt;
+  if (status === "resolved") {
+    resolvedAt = new Date().toISOString();
+  } else if (ticket.status === "resolved") {
+    resolvedAt = null;
+  }
+
+  const outcome = await updateSupportTicketStatusUseCase(
+    id,
+    { status: status as TicketStatus, resolvedAt },
+    repository
+  );
+  if (!outcome.ok) return { error: outcome.error };
+
+  revalidatePath(`/admin/support/${id}`);
+  revalidatePath("/admin/support");
+
+  return {};
+}
+
+export async function escalateSupportTicketAction(id: string): Promise<{ error?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  const ticketRepository = new SupabaseSupportTicketRepository();
+  const ticketResult = await getSupportTicketByIdUseCase(id, ticketRepository);
+  if (!ticketResult.ok) return { error: "Ticket no encontrado." };
+
+  const { ticket } = ticketResult;
+
+  if (ticket.escalatedWorkItemId) {
+    return { error: "Este ticket ya fue escalado a desarrollo." };
+  }
+
+  if (!ticket.projectId) {
+    return { error: "El ticket necesita un proyecto asociado para poder escalarse." };
+  }
+
+  const projectResult = await getProjectByIdUseCase(ticket.projectId, new SupabaseProjectRepository());
+  if (!projectResult.ok) return { error: "El proyecto asociado ya no existe." };
+  if (projectResult.project.clientId !== ticket.clientId) {
+    return { error: "El proyecto asociado no pertenece al cliente del ticket." };
+  }
+
+  const workItemResult = await createProjectWorkItemUseCase(
+    {
+      projectId:   ticket.projectId,
+      title:       ticket.title,
+      description: ticket.description,
+      category:    CATEGORY_TO_WORK_ITEM_CATEGORY[ticket.category],
+      status:      "backlog",
+      priority:    ticket.priority,
+      notes:       `Escalado desde el ticket de soporte "${ticket.title}".`,
+    },
+    new SupabaseProjectWorkItemRepository()
+  );
+
+  if (!workItemResult.ok) return { error: workItemResult.error };
+
+  const escalationOutcome = await escalateSupportTicketUseCase(
+    id,
+    {
+      escalatedWorkItemId: workItemResult.id,
+      escalatedAt:         new Date().toISOString(),
+      escalatedBy:         user.email ?? null,
+    },
+    ticketRepository
+  );
+
+  if (!escalationOutcome.ok) {
+    return {
+      error:
+        `${escalationOutcome.error} El work item ya se creó en el proyecto, pero el ticket no quedó ` +
+        "marcado como escalado — revisalo manualmente.",
+    };
+  }
+
+  revalidatePath(`/admin/support/${id}`);
+  revalidatePath(`/admin/projects/${ticket.projectId}`);
+  revalidatePath("/admin/support");
+
+  return {};
 }
