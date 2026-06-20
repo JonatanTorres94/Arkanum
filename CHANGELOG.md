@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.33.0] - 2026-06-20
+
+### Added
+
+- `supabase/migrations/20260622020000_add_support_ticket_escalation_fields.sql` — agrega `escalated_work_item_id` (FK a `project_work_items`, `ON DELETE SET NULL`), `escalated_at` y `escalated_by` a `support_tickets`. Índices en ambas columnas de fecha/FK.
+- `src/features/support/application/update-support-ticket-status.use-case.ts`, `escalate-support-ticket.use-case.ts` — el segundo solo persiste metadata de escalación en el ticket; crear el `project_work_item` es un use-case/repositorio aparte, orquestado desde la server action (mismo criterio que el resto del código para flujos multi-repositorio).
+- `src/server/actions/admin-support-ticket.action.ts` — `updateSupportTicketStatusAction`: valida el enum, no escribe si el estado es idéntico, y maneja `resolved_at` correctamente (se setea al entrar a `resolved`, se limpia al salir). `escalateSupportTicketAction`: exige que el ticket no esté ya escalado, que tenga `project_id`, y que el proyecto exista y pertenezca al cliente del ticket; mapea categoría de ticket → categoría de work item (`bug_report`/`incident` → `bug`, `change_request` → `improvement`, `configuration` → `task`, el resto — `question`/`training`/`billing`/`access_issue` — → `support_escalation`, la categoría de work item que existe específicamente para esto); crea el work item en `backlog` con la prioridad del ticket.
+- `src/components/admin/support-ticket-status-form.tsx` — reemplaza el badge estático de estado en `/admin/support/[id]` por un selector (mismo patrón que `LeadStatusSelector`).
+- `src/components/admin/support-ticket-escalation-panel.tsx` — card "Escalación a desarrollo" con 3 estados: sin proyecto (informativo), ya escalado (de solo lectura, con link al proyecto donde vive el work item — no hay página propia de work item), o elegible (botón de escalar).
+
+### Notes
+
+- Primer workflow real de soporte (issue #58). Guardrail respetado: un ticket de soporte no se transforma en work item — crea/linkea uno, pero sigue existiendo como caso de soporte.
+- El mapeo de categorías es una decisión de diseño propia (el issue solo daba 2 ejemplos): las categorías con equivalente técnico claro mantienen esa forma (`bug`/`improvement`/`task`); las que no tienen equivalente limpio caen en `support_escalation`, que ya existía desde v0.31.0 con ese propósito exacto.
+- Si la creación del work item tiene éxito pero el update de escalación del ticket falla, se devuelve un error explícito indicando que el work item ya se creó — no hay rollback automático (no existe infraestructura de transacciones cross-repository en este MVP).
+- Sin audit trail completo, sin notas de soporte, sin attachments, sin ingestion de email/WhatsApp, sin client portal, sin SLA timers, sin asignación, sin Kanban de soporte, sin editar cliente/proyecto del ticket, sin link a un work item ya existente, sin GitHub API, sin conversión de leads.
+- Sin cambios públicos/SEO/i18n. No hay rutas nuevas — todo vive en `/admin/support/[id]`, ya cubierto por el gate de auth verificado en v0.32.0. La sección "Work items" de `/admin/projects/[id]` (desde v0.31.0) ya muestra los work items creados por escalación, sin cambios adicionales.
+
 ## [0.32.0] - 2026-06-19
 
 ### Added
