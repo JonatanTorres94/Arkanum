@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-06-20
+
+### Added
+
+- `supabase/migrations/20260623000000_add_lead_conversion_fields.sql` — agrega `converted_to_client` (boolean, default `false`), `converted_client_id`/`converted_project_id` (FK a `clients`/`projects`, `ON DELETE SET NULL`), `converted_at`, `converted_by` a `leads`. Índices en las tres primeras.
+- `supabase/migrations/20260623010000_extend_lead_events_type_check_conversion.sql` — extiende el CHECK de `lead_events.type` para aceptar `converted_to_client` y `converted_to_project`.
+- `src/features/leads/application/convert-lead-to-client.use-case.ts` — solo persiste la metadata de conversión en el lead; crear el cliente (y el proyecto opcional) son use-cases/repositorios aparte, orquestados desde la server action (mismo criterio que `escalateSupportTicketUseCase` de v0.33.0).
+- `src/server/actions/admin-lead.action.ts` — `convertLeadToClientAction`: exige elegibilidad (`status === "qualified"` Y `qualifiedStage` en `accepted`/`project_started`) y que no esté ya convertido; mapea lead→cliente (`fullName`/`company` → `name`, `fullName` → `contact_name`, `email` → `contact_email`, `whatsapp` → `contact_phone`, `industry` → `industry`, `status` → `"active"`, nota de origen breve); si se pide, crea además un proyecto inicial (nombre del admin o `processToImprove`, descripción desde `currentProblem`, estado `planning`/`discovery`). Registra eventos `converted_to_client`/`converted_to_project`.
+- `src/components/admin/lead-conversion-panel.tsx` — card "Conversión a cliente" en `/admin/leads/[id]`: no renderiza nada para leads no elegibles y no convertidos; muestra links de solo lectura al cliente/proyecto si ya se convirtió; muestra el formulario (con checkbox opcional "crear proyecto inicial") si es elegible.
+
+### Notes
+
+- El puente entre CRM y Client/Project Management (issue #52). Guardrail respetado: el lead nunca se transforma — sigue como historial comercial con una referencia al cliente creado a partir de él.
+- **Manejo de fallo parcial** (tal como lo pedía el issue): si la creación del proyecto falla después de crear el cliente, el lead igual queda marcado como convertido (con `converted_project_id = null`), y se devuelve un error controlado en vez de perder el cliente silenciosamente.
+- Sin client portal, sin repositorios/entornos, sin work items, sin tickets de soporte, sin GitHub API, sin billing, sin conversión automática, sin conversión de leads no calificados, sin rediseño UX grande.
+- Sin cambios públicos/SEO/i18n, sin cambios al CSV export de leads.
+- No hay rutas nuevas — todo vive en `/admin/leads/[id]`, ya cubierto por el gate de auth verificado en releases anteriores.
+
 ## [0.33.0] - 2026-06-20
 
 ### Added
