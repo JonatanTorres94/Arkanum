@@ -23,15 +23,15 @@ export function SupportTicketEscalationPanel({
   if (escalatedWorkItemId) {
     return (
       <div className="space-y-1.5">
-        <p className="text-sm text-emerald-400">Este ticket ya fue escalado a desarrollo.</p>
-        <p className="text-xs text-slate-500">
+        <p className="text-sm text-admin-success">Este ticket ya fue escalado a desarrollo.</p>
+        <p className="text-xs text-admin-text-faint">
           {escalatedBy ?? "Administrador"}
           {escalatedAt && ` · ${new Date(escalatedAt).toLocaleString("es-AR")}`}
         </p>
         {projectId && (
           <Link
             href={`/admin/projects/${projectId}`}
-            className="inline-block text-xs text-cyan-400 transition-colors hover:text-cyan-300"
+            className="inline-block text-xs text-admin-accent transition-colors hover:underline"
           >
             Ver work item en el proyecto →
           </Link>
@@ -42,7 +42,7 @@ export function SupportTicketEscalationPanel({
 
   if (!projectId) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-admin-text-faint">
         Este ticket no tiene un proyecto asociado. Para escalarlo a desarrollo, necesita estar
         vinculado a un proyecto.
       </p>
@@ -59,17 +59,17 @@ export function SupportTicketEscalationPanel({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-admin-text-muted">
         Esto crea un work item en el proyecto asociado y marca el ticket como escalado a desarrollo.
       </p>
       {error && (
-        <p role="alert" className="text-xs text-red-400">{error}</p>
+        <p role="alert" className="text-xs text-admin-danger">{error}</p>
       )}
       <button
         type="button"
         onClick={handleEscalate}
         disabled={isPending}
-        className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100 disabled:opacity-50"
+        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
       >
         {isPending ? "Escalando..." : "Escalar a desarrollo"}
       </button>

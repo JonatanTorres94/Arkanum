@@ -5,9 +5,9 @@ import { useState, useTransition } from "react";
 import { convertLeadToClientAction } from "@/server/actions/admin-lead.action";
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 transition-colors focus:border-cyan-400 focus:outline-none disabled:opacity-50";
+  "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50";
 
-const labelClass = "mb-1.5 block text-xs font-medium text-slate-400";
+const labelClass = "mb-1.5 block text-xs font-medium text-admin-text-muted";
 
 export function LeadConversionPanel({
   leadId,
@@ -33,8 +33,8 @@ export function LeadConversionPanel({
   if (convertedToClient) {
     return (
       <div className="space-y-1.5">
-        <p className="text-sm text-emerald-400">Este lead ya fue convertido a cliente.</p>
-        <p className="text-xs text-slate-500">
+        <p className="text-sm text-admin-success">Este lead ya fue convertido a cliente.</p>
+        <p className="text-xs text-admin-text-faint">
           {convertedBy ?? "Administrador"}
           {convertedAt && ` · ${new Date(convertedAt).toLocaleString("es-AR")}`}
         </p>
@@ -42,7 +42,7 @@ export function LeadConversionPanel({
           {convertedClientId && (
             <Link
               href={`/admin/clients/${convertedClientId}`}
-              className="text-xs text-cyan-400 transition-colors hover:text-cyan-300"
+              className="text-xs text-admin-accent transition-colors hover:underline"
             >
               Ver cliente →
             </Link>
@@ -50,7 +50,7 @@ export function LeadConversionPanel({
           {convertedProjectId && (
             <Link
               href={`/admin/projects/${convertedProjectId}`}
-              className="text-xs text-cyan-400 transition-colors hover:text-cyan-300"
+              className="text-xs text-admin-accent transition-colors hover:underline"
             >
               Ver proyecto →
             </Link>
@@ -79,28 +79,28 @@ export function LeadConversionPanel({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-admin-text-muted">
         Esto crea un cliente nuevo a partir de los datos del lead. El lead sigue existiendo
         como historial comercial y queda marcado como convertido.
       </p>
 
       {error && (
-        <p role="alert" className="text-xs text-red-400">{error}</p>
+        <p role="alert" className="text-xs text-admin-danger">{error}</p>
       )}
 
-      <label className="flex items-center gap-2 text-sm text-slate-300">
+      <label className="flex items-center gap-2 text-sm text-admin-text-secondary">
         <input
           type="checkbox"
           checked={createProject}
           onChange={(e) => setCreateProject(e.target.checked)}
           disabled={isPending}
-          className="h-4 w-4 rounded border-slate-600 bg-slate-700 accent-cyan-400"
+          className="h-4 w-4 rounded border-admin-border-strong bg-admin-surface-hover accent-admin-accent"
         />
         Crear un proyecto inicial también
       </label>
 
       {createProject && (
-        <div className="grid gap-3 border-l-2 border-slate-800 pl-4 sm:grid-cols-2">
+        <div className="grid gap-3 border-l-2 border-admin-border pl-4 sm:grid-cols-2">
           <div>
             <label htmlFor="projectName" className={labelClass}>
               Nombre del proyecto
@@ -135,7 +135,7 @@ export function LeadConversionPanel({
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-cyan-400 px-6 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-lg bg-admin-accent px-6 py-2.5 text-sm font-semibold text-admin-accent-foreground transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? "Convirtiendo..." : "Convertir a cliente"}
       </button>

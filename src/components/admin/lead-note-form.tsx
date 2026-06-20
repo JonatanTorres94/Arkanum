@@ -26,7 +26,7 @@ export function LeadNoteForm({ leadId }: { leadId: string }) {
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-3">
       {error && (
-        <p className="text-xs text-red-400">{error}</p>
+        <p className="text-xs text-admin-danger">{error}</p>
       )}
       <textarea
         name="content"
@@ -34,12 +34,12 @@ export function LeadNoteForm({ leadId }: { leadId: string }) {
         placeholder="Agregar nota interna..."
         required
         disabled={isPending}
-        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:border-cyan-400 focus:outline-none disabled:opacity-50 resize-none"
+        className="w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint focus:border-admin-accent focus:outline-none disabled:opacity-50 resize-none"
       />
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100 disabled:opacity-50"
+        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
       >
         {isPending ? "Guardando..." : "Agregar nota"}
       </button>

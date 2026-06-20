@@ -7,6 +7,8 @@ const LABELS: Record<LeadStatus, string> = {
   disqualified: "Descartados",
 };
 
+// Literal hues on purpose (not tokenized) — this distinguishes 4 statuses
+// from each other, same reasoning as the status badge components.
 const COLORS: Record<LeadStatus, string> = {
   new:          "text-cyan-400",
   contacted:    "text-blue-400",
@@ -22,9 +24,9 @@ export function LeadSummaryCards({ leads }: { leads: Lead[] }) {
         return (
           <div
             key={status}
-            className="rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3"
+            className="rounded-xl border border-admin-border bg-admin-surface px-4 py-3"
           >
-            <p className="text-xs text-slate-500">{LABELS[status]}</p>
+            <p className="text-xs text-admin-text-faint">{LABELS[status]}</p>
             <p className={`mt-1 text-2xl font-semibold ${COLORS[status]}`}>{count}</p>
           </div>
         );
