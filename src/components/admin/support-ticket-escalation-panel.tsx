@@ -60,7 +60,7 @@ export function SupportTicketEscalationPanel({
   return (
     <div className="space-y-3">
       <p className="text-sm text-slate-400">
-        Esto crea un work item en el proyecto asociado y marca el ticket como escalado a development.
+        Esto crea un work item en el proyecto asociado y marca el ticket como escalado a desarrollo.
       </p>
       {error && (
         <p role="alert" className="text-xs text-red-400">{error}</p>

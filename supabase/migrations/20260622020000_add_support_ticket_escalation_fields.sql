@@ -4,4 +4,4 @@ alter table public.support_tickets
   add column escalated_by           text;
 
 create index if not exists support_tickets_escalated_work_item_id_idx on public.support_tickets(escalated_work_item_id);
-create index if not exists support_tickets_escalated_at_idx           on public.support_tickets(escalated_at);
+create index if not exists support_tickets_escalated_at_idx           on public.support_tickets(escalated_at desc);
