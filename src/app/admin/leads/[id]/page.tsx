@@ -13,6 +13,7 @@ import { LeadQualifiedStageSelector } from "@/components/admin/lead-qualified-st
 import { LeadActivityFeed } from "@/components/admin/lead-activity-feed";
 import { LeadFollowUpForm } from "@/components/admin/lead-follow-up-form";
 import { LeadIntentFieldsForm } from "@/components/admin/lead-intent-fields-form";
+import { LeadConversionPanel } from "@/components/admin/lead-conversion-panel";
 import { LeadNoteForm } from "@/components/admin/lead-note-form";
 import { LeadDetailSection } from "@/components/admin/lead-detail-section";
 import { signOutAction } from "@/server/actions/auth.action";
@@ -44,6 +45,11 @@ export default async function AdminLeadDetailPage({
   if (!leadResult.ok) notFound();
 
   const { lead } = leadResult;
+
+  const eligibleForConversion =
+    !lead.convertedToClient &&
+    lead.status === "qualified" &&
+    (lead.qualifiedStage === "accepted" || lead.qualifiedStage === "project_started");
 
   const [eventsResult, notesResult] = await Promise.all([
     getLeadEventsUseCase(id, new SupabaseEventRepository()),
@@ -107,6 +113,21 @@ export default async function AdminLeadDetailPage({
             </div>
           )}
         </LeadDetailSection>
+
+        {/* Conversión a cliente */}
+        {(eligibleForConversion || lead.convertedToClient) && (
+          <LeadDetailSection title="Conversión a cliente">
+            <LeadConversionPanel
+              leadId={lead.id}
+              eligible={eligibleForConversion}
+              convertedToClient={lead.convertedToClient}
+              convertedClientId={lead.convertedClientId}
+              convertedProjectId={lead.convertedProjectId}
+              convertedAt={lead.convertedAt}
+              convertedBy={lead.convertedBy}
+            />
+          </LeadDetailSection>
+        )}
 
         {/* Seguimiento */}
         <LeadDetailSection title="Seguimiento">

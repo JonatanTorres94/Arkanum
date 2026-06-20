@@ -6,6 +6,7 @@ import { updateLeadStatusUseCase } from "@/features/leads/application/update-lea
 import { updateLeadQualifiedStageUseCase } from "@/features/leads/application/update-lead-qualified-stage.use-case";
 import { updateLeadFollowUpUseCase } from "@/features/leads/application/update-lead-follow-up.use-case";
 import { updateLeadIntentFieldsUseCase } from "@/features/leads/application/update-lead-intent-fields.use-case";
+import { convertLeadToClientUseCase } from "@/features/leads/application/convert-lead-to-client.use-case";
 import { getLeadByIdUseCase } from "@/features/leads/application/get-lead-by-id.use-case";
 import { createLeadEventUseCase } from "@/features/leads/application/create-lead-event.use-case";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
@@ -24,6 +25,11 @@ import {
   BUDGET_OPTIONS,
 } from "@/features/leads/domain/lead.schema";
 import { isValidCalendarDate } from "@/lib/validation/calendar-date";
+import { createClientUseCase } from "@/features/clients/application/create-client.use-case";
+import { SupabaseClientRepository } from "@/features/clients/infrastructure/supabase-client.repository";
+import { createProjectUseCase } from "@/features/projects/application/create-project.use-case";
+import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
+import type { ProjectStatus } from "@/features/projects/domain/project.types";
 
 // Single-string snapshot of both follow-up fields so the audit trail can
 // reuse the generic from_status/to_status columns without new schema.
@@ -265,6 +271,141 @@ export async function updateLeadIntentFieldsAction(
 
   revalidatePath(`/admin/leads/${id}`);
   revalidatePath("/admin/leads");
+
+  return {};
+}
+
+function isEligibleForConversion(lead: { status: LeadStatus; qualifiedStage: QualifiedStage | null; convertedToClient: boolean }): boolean {
+  return (
+    !lead.convertedToClient &&
+    lead.status === "qualified" &&
+    (lead.qualifiedStage === "accepted" || lead.qualifiedStage === "project_started")
+  );
+}
+
+export async function convertLeadToClientAction(
+  id: string,
+  input: { createProject: boolean; projectName: string; projectStatus: string }
+): Promise<{ error?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  const leadRepository = new SupabaseLeadRepository();
+  const leadResult = await getLeadByIdUseCase(id, leadRepository);
+  if (!leadResult.ok) return { error: "Lead no encontrado." };
+
+  const { lead } = leadResult;
+
+  if (lead.convertedToClient) {
+    return { error: "Este lead ya fue convertido a cliente." };
+  }
+  if (!isEligibleForConversion(lead)) {
+    return { error: "Este lead no cumple los requisitos para convertirse en cliente." };
+  }
+
+  const eventRepository = new SupabaseEventRepository();
+
+  const clientName = lead.fullName || lead.company || "Cliente sin nombre";
+  const clientResult = await createClientUseCase(
+    {
+      name:         clientName,
+      company:      lead.company,
+      contactName:  lead.fullName,
+      contactEmail: lead.email,
+      contactPhone: lead.whatsapp,
+      industry:     lead.industry,
+      status:       "active",
+      notes:        `Cliente creado a partir del lead "${lead.fullName}" (#${lead.id}).`,
+    },
+    new SupabaseClientRepository()
+  );
+
+  if (!clientResult.ok) return { error: clientResult.error };
+
+  const clientEventOutcome = await createLeadEventUseCase(
+    {
+      leadId:     id,
+      type:       "converted_to_client",
+      fromStatus: null,
+      toStatus:   `Cliente creado: ${clientName} (#${clientResult.id})`,
+      createdBy:  user.email ?? null,
+    },
+    eventRepository
+  );
+  if (!clientEventOutcome.ok) {
+    console.warn("[audit] Failed to record converted_to_client event:", clientEventOutcome.error);
+  }
+
+  let projectId: string | null = null;
+  let projectCreationFailed = false;
+
+  if (input.createProject) {
+    const projectName   = input.projectName.trim() || lead.processToImprove;
+    const projectStatus: ProjectStatus = input.projectStatus === "discovery" ? "discovery" : "planning";
+
+    const projectResult = await createProjectUseCase(
+      {
+        clientId:    clientResult.id,
+        name:        projectName,
+        description: lead.currentProblem,
+        status:      projectStatus,
+        startDate:   null,
+        targetDate:  null,
+        notes:       `Proyecto creado a partir del lead "${lead.fullName}" (#${lead.id}).`,
+      },
+      new SupabaseProjectRepository()
+    );
+
+    if (projectResult.ok) {
+      projectId = projectResult.id;
+
+      const projectEventOutcome = await createLeadEventUseCase(
+        {
+          leadId:     id,
+          type:       "converted_to_project",
+          fromStatus: null,
+          toStatus:   `Proyecto creado: ${projectName} (#${projectResult.id})`,
+          createdBy:  user.email ?? null,
+        },
+        eventRepository
+      );
+      if (!projectEventOutcome.ok) {
+        console.warn("[audit] Failed to record converted_to_project event:", projectEventOutcome.error);
+      }
+    } else {
+      // Partial failure, per design: the client stays created, the lead still
+      // gets marked converted (with projectId null), and we surface a
+      // controlled error below instead of losing the client silently.
+      projectCreationFailed = true;
+    }
+  }
+
+  const conversionOutcome = await convertLeadToClientUseCase(
+    id,
+    { clientId: clientResult.id, projectId, convertedBy: user.email ?? null },
+    leadRepository
+  );
+
+  if (!conversionOutcome.ok) {
+    return {
+      error:
+        `${conversionOutcome.error} El cliente ya se creó (#${clientResult.id})` +
+        (projectId ? ` junto con el proyecto (#${projectId})` : "") +
+        ", pero el lead no quedó marcado como convertido — revisalo manualmente.",
+    };
+  }
+
+  revalidatePath(`/admin/leads/${id}`);
+  revalidatePath("/admin/clients");
+  if (projectId) revalidatePath("/admin/projects");
+
+  if (projectCreationFailed) {
+    return {
+      error:
+        "El cliente se creó correctamente, pero no se pudo crear el proyecto inicial. " +
+        "Podés crearlo manualmente desde el cliente.",
+    };
+  }
 
   return {};
 }

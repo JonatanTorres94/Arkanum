@@ -83,6 +83,16 @@ export function LeadActivityFeed({ events }: { events: LeadEvent[] }) {
               </p>
             </div>
           )}
+          {event.type === "converted_to_client" && (
+            <p className="text-sm text-slate-400">
+              {event.toStatus}
+            </p>
+          )}
+          {event.type === "converted_to_project" && (
+            <p className="text-sm text-slate-400">
+              {event.toStatus}
+            </p>
+          )}
           <p className="mt-1.5 text-xs text-slate-600">
             {event.createdBy ?? "Administrador"}
             {" · "}
