@@ -1,5 +1,6 @@
 import type { LeadFormData } from "@/features/leads/domain/lead.schema";
 import type {
+  ConvertLeadToClientInput,
   Lead,
   LeadFollowUpInput,
   LeadIntentFieldsInput,
@@ -15,4 +16,5 @@ export interface LeadRepository {
   updateQualifiedStage(id: string, stage: QualifiedStage | null): Promise<void>;
   updateFollowUp(id: string, input: LeadFollowUpInput): Promise<void>;
   updateIntentFields(id: string, input: LeadIntentFieldsInput): Promise<void>;
+  convertToClient(id: string, input: ConvertLeadToClientInput): Promise<void>;
 }

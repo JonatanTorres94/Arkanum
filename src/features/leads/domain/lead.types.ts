@@ -37,6 +37,11 @@ export interface Lead {
   source: LeadSource;
   createdAt: string;
   updatedAt: string;
+  convertedToClient: boolean;
+  convertedClientId: string | null;
+  convertedProjectId: string | null;
+  convertedAt: string | null;
+  convertedBy: string | null;
 }
 
 export type LeadFollowUpInput = {
@@ -68,5 +73,15 @@ export type UpdateLeadFollowUpResult =
   | { ok: false; error: string };
 
 export type UpdateLeadIntentFieldsResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export type ConvertLeadToClientInput = {
+  clientId: string;
+  projectId: string | null;
+  convertedBy: string | null;
+};
+
+export type ConvertLeadToClientResult =
   | { ok: true }
   | { ok: false; error: string };
