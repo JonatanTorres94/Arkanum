@@ -1,11 +1,13 @@
 import { createServerClient } from "@/lib/supabase/server";
 import type {
   CreateSupportTicketInput,
+  EscalateSupportTicketInput,
   SupportTicket,
   TicketCategory,
   TicketPriority,
   TicketSource,
   TicketStatus,
+  UpdateSupportTicketStatusInput,
 } from "@/features/support/domain/support-ticket.types";
 import type { SupportTicketRepository } from "./support-ticket.repository";
 
@@ -24,24 +26,30 @@ type SupportTicketRow = {
   created_at: string;
   updated_at: string;
   resolved_at: string | null;
+  escalated_work_item_id: string | null;
+  escalated_at: string | null;
+  escalated_by: string | null;
 };
 
 function toDomain(row: SupportTicketRow): SupportTicket {
   return {
-    id:          row.id,
-    clientId:    row.client_id,
-    projectId:   row.project_id,
-    title:       row.title,
-    description: row.description,
-    notes:       row.notes,
-    reportedBy:  row.reported_by,
-    source:      row.source as TicketSource,
-    category:    row.category as TicketCategory,
-    status:      row.status as TicketStatus,
-    priority:    row.priority as TicketPriority,
-    createdAt:   row.created_at,
-    updatedAt:   row.updated_at,
-    resolvedAt:  row.resolved_at,
+    id:                  row.id,
+    clientId:            row.client_id,
+    projectId:           row.project_id,
+    title:               row.title,
+    description:         row.description,
+    notes:               row.notes,
+    reportedBy:          row.reported_by,
+    source:              row.source as TicketSource,
+    category:            row.category as TicketCategory,
+    status:              row.status as TicketStatus,
+    priority:            row.priority as TicketPriority,
+    createdAt:           row.created_at,
+    updatedAt:           row.updated_at,
+    resolvedAt:          row.resolved_at,
+    escalatedWorkItemId: row.escalated_work_item_id,
+    escalatedAt:         row.escalated_at,
+    escalatedBy:         row.escalated_by,
   };
 }
 
@@ -98,5 +106,32 @@ export class SupabaseSupportTicketRepository implements SupportTicketRepository 
     if (!data) return null;
 
     return toDomain(data);
+  }
+
+  async updateStatus(id: string, input: UpdateSupportTicketStatusInput): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("support_tickets")
+      .update({ status: input.status, resolved_at: input.resolvedAt })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase updateStatus failed");
+  }
+
+  async escalate(id: string, input: EscalateSupportTicketInput): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("support_tickets")
+      .update({
+        status:                 "escalated_to_development",
+        escalated_work_item_id: input.escalatedWorkItemId,
+        escalated_at:           input.escalatedAt,
+        escalated_by:           input.escalatedBy,
+      })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase escalate failed");
   }
 }

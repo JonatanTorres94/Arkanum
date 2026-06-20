@@ -43,6 +43,9 @@ export interface SupportTicket {
   createdAt: string;
   updatedAt: string;
   resolvedAt: string | null;
+  escalatedWorkItemId: string | null;
+  escalatedAt: string | null;
+  escalatedBy: string | null;
 }
 
 export type CreateSupportTicketInput = {
@@ -60,4 +63,23 @@ export type CreateSupportTicketInput = {
 
 export type CreateSupportTicketResult =
   | { ok: true; id: string }
+  | { ok: false; error: string };
+
+export type UpdateSupportTicketStatusInput = {
+  status: TicketStatus;
+  resolvedAt: string | null;
+};
+
+export type UpdateSupportTicketStatusResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export type EscalateSupportTicketInput = {
+  escalatedWorkItemId: string;
+  escalatedAt: string;
+  escalatedBy: string | null;
+};
+
+export type EscalateSupportTicketResult =
+  | { ok: true }
   | { ok: false; error: string };
