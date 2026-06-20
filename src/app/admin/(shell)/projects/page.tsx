@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { verifyAdmin } from "@/lib/auth/verify-admin";
 import { getProjectsUseCase } from "@/features/projects/application/get-projects.use-case";
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
 import { getClientsUseCase } from "@/features/clients/application/get-clients.use-case";
 import { SupabaseClientRepository } from "@/features/clients/infrastructure/supabase-client.repository";
 import { ProjectStatusBadge } from "@/components/admin/project-status-badge";
-import { signOutAction } from "@/server/actions/auth.action";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminEmptyState } from "@/components/admin/admin-empty-state";
 
 export const metadata = { title: "Proyectos — Admin", robots: { index: false, follow: false } };
 
@@ -19,8 +19,6 @@ function formatDate(value: string | null): string {
 }
 
 export default async function AdminProjectsPage() {
-  await verifyAdmin();
-
   const [projectsResult, clientsResult] = await Promise.all([
     getProjectsUseCase(new SupabaseProjectRepository()),
     getClientsUseCase(new SupabaseClientRepository()),
@@ -31,86 +29,67 @@ export default async function AdminProjectsPage() {
   );
 
   return (
-    <div className="min-h-screen px-6 py-10">
-      <div className="mx-auto max-w-6xl">
+    <div>
+      <AdminPageHeader
+        title="Proyectos"
+        count={projectsResult.ok ? projectsResult.projects.length : undefined}
+        action={
+          <Link
+            href="/admin/projects/new"
+            className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text"
+          >
+            Crear proyecto
+          </Link>
+        }
+      />
 
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-slate-50">
-            Proyectos
-            {projectsResult.ok && (
-              <span className="ml-2 text-base font-normal text-slate-500">
-                ({projectsResult.projects.length})
-              </span>
-            )}
-          </h1>
-          <div className="flex items-center gap-5">
-            <Link
-              href="/admin/projects/new"
-              className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100"
-            >
-              Crear proyecto
-            </Link>
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="text-sm text-slate-500 transition-colors hover:text-slate-300"
-              >
-                Cerrar sesión
-              </button>
-            </form>
-          </div>
-        </div>
-
-        {/* Content */}
+      <div className="px-6 py-6">
         {!projectsResult.ok ? (
-          <p className="text-sm text-red-400">{projectsResult.error}</p>
+          <p className="text-sm text-admin-danger">{projectsResult.error}</p>
 
         ) : projectsResult.projects.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/20 px-6 py-14 text-center">
-            <p className="text-sm text-slate-400">Todavía no hay proyectos registrados.</p>
-          </div>
+          <AdminEmptyState message="Todavía no hay proyectos registrados." />
 
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-800">
+          <div className="overflow-x-auto rounded-xl border border-admin-border">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/60">
-                  <th className="px-4 py-3 text-left font-medium text-slate-400">Nombre</th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-400">Cliente</th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-400">Estado</th>
-                  <th className="hidden px-4 py-3 text-left font-medium text-slate-400 sm:table-cell">Inicio</th>
-                  <th className="hidden px-4 py-3 text-left font-medium text-slate-400 sm:table-cell">Objetivo</th>
-                  <th className="hidden px-4 py-3 text-left font-medium text-slate-400 md:table-cell">Creado</th>
+                <tr className="border-b border-admin-border bg-admin-surface-hover">
+                  <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Nombre</th>
+                  <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Cliente</th>
+                  <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Estado</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted sm:table-cell">Inicio</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted sm:table-cell">Objetivo</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted md:table-cell">Creado</th>
                 </tr>
               </thead>
               <tbody>
                 {projectsResult.projects.map((project) => (
                   <tr
                     key={project.id}
-                    className="border-b border-slate-800/60 transition-colors last:border-0 hover:bg-slate-900/40"
+                    className="border-b border-admin-border transition-colors last:border-0 hover:bg-admin-surface-hover"
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <Link
                         href={`/admin/projects/${project.id}`}
-                        className="font-medium text-slate-100 hover:text-cyan-400"
+                        className="font-medium text-admin-text hover:text-admin-accent"
                       >
                         {project.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-slate-400">
+                    <td className="px-4 py-3.5 text-admin-text-secondary">
                       {clientNameById.get(project.clientId) ?? "—"}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <ProjectStatusBadge status={project.status} />
                     </td>
-                    <td className="hidden px-4 py-3 text-slate-400 sm:table-cell">
+                    <td className="hidden px-4 py-3.5 text-admin-text-secondary sm:table-cell">
                       {formatDate(project.startDate)}
                     </td>
-                    <td className="hidden px-4 py-3 text-slate-400 sm:table-cell">
+                    <td className="hidden px-4 py-3.5 text-admin-text-secondary sm:table-cell">
                       {formatDate(project.targetDate)}
                     </td>
-                    <td className="hidden px-4 py-3 text-slate-500 md:table-cell">
+                    <td className="hidden px-4 py-3.5 text-admin-text-faint md:table-cell">
                       {new Date(project.createdAt).toLocaleDateString("es-AR", {
                         day:   "2-digit",
                         month: "short",
@@ -123,7 +102,6 @@ export default async function AdminProjectsPage() {
             </table>
           </div>
         )}
-
       </div>
     </div>
   );
