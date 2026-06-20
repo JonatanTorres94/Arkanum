@@ -80,8 +80,8 @@ export function LeadConversionPanel({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <p className="text-sm text-slate-400">
-        Esto crea un cliente nuevo a partir de los datos del lead. El lead queda sin modificar,
-        como historial comercial.
+        Esto crea un cliente nuevo a partir de los datos del lead. El lead sigue existiendo
+        como historial comercial y queda marcado como convertido.
       </p>
 
       {error && (
