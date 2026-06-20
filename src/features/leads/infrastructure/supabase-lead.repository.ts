@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server";
 import type { LeadFormData } from "@/features/leads/domain/lead.schema";
 import type {
+  ConvertLeadToClientInput,
   Lead,
   LeadFollowUpInput,
   LeadIntentFieldsInput,
@@ -32,6 +33,11 @@ type LeadRow = {
   source: string;
   created_at: string;
   updated_at: string;
+  converted_to_client: boolean;
+  converted_client_id: string | null;
+  converted_project_id: string | null;
+  converted_at: string | null;
+  converted_by: string | null;
 };
 
 function toLeadDomain(row: LeadRow): Lead {
@@ -58,6 +64,11 @@ function toLeadDomain(row: LeadRow): Lead {
     source:           row.source as "website",
     createdAt:        row.created_at,
     updatedAt:        row.updated_at,
+    convertedToClient:  row.converted_to_client,
+    convertedClientId:  row.converted_client_id,
+    convertedProjectId: row.converted_project_id,
+    convertedAt:        row.converted_at,
+    convertedBy:        row.converted_by,
   };
 }
 
@@ -167,5 +178,22 @@ export class SupabaseLeadRepository implements LeadRepository {
       .eq("id", id);
 
     if (error) throw new Error("Supabase updateIntentFields failed");
+  }
+
+  async convertToClient(id: string, input: ConvertLeadToClientInput): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("leads")
+      .update({
+        converted_to_client:  true,
+        converted_client_id:  input.clientId,
+        converted_project_id: input.projectId,
+        converted_at:         new Date().toISOString(),
+        converted_by:         input.convertedBy,
+      })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase convertToClient failed");
   }
 }
