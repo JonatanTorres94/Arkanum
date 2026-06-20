@@ -7,7 +7,9 @@ import { getClientByIdUseCase } from "@/features/clients/application/get-client-
 import { SupabaseClientRepository } from "@/features/clients/infrastructure/supabase-client.repository";
 import { getProjectByIdUseCase } from "@/features/projects/application/get-project-by-id.use-case";
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
-import { TicketStatusBadge, TicketPriorityBadge, TicketCategoryBadge } from "@/components/admin/support-ticket-badges";
+import { TicketPriorityBadge, TicketCategoryBadge } from "@/components/admin/support-ticket-badges";
+import { SupportTicketStatusForm } from "@/components/admin/support-ticket-status-form";
+import { SupportTicketEscalationPanel } from "@/components/admin/support-ticket-escalation-panel";
 import type { TicketSource } from "@/features/support/domain/support-ticket.types";
 import { signOutAction } from "@/server/actions/auth.action";
 
@@ -105,10 +107,14 @@ export default async function AdminSupportDetailPage({
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <TicketStatusBadge status={ticket.status} />
               <TicketPriorityBadge priority={ticket.priority} />
               <TicketCategoryBadge category={ticket.category} />
             </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-3 border-t border-slate-800 pt-4">
+            <span className="text-sm text-slate-400">Estado:</span>
+            <SupportTicketStatusForm ticketId={ticket.id} currentStatus={ticket.status} />
           </div>
         </div>
 
@@ -135,6 +141,20 @@ export default async function AdminSupportDetailPage({
               <Field label="Notas internas" value={ticket.notes} />
             </div>
           )}
+        </div>
+
+        {/* Escalación a desarrollo */}
+        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-slate-500">
+            Escalación a desarrollo
+          </h2>
+          <SupportTicketEscalationPanel
+            ticketId={ticket.id}
+            projectId={ticket.projectId}
+            escalatedWorkItemId={ticket.escalatedWorkItemId}
+            escalatedAt={ticket.escalatedAt}
+            escalatedBy={ticket.escalatedBy}
+          />
         </div>
 
       </div>
