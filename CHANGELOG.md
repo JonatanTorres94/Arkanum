@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-06-20
+
+### Added
+
+- `src/app/globals.css` — tokens de theming `--admin-*` (bg/surface/surface-hover/border/border-strong/text/text-secondary/text-muted/text-faint/accent/accent-foreground/danger/warning/success), registrados vía `@theme` como utilidades `bg-admin-*`/`text-admin-*`/`border-admin-*`. Dark por default (`:root`), light vía `[data-admin-theme="light"]`. Scoped solo al admin — el sitio público sigue usando `bg-slate-950` literal en `body`, sin cambios.
+- `src/config/admin-nav.ts` — registro de navegación (`AdminNavItem`, dominios `crm`/`clients`/`delivery`/`support`/`system`, `futureRoles` como metadata para v0.37/v0.38, sin RBAC todavía).
+- `src/components/admin/admin-shell.tsx`, `admin-sidebar.tsx`, `admin-topbar.tsx`, `theme-toggle.tsx` — shell compartido: sidebar desktop agrupado por dominio con highlight de ruta activa, topbar mobile con menú desplegable, toggle de tema persistido en `localStorage`. Sign-out centralizado ahí (antes repetido en cada página).
+- `src/components/admin/admin-page-header.tsx`, `admin-card.tsx` (+ `AdminSection`), `admin-empty-state.tsx`, `admin-detail-layout.tsx` — primitivos visuales reutilizables usados en las 8 pantallas foco.
+- `src/app/admin/(shell)/layout.tsx` — layout compartido que llama `verifyAdmin()` una sola vez para las 4 secciones (antes duplicado en ~11 páginas) y renderiza `AdminShell`.
+
+### Changed
+
+- **Reestructuración de rutas**: `leads/`, `clients/`, `projects/`, `support/` se movieron a `src/app/admin/(shell)/` (route group de Next.js — las URLs no cambian). `admin/login` queda afuera del grupo, sin shell ni theming (es pre-auth).
+- **Layout de detalle a dos columnas** en `/admin/leads/[id]`, `/admin/clients/[id]`, `/admin/projects/[id]`, `/admin/support/[id]`: header de ancho completo + grid desktop (contenido principal a la izquierda, estado/workflow/acciones/metadata a la derecha), una sola columna en mobile.
+- **Listados** (`/admin/leads`, `/admin/clients`, `/admin/projects`, `/admin/support`): `AdminPageHeader` + `AdminEmptyState` consistentes, filas de tabla con más padding vertical para legibilidad.
+- **Migración completa de tokens** en los ~18 componentes admin restantes (forms, selectors, filters, activity feed, summary cards, panels) — clases `slate-*` literales reemplazadas por `admin-*`.
+- `src/components/admin/lead-detail-section.tsx` eliminado — superado por `AdminSection`, genérico para los 4 dominios.
+
+### Notes
+
+- **Excepción deliberada al "migración completa"**: los 4 componentes de badge (`lead-status-badge`, `client-status-badge`, `project-status-badge`, `support-ticket-badges`) y los mapas de color por-enum en `lead-summary-cards.tsx` y la página de detalle de proyecto (work items) **quedan con sus tonos literales** (cyan/blue/green/violet/amber/emerald/red/slate). Son tintes translúcidos que distinguen 3-8 valores de un enum — funcionan igual de bien en light y dark por construcción, y tokenizar cada tono por separado para ambos modos sería sobre-ingeniería sin beneficio visual real.
+- Sin DB migrations, sin RBAC real, sin gestión de usuarios/equipo, sin dashboard, sin charts, sin nuevas entidades, sin client portal, sin cambios públicos/SEO/i18n, sin tocar lógica de negocio (conversión de leads, escalación de soporte, creación de proyectos: sin cambios).
+- Verificado: build/lint/typecheck limpios; las 11 rutas de detalle/listado/creación redirigen correctamente a `/admin/login` sin sesión (regresión tras el move a `(shell)/`); cero errores de consola en login y home pública (screenshots tomados).
+- **Limitación de testing importante**: no pude verificar visualmente el shell, sidebar, topbar ni los layouts de dos columnas en un navegador real — requieren sesión admin autenticada, credenciales no disponibles en este entorno. Todo lo que renderiza después del login (es decir, el contenido real de esta release) no fue visto rendereado, solo compilado. Recomiendo una revisión visual manual antes de mergear, en desktop y mobile, con foco en: contraste del toggle de tema en ambos modos, que el sidebar/topbar no se rompan en pantallas chicas, y que el grid de dos columnas colapse bien en mobile.
+
 ## [0.34.0] - 2026-06-20
 
 ### Added
