@@ -8,9 +8,9 @@ import {
   BUDGET_OPTIONS,
 } from "@/features/leads/domain/lead.schema";
 import { updateLeadIntentFieldsAction } from "@/server/actions/admin-lead.action";
+import { adminFieldClass, adminFieldRowClass, adminButtonFocusClass } from "@/components/admin/admin-field-styles";
 
-const selectClass =
-  "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50 cursor-pointer";
+const selectClass = `${adminFieldClass} cursor-pointer`;
 
 const labelClass = "mb-1.5 block text-sm font-medium text-admin-text-secondary";
 
@@ -55,7 +55,7 @@ export function LeadIntentFieldsForm({
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="industry" className={labelClass}>
             Rubro
           </label>
@@ -72,7 +72,7 @@ export function LeadIntentFieldsForm({
           </select>
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="companySize" className={labelClass}>
             Tamaño de empresa
           </label>
@@ -92,7 +92,7 @@ export function LeadIntentFieldsForm({
           </select>
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="urgency" className={labelClass}>
             Urgencia
           </label>
@@ -109,7 +109,7 @@ export function LeadIntentFieldsForm({
           </select>
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="budget" className={labelClass}>
             Presupuesto
           </label>
@@ -130,7 +130,7 @@ export function LeadIntentFieldsForm({
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
+        className={`rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors duration-150 hover:border-admin-accent hover:text-admin-text disabled:opacity-50 motion-reduce:transition-none ${adminButtonFocusClass}`}
       >
         {isPending ? "Guardando..." : "Guardar cambios"}
       </button>

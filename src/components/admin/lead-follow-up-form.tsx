@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { updateLeadFollowUpAction } from "@/server/actions/admin-lead.action";
+import { adminFieldClass, adminButtonFocusClass } from "@/components/admin/admin-field-styles";
 
 export function LeadFollowUpForm({
   leadId,
@@ -54,7 +55,7 @@ export function LeadFollowUpForm({
           defaultValue={nextAction ?? ""}
           placeholder="Ej: Llamar para coordinar una reunión."
           disabled={isPending}
-          className="w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50 resize-none"
+          className={`${adminFieldClass} resize-none`}
         />
       </div>
 
@@ -68,14 +69,14 @@ export function LeadFollowUpForm({
           type="date"
           defaultValue={followUpDate ?? ""}
           disabled={isPending}
-          className="rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50"
+          className={adminFieldClass}
         />
       </div>
 
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
+        className={`rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors duration-150 hover:border-admin-accent hover:text-admin-text disabled:opacity-50 motion-reduce:transition-none ${adminButtonFocusClass}`}
       >
         {isPending ? "Guardando..." : "Guardar seguimiento"}
       </button>

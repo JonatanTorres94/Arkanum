@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { TICKET_STATUSES, type TicketStatus } from "@/features/support/domain/support-ticket.types";
 import { updateSupportTicketStatusAction } from "@/server/actions/admin-support-ticket.action";
+import { adminFieldClass } from "@/components/admin/admin-field-styles";
 
 const LABELS: Record<TicketStatus, string> = {
   new:                      "Nuevo",
@@ -36,7 +37,7 @@ export function SupportTicketStatusForm({
       defaultValue={currentStatus}
       onChange={handleChange}
       disabled={isPending}
-      className="rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text focus:border-admin-accent focus:outline-none disabled:opacity-50"
+      className={`${adminFieldClass} cursor-pointer`}
     >
       {TICKET_STATUSES.map((status) => (
         <option key={status} value={status}>{LABELS[status]}</option>

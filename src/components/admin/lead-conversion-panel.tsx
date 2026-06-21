@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { convertLeadToClientAction } from "@/server/actions/admin-lead.action";
+import { adminFieldClass, adminFieldRowClass, adminButtonFocusClass } from "@/components/admin/admin-field-styles";
 
-const inputClass =
-  "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50";
+const inputClass = adminFieldClass;
 
 const labelClass = "mb-1.5 block text-xs font-medium text-admin-text-muted";
 
@@ -94,14 +94,14 @@ export function LeadConversionPanel({
           checked={createProject}
           onChange={(e) => setCreateProject(e.target.checked)}
           disabled={isPending}
-          className="h-4 w-4 rounded border-admin-border-strong bg-admin-surface-hover accent-admin-accent"
+          className={`h-4 w-4 rounded border-admin-border-strong bg-admin-surface-hover accent-admin-accent ${adminButtonFocusClass}`}
         />
         Crear un proyecto inicial también
       </label>
 
       {createProject && (
         <div className="grid gap-3 border-l-2 border-admin-border pl-4 sm:grid-cols-2">
-          <div>
+          <div className={adminFieldRowClass}>
             <label htmlFor="projectName" className={labelClass}>
               Nombre del proyecto
             </label>
@@ -114,7 +114,7 @@ export function LeadConversionPanel({
               className={inputClass}
             />
           </div>
-          <div>
+          <div className={adminFieldRowClass}>
             <label htmlFor="projectStatus" className={labelClass}>
               Estado inicial
             </label>
@@ -135,7 +135,7 @@ export function LeadConversionPanel({
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-admin-accent px-6 py-2.5 text-sm font-semibold text-admin-accent-foreground transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        className={`rounded-lg bg-admin-accent px-6 py-2.5 text-sm font-semibold text-admin-accent-foreground transition-colors duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none ${adminButtonFocusClass}`}
       >
         {isPending ? "Convirtiendo..." : "Convertir a cliente"}
       </button>
