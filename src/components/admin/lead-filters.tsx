@@ -33,7 +33,7 @@ const QUALIFIED_STAGE_LABELS: Record<QualifiedStage, string> = {
 };
 
 const selectClass =
-  "rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-300 transition-colors focus:border-cyan-400 focus:outline-none cursor-pointer";
+  "rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text-secondary transition-colors focus:border-admin-accent focus:outline-none cursor-pointer";
 
 export function LeadFilters() {
   const router = useRouter();
@@ -109,7 +109,7 @@ export function LeadFilters() {
       {hasFilters && (
         <Link
           href="/admin/leads"
-          className="text-xs text-slate-500 transition-colors hover:text-slate-300"
+          className="text-xs text-admin-text-faint transition-colors hover:text-admin-text-secondary"
         >
           Limpiar filtros
         </Link>

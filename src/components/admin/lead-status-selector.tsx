@@ -32,7 +32,7 @@ export function LeadStatusSelector({
       defaultValue={currentStatus}
       onChange={handleChange}
       disabled={isPending}
-      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 focus:border-cyan-400 focus:outline-none disabled:opacity-50"
+      className="rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text focus:border-admin-accent focus:outline-none disabled:opacity-50"
     >
       {LEAD_STATUSES.map((s) => (
         <option key={s} value={s}>

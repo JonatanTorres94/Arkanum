@@ -8,3 +8,60 @@ body {
   background-color: #020817;
   color: #f8fafc;
 }
+
+/*
+ * Admin theme tokens — scoped to the admin shell only (set on <html> via
+ * data-admin-theme by ThemeToggle). The public site never reads these
+ * variables, so it stays exactly as-is regardless of the admin's theme.
+ * Dark is the default; [data-admin-theme="light"] overrides it.
+ */
+@theme {
+  --color-admin-bg:               var(--admin-bg);
+  --color-admin-surface:          var(--admin-surface);
+  --color-admin-surface-hover:    var(--admin-surface-hover);
+  --color-admin-border:           var(--admin-border);
+  --color-admin-border-strong:    var(--admin-border-strong);
+  --color-admin-text:             var(--admin-text);
+  --color-admin-text-secondary:   var(--admin-text-secondary);
+  --color-admin-text-muted:       var(--admin-text-muted);
+  --color-admin-text-faint:       var(--admin-text-faint);
+  --color-admin-accent:           var(--admin-accent);
+  --color-admin-accent-foreground: var(--admin-accent-foreground);
+  --color-admin-danger:           var(--admin-danger);
+  --color-admin-warning:          var(--admin-warning);
+  --color-admin-success:          var(--admin-success);
+}
+
+:root {
+  --admin-bg: #020617;
+  --admin-surface: #0f172a;
+  --admin-surface-hover: #1e293b;
+  --admin-border: #1e293b;
+  --admin-border-strong: #334155;
+  --admin-text: #f8fafc;
+  --admin-text-secondary: #cbd5e1;
+  --admin-text-muted: #94a3b8;
+  --admin-text-faint: #64748b;
+  --admin-accent: #22d3ee;
+  --admin-accent-foreground: #020617;
+  --admin-danger: #f87171;
+  --admin-warning: #fbbf24;
+  --admin-success: #34d399;
+}
+
+[data-admin-theme="light"] {
+  --admin-bg: #f8fafc;
+  --admin-surface: #ffffff;
+  --admin-surface-hover: #f1f5f9;
+  --admin-border: #e2e8f0;
+  --admin-border-strong: #cbd5e1;
+  --admin-text: #0f172a;
+  --admin-text-secondary: #334155;
+  --admin-text-muted: #64748b;
+  --admin-text-faint: #94a3b8;
+  --admin-accent: #0891b2;
+  --admin-accent-foreground: #ffffff;
+  --admin-danger: #dc2626;
+  --admin-warning: #d97706;
+  --admin-success: #059669;
+}

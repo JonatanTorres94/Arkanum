@@ -51,9 +51,9 @@ const PRIORITY_LABELS: Record<TicketPriority, string> = {
 };
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 transition-colors focus:border-cyan-400 focus:outline-none disabled:opacity-50";
+  "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50";
 
-const labelClass = "mb-1.5 block text-sm font-medium text-slate-300";
+const labelClass = "mb-1.5 block text-sm font-medium text-admin-text-secondary";
 
 type ClientOption = { id: string; name: string };
 type ProjectOption = { id: string; name: string; clientId: string };
@@ -73,7 +73,7 @@ export function SupportTicketForm({
   return (
     <form action={action} className="space-y-5">
       {state?.error && (
-        <p role="alert" className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <p role="alert" className="rounded-lg border border-admin-danger/20 bg-admin-danger/10 px-4 py-3 text-sm text-admin-danger">
           {state.error}
         </p>
       )}
@@ -81,7 +81,7 @@ export function SupportTicketForm({
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="clientId" className={labelClass}>
-            Cliente <span className="text-red-400">*</span>
+            Cliente <span className="text-admin-danger">*</span>
           </label>
           <select
             id="clientId"
@@ -120,7 +120,7 @@ export function SupportTicketForm({
 
       <div>
         <label htmlFor="title" className={labelClass}>
-          Título <span className="text-red-400">*</span>
+          Título <span className="text-admin-danger">*</span>
         </label>
         <input
           id="title"
@@ -246,7 +246,7 @@ export function SupportTicketForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-cyan-400 px-6 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-lg bg-admin-accent px-6 py-2.5 text-sm font-semibold text-admin-accent-foreground transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? "Creando..." : "Crear ticket"}
       </button>

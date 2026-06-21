@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { verifyAdmin } from "@/lib/auth/verify-admin";
 import { getLeadsUseCase } from "@/features/leads/application/get-leads.use-case";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
 import { LeadStatusBadge } from "@/components/admin/lead-status-badge";
@@ -8,7 +7,8 @@ import { LeadFilters } from "@/components/admin/lead-filters";
 import { LeadSummaryCards } from "@/components/admin/lead-summary-cards";
 import { LeadOperationalMetrics } from "@/components/admin/lead-operational-metrics";
 import { LeadPipelineDistribution } from "@/components/admin/lead-pipeline-distribution";
-import { signOutAction } from "@/server/actions/auth.action";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminEmptyState } from "@/components/admin/admin-empty-state";
 
 export const metadata = { title: "Leads — Admin", robots: { index: false, follow: false } };
 
@@ -17,8 +17,6 @@ export default async function AdminLeadsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await verifyAdmin();
-
   const filters    = await searchParams;
   const repository = new SupabaseLeadRepository();
   const result     = await getLeadsUseCase(repository);
@@ -65,137 +63,108 @@ export default async function AdminLeadsPage({
     : [];
 
   return (
-    <div className="min-h-screen px-6 py-10">
-      <div className="mx-auto max-w-6xl">
+    <div>
+      <AdminPageHeader
+        title="Leads"
+        count={result.ok ? (hasFilters ? filteredLeads.length : result.leads.length) : undefined}
+        action={
+          result.ok && result.leads.length > 0 ? (
+            <a
+              href={exportHref}
+              className="text-sm text-admin-text-muted transition-colors hover:text-admin-text"
+            >
+              Exportar CSV{hasFilters ? " (filtrado)" : ""}
+            </a>
+          ) : undefined
+        }
+      />
 
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-slate-50">
-            Leads
-            {result.ok && (
-              <span className="ml-2 text-base font-normal text-slate-500">
-                {hasFilters
-                  ? `(${filteredLeads.length} de ${result.leads.length})`
-                  : `(${result.leads.length})`}
-              </span>
-            )}
-          </h1>
-          <div className="flex items-center gap-5">
-            {result.ok && result.leads.length > 0 && (
-              <a
-                href={exportHref}
-                className="text-sm text-slate-500 transition-colors hover:text-slate-300"
-              >
-                Exportar CSV{hasFilters ? " (filtrado)" : ""}
-              </a>
-            )}
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="text-sm text-slate-500 transition-colors hover:text-slate-300"
-              >
-                Cerrar sesión
-              </button>
-            </form>
-          </div>
-        </div>
-
+      <div className="space-y-6 px-6 py-6">
         {/* Operational metrics */}
         {result.ok && result.leads.length > 0 && (
-          <div className="mb-6 space-y-4">
+          <div className="space-y-4">
             <LeadOperationalMetrics leads={result.leads} />
             <LeadPipelineDistribution leads={result.leads} />
           </div>
         )}
 
         {/* Summary */}
-        {result.ok && result.leads.length > 0 && (
-          <div className="mb-6">
-            <LeadSummaryCards leads={result.leads} />
-          </div>
-        )}
+        {result.ok && result.leads.length > 0 && <LeadSummaryCards leads={result.leads} />}
 
         {/* Filters */}
         {result.ok && result.leads.length > 0 && (
-          <div className="mb-6">
-            <Suspense>
-              <LeadFilters />
-            </Suspense>
-          </div>
+          <Suspense>
+            <LeadFilters />
+          </Suspense>
         )}
 
         {/* Content */}
         {!result.ok ? (
-          <p className="text-sm text-red-400">{result.error}</p>
+          <p className="text-sm text-admin-danger">{result.error}</p>
 
         ) : result.leads.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/20 px-6 py-14 text-center">
-            <p className="text-sm text-slate-400">Todavía no hay leads registrados.</p>
-            <p className="mt-1 text-xs text-slate-600">
-              Cuando alguien complete el formulario de diagnóstico, va a aparecer aquí.
-            </p>
-          </div>
+          <AdminEmptyState message="Todavía no hay leads registrados. Cuando alguien complete el formulario de diagnóstico, va a aparecer aquí." />
 
         ) : filteredLeads.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/20 px-6 py-14 text-center">
-            <p className="text-sm text-slate-400">
-              No hay leads que coincidan con los filtros seleccionados.
-            </p>
-            <Link
-              href="/admin/leads"
-              className="mt-3 inline-block text-xs text-cyan-400 transition-colors hover:text-cyan-300"
-            >
-              Limpiar filtros
-            </Link>
-          </div>
+          <AdminEmptyState
+            message="No hay leads que coincidan con los filtros seleccionados."
+            action={
+              <Link
+                href="/admin/leads"
+                className="text-xs text-admin-accent transition-colors hover:underline"
+              >
+                Limpiar filtros
+              </Link>
+            }
+          />
 
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-800">
+          <div className="overflow-x-auto rounded-xl border border-admin-border">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/60">
-                  <th className="px-4 py-3 text-left font-medium text-slate-400">Nombre</th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-400">Estado</th>
-                  <th className="hidden px-4 py-3 text-left font-medium text-slate-400 md:table-cell">Presupuesto</th>
-                  <th className="hidden px-4 py-3 text-left font-medium text-slate-400 lg:table-cell">Urgencia</th>
-                  <th className="hidden px-4 py-3 text-left font-medium text-slate-400 md:table-cell">Rubro</th>
-                  <th className="hidden px-4 py-3 text-left font-medium text-slate-400 xl:table-cell">Tamaño</th>
-                  <th className="hidden px-4 py-3 text-left font-medium text-slate-400 sm:table-cell">Fecha</th>
+                <tr className="border-b border-admin-border bg-admin-surface-hover">
+                  <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Nombre</th>
+                  <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Estado</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted md:table-cell">Presupuesto</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted lg:table-cell">Urgencia</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted md:table-cell">Rubro</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted xl:table-cell">Tamaño</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted sm:table-cell">Fecha</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredLeads.map((lead) => (
                   <tr
                     key={lead.id}
-                    className="border-b border-slate-800/60 transition-colors last:border-0 hover:bg-slate-900/40"
+                    className="border-b border-admin-border transition-colors last:border-0 hover:bg-admin-surface-hover"
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <Link
                         href={`/admin/leads/${lead.id}`}
-                        className="font-medium text-slate-100 hover:text-cyan-400"
+                        className="font-medium text-admin-text hover:text-admin-accent"
                       >
                         {lead.fullName}
                       </Link>
                       {lead.company && (
-                        <span className="mt-0.5 block text-xs text-slate-500">{lead.company}</span>
+                        <span className="mt-0.5 block text-xs text-admin-text-muted">{lead.company}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <LeadStatusBadge status={lead.status} />
                     </td>
-                    <td className="hidden px-4 py-3 text-slate-400 md:table-cell">
+                    <td className="hidden px-4 py-3.5 text-admin-text-secondary md:table-cell">
                       {lead.budget}
                     </td>
-                    <td className="hidden px-4 py-3 text-slate-400 lg:table-cell">
+                    <td className="hidden px-4 py-3.5 text-admin-text-secondary lg:table-cell">
                       {lead.urgency}
                     </td>
-                    <td className="hidden px-4 py-3 text-slate-400 md:table-cell">
+                    <td className="hidden px-4 py-3.5 text-admin-text-secondary md:table-cell">
                       {lead.industry}
                     </td>
-                    <td className="hidden px-4 py-3 text-slate-400 xl:table-cell">
+                    <td className="hidden px-4 py-3.5 text-admin-text-secondary xl:table-cell">
                       {lead.companySize}
                     </td>
-                    <td className="hidden px-4 py-3 text-slate-500 sm:table-cell">
+                    <td className="hidden px-4 py-3.5 text-admin-text-faint sm:table-cell">
                       {new Date(lead.createdAt).toLocaleDateString("es-AR", {
                         day:   "2-digit",
                         month: "short",
@@ -208,7 +177,6 @@ export default async function AdminLeadsPage({
             </table>
           </div>
         )}
-
       </div>
     </div>
   );

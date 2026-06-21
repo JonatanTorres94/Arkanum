@@ -34,10 +34,10 @@ export function LeadOperationalMetrics({ leads }: { leads: Lead[] }) {
       {metrics.map((metric) => (
         <div
           key={metric.label}
-          className="rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3"
+          className="rounded-xl border border-admin-border bg-admin-surface px-4 py-3"
         >
-          <p className="text-xs text-slate-500">{metric.label}</p>
-          <p className="mt-1 text-2xl font-semibold text-cyan-400">{metric.value}</p>
+          <p className="text-xs text-admin-text-faint">{metric.label}</p>
+          <p className="mt-1 text-2xl font-semibold text-admin-accent">{metric.value}</p>
         </div>
       ))}
     </div>

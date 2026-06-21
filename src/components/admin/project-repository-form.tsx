@@ -10,9 +10,9 @@ const PROVIDER_LABELS: Record<RepositoryProvider, string> = {
 };
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 transition-colors focus:border-cyan-400 focus:outline-none disabled:opacity-50";
+  "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50";
 
-const labelClass = "mb-1.5 block text-xs font-medium text-slate-400";
+const labelClass = "mb-1.5 block text-xs font-medium text-admin-text-muted";
 
 export function ProjectRepositoryForm({ projectId }: { projectId: string }) {
   const [isPending, startTransition] = useTransition();
@@ -44,7 +44,7 @@ export function ProjectRepositoryForm({ projectId }: { projectId: string }) {
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-3">
       {error && (
-        <p role="alert" className="text-xs text-red-400">{error}</p>
+        <p role="alert" className="text-xs text-admin-danger">{error}</p>
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -128,7 +128,7 @@ export function ProjectRepositoryForm({ projectId }: { projectId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100 disabled:opacity-50"
+        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
       >
         {isPending ? "Guardando..." : "Vincular repositorio"}
       </button>

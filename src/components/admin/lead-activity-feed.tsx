@@ -19,18 +19,18 @@ const QUALIFIED_STAGE_LABELS: Record<string, string> = {
 };
 
 function StatusLabel({ value }: { value: string | null }) {
-  if (!value) return <span className="text-slate-500">—</span>;
+  if (!value) return <span className="text-admin-text-faint">—</span>;
   return (
-    <span className="font-medium text-slate-200">
+    <span className="font-medium text-admin-text">
       {STATUS_LABELS[value as LeadStatus] ?? value}
     </span>
   );
 }
 
 function QualifiedStageLabel({ value }: { value: string | null }) {
-  if (!value) return <span className="text-slate-500">—</span>;
+  if (!value) return <span className="text-admin-text-faint">—</span>;
   return (
-    <span className="font-medium text-slate-200">
+    <span className="font-medium text-admin-text">
       {QUALIFIED_STAGE_LABELS[value] ?? value}
     </span>
   );
@@ -38,7 +38,7 @@ function QualifiedStageLabel({ value }: { value: string | null }) {
 
 export function LeadActivityFeed({ events }: { events: LeadEvent[] }) {
   if (events.length === 0) {
-    return <p className="text-sm text-slate-600">Sin actividad registrada todavía.</p>;
+    return <p className="text-sm text-admin-text-faint">Sin actividad registrada todavía.</p>;
   }
 
   return (
@@ -46,54 +46,54 @@ export function LeadActivityFeed({ events }: { events: LeadEvent[] }) {
       {events.map((event) => (
         <li
           key={event.id}
-          className="rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-3"
+          className="rounded-lg border border-admin-border bg-admin-surface-hover px-4 py-3"
         >
           {event.type === "status_changed" && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-admin-text-muted">
               Estado:{" "}
               <StatusLabel value={event.fromStatus} />
-              <span className="mx-2 text-slate-600">→</span>
+              <span className="mx-2 text-admin-text-faint">→</span>
               <StatusLabel value={event.toStatus} />
             </p>
           )}
           {event.type === "qualified_stage_changed" && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-admin-text-muted">
               Etapa:{" "}
               <QualifiedStageLabel value={event.fromStatus} />
-              <span className="mx-2 text-slate-600">→</span>
+              <span className="mx-2 text-admin-text-faint">→</span>
               <QualifiedStageLabel value={event.toStatus} />
             </p>
           )}
           {event.type === "follow_up_updated" && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-admin-text-muted">
               Seguimiento:{" "}
-              <span className="font-medium text-slate-200">{event.fromStatus}</span>
-              <span className="mx-2 text-slate-600">→</span>
-              <span className="font-medium text-slate-200">{event.toStatus}</span>
+              <span className="font-medium text-admin-text">{event.fromStatus}</span>
+              <span className="mx-2 text-admin-text-faint">→</span>
+              <span className="font-medium text-admin-text">{event.toStatus}</span>
             </p>
           )}
           {event.type === "intent_fields_updated" && (
-            <div className="space-y-1 text-sm text-slate-400">
+            <div className="space-y-1 text-sm text-admin-text-muted">
               <p>Campos de intención actualizados:</p>
-              <p className="text-xs text-slate-500">
-                Antes: <span className="text-slate-300">{event.fromStatus}</span>
+              <p className="text-xs text-admin-text-faint">
+                Antes: <span className="text-admin-text-secondary">{event.fromStatus}</span>
               </p>
-              <p className="text-xs text-slate-500">
-                Después: <span className="text-slate-300">{event.toStatus}</span>
+              <p className="text-xs text-admin-text-faint">
+                Después: <span className="text-admin-text-secondary">{event.toStatus}</span>
               </p>
             </div>
           )}
           {event.type === "converted_to_client" && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-admin-text-muted">
               {event.toStatus}
             </p>
           )}
           {event.type === "converted_to_project" && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-admin-text-muted">
               {event.toStatus}
             </p>
           )}
-          <p className="mt-1.5 text-xs text-slate-600">
+          <p className="mt-1.5 text-xs text-admin-text-faint">
             {event.createdBy ?? "Administrador"}
             {" · "}
             {new Date(event.createdAt).toLocaleString("es-AR")}

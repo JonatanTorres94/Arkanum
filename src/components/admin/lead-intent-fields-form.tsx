@@ -10,9 +10,9 @@ import {
 import { updateLeadIntentFieldsAction } from "@/server/actions/admin-lead.action";
 
 const selectClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 transition-colors focus:border-cyan-400 focus:outline-none disabled:opacity-50 cursor-pointer";
+  "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50 cursor-pointer";
 
-const labelClass = "mb-1.5 block text-sm font-medium text-slate-300";
+const labelClass = "mb-1.5 block text-sm font-medium text-admin-text-secondary";
 
 export function LeadIntentFieldsForm({
   leadId,
@@ -49,7 +49,7 @@ export function LeadIntentFieldsForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <p role="alert" className="text-xs text-red-400">
+        <p role="alert" className="text-xs text-admin-danger">
           {error}
         </p>
       )}
@@ -130,7 +130,7 @@ export function LeadIntentFieldsForm({
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100 disabled:opacity-50"
+        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
       >
         {isPending ? "Guardando..." : "Guardar cambios"}
       </button>
