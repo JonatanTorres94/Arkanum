@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [0.35.1] - 2026-06-21
+
+### Added
+
+- `src/components/admin/admin-field-styles.ts` — clases compartidas (`adminFieldClass`, `adminFieldRowClass`, `adminButtonFocusClass`) para el lenguaje de interacción de los formularios angostos (~320px) de la sidebar de detalle.
+
+### Changed
+
+Pulido de interacción en los formularios de sidebar señalados en #63: `LeadFollowUpForm`, `LeadIntentFieldsForm`, `LeadConversionPanel`, `SupportTicketStatusForm`, `ProjectWorkItemForm`, `ProjectRepositoryForm`, `ProjectEnvironmentForm`.
+
+- **Foco y sombra**: anillo (`focus:ring-2 ring-admin-accent/25`) sobre el cambio de borde existente, transición de 150ms con `ease-out`. Botones usan `focus-visible` (no `focus`) para que el anillo solo aparezca con navegación por teclado, no en cada click de mouse.
+- **Labels/valores largos**: todos los controles ahora son `w-full min-w-0`, para que se achiquen dentro de su celda de grid en vez de forzar el ancho de la card/sidebar.
+- **Expansión controlada dentro del card**: en los grids de 2-3 columnas (intención del lead, environments/repos/work items de proyecto), el campo con foco reclama el ancho completo de la fila (`focus-within:col-span-full`) en vez de quedar comprimido en su columna. Es un cambio de grid discreto, no una animación.
+- **Reduced motion**: `motion-reduce:transition-none` en todos los controles y botones afectados.
+
+### Notes
+
+- Sin cambios de DB, server actions, lógica de negocio, validación, rutas, RBAC, dashboard, charts, modal, custom select, sitio público, SEO/i18n, client portal, notificaciones ni billing — patch puramente visual, según el scope del issue.
+- Deliberadamente no se implementó modal ni custom select: los 4 pasos de foco/sombra, manejo de labels largos, expansión controlada y reduced motion cubren el problema sin necesidad de esas piezas más pesadas.
+- Verificado: build/lint/typecheck limpios; las utilidades nuevas (`focus-within`, `focus-visible`, `motion-reduce`, `col-span-full`) confirmadas en el CSS compilado; las 3 rutas de detalle siguen redirigiendo a `/admin/login` sin sesión, cero errores de consola.
+- **Misma limitación que en v0.35.0**: sin credenciales de admin en este entorno no pude ver renderizado en un navegador real el comportamiento de foco/expansión/reduced-motion con datos reales, en notebook/desktop/mobile ni en ambos temas. Recomiendo una pasada visual manual en `/admin/leads/[id]`, `/admin/projects/[id]` y `/admin/support/[id]` antes de mergear, con foco en: que la expansión de fila al enfocar no se sienta como un salto brusco, y que el anillo de foco se vea bien en light mode.
+
 ## [0.35.0] - 2026-06-20
 
 ### Added
