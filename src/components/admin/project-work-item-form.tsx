@@ -10,6 +10,7 @@ import {
   type WorkItemPriority,
 } from "@/features/projects/domain/project-work-item.types";
 import { createProjectWorkItemAction } from "@/server/actions/admin-project-work-item.action";
+import { adminFieldClass, adminFieldRowClass, adminButtonFocusClass } from "@/components/admin/admin-field-styles";
 
 const CATEGORY_LABELS: Record<WorkItemCategory, string> = {
   feature:             "Feature",
@@ -39,8 +40,7 @@ const PRIORITY_LABELS: Record<WorkItemPriority, string> = {
   urgent: "Urgente",
 };
 
-const inputClass =
-  "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50";
+const inputClass = adminFieldClass;
 
 const labelClass = "mb-1.5 block text-xs font-medium text-admin-text-muted";
 
@@ -91,7 +91,7 @@ export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
           />
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="wi-category" className={labelClass}>Categoría</label>
           <select
             id="wi-category"
@@ -106,7 +106,7 @@ export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
           </select>
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="wi-status" className={labelClass}>Estado</label>
           <select
             id="wi-status"
@@ -121,7 +121,7 @@ export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
           </select>
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="wi-priority" className={labelClass}>Prioridad</label>
           <select
             id="wi-priority"
@@ -162,7 +162,7 @@ export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
+        className={`rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors duration-150 hover:border-admin-accent hover:text-admin-text disabled:opacity-50 motion-reduce:transition-none ${adminButtonFocusClass}`}
       >
         {isPending ? "Guardando..." : "Crear work item"}
       </button>

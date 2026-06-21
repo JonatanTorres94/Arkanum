@@ -8,6 +8,7 @@ import {
   type EnvironmentStatus,
 } from "@/features/projects/domain/project-environment.types";
 import { createProjectEnvironmentAction } from "@/server/actions/admin-project-metadata.action";
+import { adminFieldClass, adminFieldRowClass, adminButtonFocusClass } from "@/components/admin/admin-field-styles";
 
 const TYPE_LABELS: Record<EnvironmentType, string> = {
   development: "Desarrollo",
@@ -23,8 +24,7 @@ const STATUS_LABELS: Record<EnvironmentStatus, string> = {
   degraded: "Degradado",
 };
 
-const inputClass =
-  "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50";
+const inputClass = adminFieldClass;
 
 const labelClass = "mb-1.5 block text-xs font-medium text-admin-text-muted";
 
@@ -61,7 +61,7 @@ export function ProjectEnvironmentForm({ projectId }: { projectId: string }) {
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="env-name" className={labelClass}>Nombre</label>
           <input
             id="env-name"
@@ -74,7 +74,7 @@ export function ProjectEnvironmentForm({ projectId }: { projectId: string }) {
           />
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="env-type" className={labelClass}>Tipo</label>
           <select
             id="env-type"
@@ -89,7 +89,7 @@ export function ProjectEnvironmentForm({ projectId }: { projectId: string }) {
           </select>
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="env-status" className={labelClass}>Estado</label>
           <select
             id="env-status"
@@ -104,7 +104,7 @@ export function ProjectEnvironmentForm({ projectId }: { projectId: string }) {
           </select>
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="env-url" className={labelClass}>URL</label>
           <input
             id="env-url"
@@ -131,7 +131,7 @@ export function ProjectEnvironmentForm({ projectId }: { projectId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
+        className={`rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors duration-150 hover:border-admin-accent hover:text-admin-text disabled:opacity-50 motion-reduce:transition-none ${adminButtonFocusClass}`}
       >
         {isPending ? "Guardando..." : "Crear entorno"}
       </button>

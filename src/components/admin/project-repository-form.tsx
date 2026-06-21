@@ -3,14 +3,14 @@
 import { useRef, useState, useTransition } from "react";
 import { REPOSITORY_PROVIDERS, type RepositoryProvider } from "@/features/projects/domain/project-repository-link.types";
 import { createProjectRepositoryAction } from "@/server/actions/admin-project-metadata.action";
+import { adminFieldClass, adminFieldRowClass, adminButtonFocusClass } from "@/components/admin/admin-field-styles";
 
 const PROVIDER_LABELS: Record<RepositoryProvider, string> = {
   github: "GitHub",
   other:  "Otro",
 };
 
-const inputClass =
-  "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50";
+const inputClass = adminFieldClass;
 
 const labelClass = "mb-1.5 block text-xs font-medium text-admin-text-muted";
 
@@ -48,7 +48,7 @@ export function ProjectRepositoryForm({ projectId }: { projectId: string }) {
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="repo-name" className={labelClass}>Nombre</label>
           <input
             id="repo-name"
@@ -61,7 +61,7 @@ export function ProjectRepositoryForm({ projectId }: { projectId: string }) {
           />
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="repo-provider" className={labelClass}>Proveedor</label>
           <select
             id="repo-provider"
@@ -89,7 +89,7 @@ export function ProjectRepositoryForm({ projectId }: { projectId: string }) {
           />
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="repo-owner" className={labelClass}>Owner</label>
           <input
             id="repo-owner"
@@ -101,7 +101,7 @@ export function ProjectRepositoryForm({ projectId }: { projectId: string }) {
           />
         </div>
 
-        <div>
+        <div className={adminFieldRowClass}>
           <label htmlFor="repo-branch" className={labelClass}>Branch por defecto</label>
           <input
             id="repo-branch"
@@ -128,7 +128,7 @@ export function ProjectRepositoryForm({ projectId }: { projectId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
+        className={`rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors duration-150 hover:border-admin-accent hover:text-admin-text disabled:opacity-50 motion-reduce:transition-none ${adminButtonFocusClass}`}
       >
         {isPending ? "Guardando..." : "Vincular repositorio"}
       </button>
