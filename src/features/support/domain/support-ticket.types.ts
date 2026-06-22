@@ -83,3 +83,17 @@ export type EscalateSupportTicketInput = {
 export type EscalateSupportTicketResult =
   | { ok: true }
   | { ok: false; error: string };
+
+export type UpdateSupportTicketDetailsInput = {
+  title: string;
+  description: string | null;
+  projectId: string | null;
+  reportedBy: string | null;
+  source: TicketSource;
+  category: TicketCategory;
+  priority: TicketPriority;
+};
+
+export type UpdateSupportTicketDetailsResult =
+  | { ok: true }
+  | { ok: false; error: string };

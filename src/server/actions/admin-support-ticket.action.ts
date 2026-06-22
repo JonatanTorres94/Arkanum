@@ -6,6 +6,7 @@ import { getAdminUser } from "@/lib/auth/verify-admin";
 import { createSupportTicketUseCase } from "@/features/support/application/create-support-ticket.use-case";
 import { getSupportTicketByIdUseCase } from "@/features/support/application/get-support-ticket-by-id.use-case";
 import { updateSupportTicketStatusUseCase } from "@/features/support/application/update-support-ticket-status.use-case";
+import { updateSupportTicketDetailsUseCase } from "@/features/support/application/update-support-ticket-details.use-case";
 import { escalateSupportTicketUseCase } from "@/features/support/application/escalate-support-ticket.use-case";
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import {
@@ -141,6 +142,67 @@ export async function updateSupportTicketStatusAction(
     { status: status as TicketStatus, resolvedAt },
     repository
   );
+  if (!outcome.ok) return { error: outcome.error };
+
+  revalidatePath(`/admin/support/${id}`);
+  revalidatePath("/admin/support");
+
+  return {};
+}
+
+export async function updateSupportTicketDetailsAction(
+  id: string,
+  formData: FormData
+): Promise<{ error?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  const repository = new SupabaseSupportTicketRepository();
+  const ticketResult = await getSupportTicketByIdUseCase(id, repository);
+  if (!ticketResult.ok) return { error: "Ticket no encontrado." };
+
+  const { ticket } = ticketResult;
+
+  const title = normalize(formData.get("title"));
+  if (!title) return { error: "El título es obligatorio." };
+  if (title.length > TITLE_MAX_LENGTH) return { error: "El título es demasiado largo." };
+
+  const source   = normalize(formData.get("source"))   ?? "manual";
+  const category = normalize(formData.get("category")) ?? "question";
+  const priority = normalize(formData.get("priority")) ?? "medium";
+
+  if (!isValidEnumValue(TICKET_SOURCES, source))      return { error: "Fuente inválida." };
+  if (!isValidEnumValue(TICKET_CATEGORIES, category)) return { error: "Categoría inválida." };
+  if (!isValidEnumValue(TICKET_PRIORITIES, priority)) return { error: "Prioridad inválida." };
+
+  // Once escalated, the work item belongs to the original project — the
+  // ticket's project association is locked regardless of what the form sent.
+  let projectId = ticket.projectId;
+  if (!ticket.escalatedWorkItemId) {
+    projectId = normalize(formData.get("projectId"));
+    if (projectId) {
+      const projectResult = await getProjectByIdUseCase(projectId, new SupabaseProjectRepository());
+      if (!projectResult.ok) return { error: "El proyecto seleccionado no existe." };
+      if (projectResult.project.clientId !== ticket.clientId) {
+        return { error: "El proyecto seleccionado no pertenece al cliente del ticket." };
+      }
+    }
+  }
+
+  const outcome = await updateSupportTicketDetailsUseCase(
+    id,
+    {
+      title,
+      description: normalize(formData.get("description")),
+      projectId,
+      reportedBy:  normalize(formData.get("reportedBy")),
+      source:      source as TicketSource,
+      category:    category as TicketCategory,
+      priority:    priority as TicketPriority,
+    },
+    repository
+  );
+
   if (!outcome.ok) return { error: outcome.error };
 
   revalidatePath(`/admin/support/${id}`);
