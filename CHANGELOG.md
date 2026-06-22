@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+## [0.37.0] - 2026-06-25
+
+### Added
+
+- `supabase/migrations/20260625000000_add_support_tickets_escalated_work_item_unique_index.sql` — índice único parcial sobre `support_tickets.escalated_work_item_id` (solo `where ... is not null`): un work item de desarrollo no puede quedar vinculado a más de un ticket.
+- `ProjectWorkItemRepository.findById()` / `.updateStatus()` (+ impl Supabase), `get-project-work-item-by-id.use-case.ts`, `update-project-work-item-status.use-case.ts` — el work item ahora tiene ciclo de vida propio de estado, antes solo se podía fijar al crear.
+- `SupportTicketRepository.findByEscalatedWorkItemId()` (+ impl Supabase), `get-support-ticket-by-work-item.use-case.ts` — lookup inverso (work item → ticket de origen).
+- `updateProjectWorkItemStatusAction` en `admin-project-work-item.action.ts` — cambia el estado del work item; si está vinculado a un ticket de soporte y el nuevo estado es `done`, agrega automáticamente una nota interna en el ticket (no cambia su status). Si la nota automática falla después de persistir el cambio de estado, la action devuelve un `warning` explícito en vez de fallar silenciosamente o revertir.
+- `src/components/admin/project-work-item-status-form.tsx` — selector de estado por work item en `/admin/projects/[id]`, con feedback visible de error/warning.
+- Guard server-side en `updateSupportTicketStatusAction`: si el ticket tiene un work item vinculado que sigue abierto (no `done`/`cancelled`), rechaza la transición a `resolved` con un mensaje explícito. La UI solo refleja esto (deshabilitando visualmente o mostrando el motivo) — el servidor es la única fuente de verdad.
+- Nota automática de reapertura: al mover un ticket resuelto a un estado no terminal cuando tiene un work item vinculado, se agrega una nota interna indicando que el work item permanece cerrado (no se reabre automáticamente).
+- `/admin/projects/[id]`: cada work item escalado desde soporte muestra un panel compacto "Origen: Soporte" (título + badge de estado del ticket + link "Ver ticket"). Sin duplicar notas de soporte en el proyecto.
+- `/admin/support/[id]`: nueva sección de sidebar "Desarrollo vinculado" (título + estado del work item + link "Ver trabajo") para tickets escalados, y texto explicativo junto al selector de estado cuando la resolución está bloqueada.
+
+### Changed
+
+- `support-ticket-status-form.tsx`: ahora muestra feedback de error/warning devuelto por la action (antes era silencioso); necesario para que el nuevo guard de resolución sea visible al usuario.
+
+### Notes
+
+- Cerrar un work item nunca resuelve el ticket de soporte automáticamente, y reabrir un ticket nunca reabre el work item — ambos dominios permanecen independientes, según la regla del issue (`Work item done ≠ Support ticket resolved`).
+- Se interpretó "work item terminal/completado" como `done` o `cancelled` (no solo `done`): un work item cancelado tampoco debería bloquear la resolución del ticket para siempre. Esta interpretación no está escrita literalmente en el issue — señalarlo en review.
+- No existe una página de detalle dedicada por work item; el link "Ver trabajo" desde soporte apunta a `/admin/projects/[id]` (donde el work item se lista), no a una URL específica del item.
+- El lookup de ticket de origen por work item (`/admin/projects/[id]`) es por-ítem (N consultas), no por lote — aceptable dado el volumen esperado de work items por proyecto en este MVP.
+- Sin reescalación automática a un nuevo work item al reabrir, sin client portal, sin notificaciones externas, sin RBAC, sin cambios públicos/SEO/i18n.
+- Verificado: `npm run lint`, `tsc --noEmit` y `npm run build` limpios. **No se validó visualmente en navegador** (sin sesión admin en este entorno) — recomendable revisión manual antes de mergear, especialmente: intento de resolver con work item abierto (debe rechazar), completar desarrollo y verificar la nota automática en el ticket, reabrir y verificar que el work item no cambia, y los paneles cruzados en desktop/mobile y dark/light.
+
 ## [0.36.0] - 2026-06-24
 
 ### Added
