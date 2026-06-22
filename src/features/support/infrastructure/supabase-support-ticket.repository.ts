@@ -7,6 +7,7 @@ import type {
   TicketPriority,
   TicketSource,
   TicketStatus,
+  UpdateSupportTicketDetailsInput,
   UpdateSupportTicketStatusInput,
 } from "@/features/support/domain/support-ticket.types";
 import type { SupportTicketRepository } from "./support-ticket.repository";
@@ -117,6 +118,25 @@ export class SupabaseSupportTicketRepository implements SupportTicketRepository 
       .eq("id", id);
 
     if (error) throw new Error("Supabase updateStatus failed");
+  }
+
+  async updateDetails(id: string, input: UpdateSupportTicketDetailsInput): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("support_tickets")
+      .update({
+        title:       input.title,
+        description: input.description,
+        project_id:  input.projectId,
+        reported_by: input.reportedBy,
+        source:      input.source,
+        category:    input.category,
+        priority:    input.priority,
+      })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase updateDetails failed");
   }
 
   async escalate(id: string, input: EscalateSupportTicketInput): Promise<void> {

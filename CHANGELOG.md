@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-06-24
+
+### Added
+
+- `supabase/migrations/20260624000000_create_support_ticket_notes_table.sql` — nueva tabla `support_ticket_notes` (FK `ticket_id → support_tickets` con `on delete cascade`, índice compuesto `(ticket_id, created_at desc)`, RLS service-role-only). Append-only: sin edición ni borrado de notas.
+- `src/features/support/domain/support-ticket-note.types.ts`, `support-ticket-note.schema.ts` — tipo `SupportTicketNote` y validación Zod (2-5000 caracteres).
+- `src/features/support/infrastructure/support-ticket-note.repository.ts` (+ `supabase-support-ticket-note.repository.ts`), `src/features/support/application/create-support-ticket-note.use-case.ts`, `get-support-ticket-notes.use-case.ts` — capas application/infrastructure para notas, mismo patrón que `lead_notes`.
+- `src/server/actions/support-ticket-note.action.ts` (`createSupportTicketNoteAction`) — gateado con `getAdminUser()`, revalida `/admin/support/[id]`.
+- `src/components/admin/support-ticket-note-form.tsx`, `support-ticket-note-list.tsx` — composer y listado cronológico (más reciente primero) de notas internas.
+- `UpdateSupportTicketDetailsInput/Result` en `support-ticket.types.ts`, método `updateDetails()` en `SupportTicketRepository` (+ impl Supabase), `update-support-ticket-details.use-case.ts`, action `updateSupportTicketDetailsAction` — permiten editar título, descripción, prioridad, categoría, fuente, reportado-por y proyecto de un ticket existente. `client_id` permanece inmutable.
+- `src/components/admin/support-ticket-details-form.tsx`, `support-ticket-workspace.tsx` (`SupportTicketWorkspaceProvider`, `EditTicketButton`, `SupportTicketDetailsSection`) — controlador cliente con contexto compartido entre header (botón "Editar ticket") y columna principal (vista de solo lectura ↔ formulario full-width), siguiendo el mismo patrón que `lead-intent-workspace.tsx` de la v0.35.0.
+
+### Changed
+
+- `/admin/support/[id]`: la columna principal ahora incluye edición de detalles del ticket y una sección de "Notas internas" operativa (composer + listado), en vez del bloque estático de solo lectura. El sidebar conserva los controles compactos existentes (estado, prioridad/categoría, escalación, metadata) sin cambios.
+- Una vez que un ticket tiene `escalated_work_item_id`, el campo `projectId` queda bloqueado en el formulario de edición y se ignora cualquier valor enviado — se muestra una nota explicando que los cambios posteriores no afectan el work item ya escalado.
+
+### Notes
+
+- La columna legacy `support_tickets.notes` se conserva sin cambios y se muestra como "Nota inicial" cuando existe; las notas nuevas usan exclusivamente `support_ticket_notes`. Sin migración destructiva de datos existentes.
+- Sin tabla de eventos/auditoría general para `support_tickets` en esta release (MVP aceptado explícitamente) — la autoría/timestamp de cada nota interna actúa como auditoría a nivel de nota.
+- Status, `resolved_at`, lógica de escalación (mapeo categoría → work item) y vínculos cliente/proyecto quedan sin cambios.
+- Sin client portal, notas visibles al cliente, attachments, notificaciones, SLA, asignación/RBAC, dashboard ni cambios públicos/SEO/i18n.
+- Verificado: `npm run lint`, `tsc --noEmit` y `npm run build` limpios. **No se validó visualmente en navegador** (sin sesión admin disponible en este entorno) — recomendable revisión manual de los flujos de edición, notas y bloqueo de proyecto post-escalación en desktop/mobile y dark/light antes de mergear.
+
 ## [0.35.0] - 2026-06-20
 
 ### Added

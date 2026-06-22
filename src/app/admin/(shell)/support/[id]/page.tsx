@@ -1,14 +1,24 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupportTicketByIdUseCase } from "@/features/support/application/get-support-ticket-by-id.use-case";
+import { getSupportTicketNotesUseCase } from "@/features/support/application/get-support-ticket-notes.use-case";
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
+import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 import { getClientByIdUseCase } from "@/features/clients/application/get-client-by-id.use-case";
 import { SupabaseClientRepository } from "@/features/clients/infrastructure/supabase-client.repository";
 import { getProjectByIdUseCase } from "@/features/projects/application/get-project-by-id.use-case";
+import { getProjectsByClientIdUseCase } from "@/features/projects/application/get-projects-by-client-id.use-case";
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
 import { TicketPriorityBadge, TicketCategoryBadge } from "@/components/admin/support-ticket-badges";
 import { SupportTicketStatusForm } from "@/components/admin/support-ticket-status-form";
 import { SupportTicketEscalationPanel } from "@/components/admin/support-ticket-escalation-panel";
+import { SupportTicketNoteForm } from "@/components/admin/support-ticket-note-form";
+import { SupportTicketNoteList } from "@/components/admin/support-ticket-note-list";
+import {
+  SupportTicketWorkspaceProvider,
+  EditTicketButton,
+  SupportTicketDetailsSection,
+} from "@/components/admin/support-ticket-workspace";
 import { AdminSection } from "@/components/admin/admin-card";
 import { AdminDetailLayout } from "@/components/admin/admin-detail-layout";
 import type { TicketSource } from "@/features/support/domain/support-ticket.types";
@@ -46,14 +56,32 @@ export default async function AdminSupportDetailPage({
 
   const { ticket } = ticketResult;
 
-  const [clientResult, projectResult] = await Promise.all([
+  const [clientResult, projectResult, projectsResult, notesResult] = await Promise.all([
     getClientByIdUseCase(ticket.clientId, new SupabaseClientRepository()),
     ticket.projectId
       ? getProjectByIdUseCase(ticket.projectId, new SupabaseProjectRepository())
       : Promise.resolve(null),
+    getProjectsByClientIdUseCase(ticket.clientId, new SupabaseProjectRepository()),
+    getSupportTicketNotesUseCase(ticket.id, new SupabaseSupportTicketNoteRepository()),
   ]);
 
+  const projectOptions = projectsResult.ok
+    ? projectsResult.projects.map((project) => ({ id: project.id, name: project.name }))
+    : [];
+
   return (
+    <SupportTicketWorkspaceProvider
+      ticketId={ticket.id}
+      title={ticket.title}
+      description={ticket.description}
+      projectId={ticket.projectId}
+      projects={projectOptions}
+      reportedBy={ticket.reportedBy}
+      source={ticket.source}
+      category={ticket.category}
+      priority={ticket.priority}
+      projectLocked={Boolean(ticket.escalatedWorkItemId)}
+    >
     <AdminDetailLayout
       header={
         <div className="border-b border-admin-border px-6 py-5">
@@ -90,17 +118,28 @@ export default async function AdminSupportDetailPage({
                 )}
               </div>
             </div>
+            <EditTicketButton />
           </div>
         </div>
       }
       main={
         <>
           <AdminSection title="Descripción">
-            <Field label="Descripción" value={ticket.description ?? "Sin descripción."} />
+            <SupportTicketDetailsSection />
           </AdminSection>
 
           <AdminSection title="Notas internas">
-            <Field label="Notas" value={ticket.notes ?? "Sin notas internas."} />
+            <div className="space-y-5">
+              {ticket.notes && <Field label="Nota inicial" value={ticket.notes} />}
+
+              <SupportTicketNoteForm ticketId={ticket.id} />
+
+              {notesResult.ok ? (
+                <SupportTicketNoteList notes={notesResult.notes} />
+              ) : (
+                <p className="text-sm text-admin-danger">{notesResult.error}</p>
+              )}
+            </div>
           </AdminSection>
         </>
       }
@@ -140,5 +179,6 @@ export default async function AdminSupportDetailPage({
         </>
       }
     />
+    </SupportTicketWorkspaceProvider>
   );
 }
