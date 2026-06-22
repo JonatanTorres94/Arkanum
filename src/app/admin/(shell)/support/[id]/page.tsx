@@ -43,7 +43,7 @@ const WI_STATUS_LABELS: Record<WorkItemStatus, string> = {
   blocked:     "Bloqueado",
   review:      "En revisión",
   testing:     "Testing",
-  done:        "Hecho",
+  done:        "Completado",
   cancelled:   "Cancelado",
 };
 
@@ -86,6 +86,7 @@ export default async function AdminSupportDetailPage({
 
   const linkedWorkItem = workItemResult?.ok ? workItemResult.workItem : null;
   const linkedWorkItemOpen = linkedWorkItem ? !TERMINAL_WORK_ITEM_STATUSES.includes(linkedWorkItem.status) : false;
+  const linkedWorkItemCancelled = linkedWorkItem?.status === "cancelled";
 
   const projectOptions = projectsResult.ok
     ? projectsResult.projects.map((project) => ({ id: project.id, name: project.name }))
@@ -180,6 +181,12 @@ export default async function AdminSupportDetailPage({
                 No se puede resolver mientras el work item de desarrollo vinculado siga abierto.
               </p>
             )}
+            {linkedWorkItemCancelled && ticket.status !== "resolved" && (
+              <p className="mt-3 text-xs text-admin-warning">
+                El trabajo de desarrollo fue cancelado. Confirmá que el caso pueda resolverse por
+                otra vía antes de cerrar soporte.
+              </p>
+            )}
           </AdminSection>
 
           {linkedWorkItem && (
@@ -188,6 +195,12 @@ export default async function AdminSupportDetailPage({
               <p className="mt-1 text-xs text-admin-text-muted">
                 {WI_STATUS_LABELS[linkedWorkItem.status]}
               </p>
+              {linkedWorkItemCancelled && (
+                <p className="mt-2 text-xs text-admin-warning">
+                  La intervención de desarrollo fue cancelada. Esto no implica que el ticket de
+                  soporte esté resuelto.
+                </p>
+              )}
               <Link
                 href={`/admin/projects/${ticket.projectId}`}
                 className="mt-2 inline-block text-sm text-admin-accent transition-colors hover:underline"
