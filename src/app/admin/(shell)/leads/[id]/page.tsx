@@ -11,7 +11,11 @@ import { LeadStatusSelector } from "@/components/admin/lead-status-selector";
 import { LeadQualifiedStageSelector } from "@/components/admin/lead-qualified-stage-selector";
 import { LeadActivityFeed } from "@/components/admin/lead-activity-feed";
 import { LeadFollowUpForm } from "@/components/admin/lead-follow-up-form";
-import { LeadIntentFieldsForm } from "@/components/admin/lead-intent-fields-form";
+import {
+  LeadIntentProvider,
+  LeadIntentSummary,
+  LeadIntentEditor,
+} from "@/components/admin/lead-intent-workspace";
 import { LeadConversionPanel } from "@/components/admin/lead-conversion-panel";
 import { LeadNoteForm } from "@/components/admin/lead-note-form";
 import { AdminSection } from "@/components/admin/admin-card";
@@ -54,6 +58,13 @@ export default async function AdminLeadDetailPage({
   ]);
 
   return (
+    <LeadIntentProvider
+      leadId={lead.id}
+      industry={lead.industry}
+      companySize={lead.companySize}
+      urgency={lead.urgency}
+      budget={lead.budget}
+    >
     <AdminDetailLayout
       header={
         <div className="border-b border-admin-border px-6 py-5">
@@ -122,6 +133,8 @@ export default async function AdminLeadDetailPage({
               <Field label="Mensaje adicional" value={lead.additionalMessage} />
             </div>
           </AdminSection>
+
+          <LeadIntentEditor />
 
           {/* Actividad */}
           <AdminSection title="Actividad">
@@ -203,18 +216,13 @@ export default async function AdminLeadDetailPage({
             />
           </AdminSection>
 
-          {/* Editar intención */}
-          <AdminSection title="Editar intención">
-            <LeadIntentFieldsForm
-              leadId={lead.id}
-              industry={lead.industry}
-              companySize={lead.companySize}
-              urgency={lead.urgency}
-              budget={lead.budget}
-            />
+          {/* Intención */}
+          <AdminSection title="Intención">
+            <LeadIntentSummary />
           </AdminSection>
         </>
       }
     />
+    </LeadIntentProvider>
   );
 }

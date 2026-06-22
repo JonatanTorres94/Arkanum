@@ -20,12 +20,16 @@ export function LeadIntentFieldsForm({
   companySize,
   urgency,
   budget,
+  onCancel,
+  onSaved,
 }: {
   leadId: string;
   industry: string;
   companySize: string | null;
   urgency: string;
   budget: string;
+  onCancel?: () => void;
+  onSaved?: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +46,11 @@ export function LeadIntentFieldsForm({
         urgency:     (data.get("urgency") as string) ?? "",
         budget:      (data.get("budget") as string) ?? "",
       });
-      if (result?.error) setError(result.error);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      onSaved?.();
     });
   }
 
@@ -127,13 +135,26 @@ export function LeadIntentFieldsForm({
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
-      >
-        {isPending ? "Guardando..." : "Guardar cambios"}
-      </button>
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="rounded-lg border border-admin-border-strong px-4 py-2 text-sm text-admin-text-secondary transition-colors hover:border-admin-accent hover:text-admin-text disabled:opacity-50"
+        >
+          {isPending ? "Guardando..." : "Guardar cambios"}
+        </button>
+
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isPending}
+            className="rounded-lg px-4 py-2 text-sm text-admin-text-faint transition-colors hover:text-admin-text disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
     </form>
   );
 }
