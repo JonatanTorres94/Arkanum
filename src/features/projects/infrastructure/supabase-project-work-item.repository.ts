@@ -2,6 +2,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import type {
   CreateProjectWorkItemInput,
   ProjectWorkItem,
+  UpdateProjectWorkItemInput,
   UpdateProjectWorkItemStatusInput,
   WorkItemCategory,
   WorkItemPriority,
@@ -88,6 +89,24 @@ export class SupabaseProjectWorkItemRepository implements ProjectWorkItemReposit
     if (error) throw new Error("Supabase findByProjectId failed");
 
     return (data ?? []).map(toDomain);
+  }
+
+  async update(id: string, input: UpdateProjectWorkItemInput): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("project_work_items")
+      .update({
+        title:       input.title,
+        description: input.description,
+        category:    input.category,
+        status:      input.status,
+        priority:    input.priority,
+        notes:       input.notes,
+      })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase update failed");
   }
 
   async updateStatus(id: string, input: UpdateProjectWorkItemStatusInput): Promise<void> {

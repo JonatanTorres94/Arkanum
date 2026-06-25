@@ -197,7 +197,12 @@ export default async function AdminProjectDetailPage({
                         className="rounded-lg border border-admin-border bg-admin-surface-hover px-4 py-3"
                       >
                         <div className="flex flex-wrap items-start justify-between gap-2">
-                          <p className="text-sm font-medium text-admin-text">{item.title}</p>
+                          <Link
+                            href={`/admin/projects/${project.id}/work-items/${item.id}`}
+                            className="text-sm font-medium text-admin-text hover:text-admin-accent"
+                          >
+                            {item.title}
+                          </Link>
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="rounded-full border border-admin-border-strong bg-admin-surface px-2 py-0.5 text-xs text-admin-text-muted">
                               {WI_CATEGORY_LABELS[item.category] ?? item.category}

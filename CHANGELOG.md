@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [0.40.0] - 2026-06-25
+
+### Added
+
+- `src/features/projects/domain/project-work-item.types.ts` — `UpdateProjectWorkItemInput`, `UpdateProjectWorkItemResult`.
+- `src/features/projects/application/update-project-work-item.use-case.ts` — findById, ownership check (`workItem.projectId === projectId`), update; full try/catch.
+- `ProjectWorkItemRepository.update(id, input)` — nueva firma en interfaz e implementación Supabase; persiste title/description/category/status/priority/notes.
+- `updateProjectWorkItemAction` en `admin-project-work-item.action.ts` — validación equivalente a creación (título, enums); carga el work item pre-update para capturar `previousStatus` y validar pertenencia al proyecto en la action boundary; revalida work-item detail + proyecto + ticket de soporte cuando aplica.
+- Helper privado `applyStatusSideEffects` en el action file — centraliza lifecycle sync + nota automática de soporte; ambas acciones (status inline y edición full) lo usan; nota de soporte solo se crea cuando `previousStatus !== "done" && newStatus === "done"` (prevención de duplicados).
+- `src/components/admin/project-work-item-details-form.tsx` — formulario de edición full con todos los campos editables.
+- `src/components/admin/project-work-item-workspace.tsx` — `ProjectWorkItemWorkspaceProvider`, `EditWorkItemButton`, `WorkItemDetailsSection`; el Provider mantiene `warning` persistente hasta la próxima edición.
+- `src/components/admin/project-work-item-badges.tsx` — `WorkItemStatusBadge`, `WorkItemPriorityBadge`.
+- `src/app/admin/(shell)/projects/[id]/work-items/[workItemId]/page.tsx` — ruta de detalle; carga en paralelo work item + proyecto; guard de ownership (workItem.projectId === projectId); sidebar: proyecto padre, ticket vinculado (si aplica), metadata.
+
+### Changed
+
+- `src/app/admin/(shell)/projects/[id]/page.tsx` — work item cards ahora tienen `<Link>` al detalle en lugar de texto plano.
+- `updateProjectWorkItemStatusAction` refactorizado para usar el nuevo helper `applyStatusSideEffects`; comportamiento externo idéntico.
+
+### Notes
+
+- Sin cambios de DB — todos los campos ya existían en `project_work_items`.
+- Sin nuevas dependencias.
+- Ediciones sin cambio de status no llaman a lifecycle sync ni a la nota de soporte; solo persisten los campos.
+- `previousStatus` se captura antes de la escritura (en la action, no en el use case) para garantizar que la detección de transición usa el valor realmente persisted antes del update.
+
 ## [0.39.0] - 2026-06-25
 
 ### Added
