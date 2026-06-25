@@ -184,8 +184,9 @@ export async function updateProjectWorkItemStatusAction(
   );
   if (!outcome.ok) return { error: outcome.error };
 
-  // Always revalidate the parent project after any status change.
+  // Always revalidate both the project and the work-item detail after any status change.
   revalidatePath(`/admin/projects/${workItem.projectId}`);
+  revalidatePath(`/admin/projects/${workItem.projectId}/work-items/${workItemId}`);
 
   const warnings = await applyStatusSideEffects({
     workItemId,
