@@ -10,10 +10,15 @@ import { getProjectEnvironmentsUseCase } from "@/features/projects/application/g
 import { SupabaseProjectEnvironmentRepository } from "@/features/projects/infrastructure/supabase-project-environment.repository";
 import { getProjectWorkItemsUseCase } from "@/features/projects/application/get-project-work-items.use-case";
 import { SupabaseProjectWorkItemRepository } from "@/features/projects/infrastructure/supabase-project-work-item.repository";
+import { getSupportTicketByWorkItemUseCase } from "@/features/support/application/get-support-ticket-by-work-item.use-case";
+import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
+import type { TicketStatus } from "@/features/support/domain/support-ticket.types";
 import { ProjectStatusBadge } from "@/components/admin/project-status-badge";
 import { ProjectRepositoryForm } from "@/components/admin/project-repository-form";
 import { ProjectEnvironmentForm } from "@/components/admin/project-environment-form";
 import { ProjectWorkItemForm } from "@/components/admin/project-work-item-form";
+import { ProjectWorkItemStatusForm } from "@/components/admin/project-work-item-status-form";
+import { TicketStatusBadge } from "@/components/admin/support-ticket-badges";
 import { AdminSection } from "@/components/admin/admin-card";
 import { AdminDetailLayout } from "@/components/admin/admin-detail-layout";
 
@@ -42,26 +47,6 @@ const WI_CATEGORY_LABELS: Record<string, string> = {
   technical_debt:     "Deuda técnica",
   research:           "Investigación",
   support_escalation: "Escalación de soporte",
-};
-const WI_STATUS_LABELS: Record<string, string> = {
-  backlog:     "Backlog",
-  ready:       "Listo para iniciar",
-  in_progress: "En progreso",
-  blocked:     "Bloqueado",
-  review:      "En revisión",
-  testing:     "Testing",
-  done:        "Hecho",
-  cancelled:   "Cancelado",
-};
-const WI_STATUS_COLORS: Record<string, string> = {
-  backlog:     "bg-slate-400/10 text-slate-400 border-slate-700",
-  ready:       "bg-blue-400/10 text-blue-400 border-blue-400/20",
-  in_progress: "bg-violet-400/10 text-violet-400 border-violet-400/20",
-  blocked:     "bg-red-400/10 text-red-400 border-red-400/20",
-  review:      "bg-amber-400/10 text-amber-400 border-amber-400/20",
-  testing:     "bg-amber-400/10 text-amber-400 border-amber-400/20",
-  done:        "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
-  cancelled:   "bg-slate-400/10 text-slate-500 border-slate-700",
 };
 const WI_PRIORITY_LABELS: Record<string, string> = {
   low:    "Baja",
@@ -117,6 +102,26 @@ export default async function AdminProjectDetailPage({
     getProjectWorkItemsUseCase(id, new SupabaseProjectWorkItemRepository()),
   ]);
 
+  // Origin ticket lookup stays per-item (no bulk method) — work item lists are
+  // small in this MVP, so N lookups is simpler than introducing a batched query.
+  const linkedTicketsByWorkItemId = new Map<string, { id: string; title: string; status: TicketStatus }>();
+  if (workItemsResult.ok) {
+    const ticketRepository = new SupabaseSupportTicketRepository();
+    const lookups = await Promise.all(
+      workItemsResult.workItems.map((item) => getSupportTicketByWorkItemUseCase(item.id, ticketRepository))
+    );
+    workItemsResult.workItems.forEach((item, index) => {
+      const lookup = lookups[index];
+      if (lookup.ok && lookup.ticket) {
+        linkedTicketsByWorkItemId.set(item.id, {
+          id:     lookup.ticket.id,
+          title:  lookup.ticket.title,
+          status: lookup.ticket.status,
+        });
+      }
+    });
+  }
+
   return (
     <AdminDetailLayout
       header={
@@ -155,39 +160,58 @@ export default async function AdminProjectDetailPage({
               <p className="mb-4 text-sm text-admin-text-faint">Todavía no hay work items registrados.</p>
             ) : (
               <ul className="mb-4 space-y-2">
-                {workItemsResult.workItems.map((item) => (
-                  <li
-                    key={item.id}
-                    className="rounded-lg border border-admin-border bg-admin-surface-hover px-4 py-3"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <p className="text-sm font-medium text-admin-text">{item.title}</p>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="rounded-full border border-admin-border-strong bg-admin-surface px-2 py-0.5 text-xs text-admin-text-muted">
-                          {WI_CATEGORY_LABELS[item.category] ?? item.category}
-                        </span>
-                        <span className={`rounded-full border px-2 py-0.5 text-xs ${WI_STATUS_COLORS[item.status] ?? ""}`}>
-                          {WI_STATUS_LABELS[item.status] ?? item.status}
-                        </span>
-                        <span className={`rounded-full border px-2 py-0.5 text-xs ${WI_PRIORITY_COLORS[item.priority] ?? ""}`}>
-                          {WI_PRIORITY_LABELS[item.priority] ?? item.priority}
-                        </span>
+                {workItemsResult.workItems.map((item) => {
+                  const linkedTicket = linkedTicketsByWorkItemId.get(item.id);
+
+                  return (
+                    <li
+                      key={item.id}
+                      className="rounded-lg border border-admin-border bg-admin-surface-hover px-4 py-3"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <p className="text-sm font-medium text-admin-text">{item.title}</p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="rounded-full border border-admin-border-strong bg-admin-surface px-2 py-0.5 text-xs text-admin-text-muted">
+                            {WI_CATEGORY_LABELS[item.category] ?? item.category}
+                          </span>
+                          <span className={`rounded-full border px-2 py-0.5 text-xs ${WI_PRIORITY_COLORS[item.priority] ?? ""}`}>
+                            {WI_PRIORITY_LABELS[item.priority] ?? item.priority}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    {item.description && (
-                      <p className="mt-1.5 line-clamp-2 text-xs text-admin-text-muted break-words">
-                        {item.description}
+                      {item.description && (
+                        <p className="mt-1.5 line-clamp-2 text-xs text-admin-text-muted break-words">
+                          {item.description}
+                        </p>
+                      )}
+                      <div className="mt-2.5">
+                        <ProjectWorkItemStatusForm workItemId={item.id} currentStatus={item.status} />
+                      </div>
+                      <p className="mt-1.5 text-xs text-admin-text-faint">
+                        {new Date(item.createdAt).toLocaleDateString("es-AR", {
+                          day:   "2-digit",
+                          month: "short",
+                          year:  "numeric",
+                        })}
                       </p>
-                    )}
-                    <p className="mt-1.5 text-xs text-admin-text-faint">
-                      {new Date(item.createdAt).toLocaleDateString("es-AR", {
-                        day:   "2-digit",
-                        month: "short",
-                        year:  "numeric",
-                      })}
-                    </p>
-                  </li>
-                ))}
+                      {linkedTicket && (
+                        <div className="mt-2.5 rounded-lg border border-admin-border-strong bg-admin-surface px-3 py-2.5">
+                          <p className="mb-1 text-xs font-medium text-admin-text-muted">Origen: Soporte</p>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-sm text-admin-text break-words">{linkedTicket.title}</span>
+                            <TicketStatusBadge status={linkedTicket.status} />
+                          </div>
+                          <Link
+                            href={`/admin/support/${linkedTicket.id}`}
+                            className="mt-1.5 inline-block text-xs text-admin-accent transition-colors hover:underline"
+                          >
+                            Ver ticket
+                          </Link>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
 

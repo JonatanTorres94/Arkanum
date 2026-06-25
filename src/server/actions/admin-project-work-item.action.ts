@@ -5,6 +5,8 @@ import { getAdminUser } from "@/lib/auth/verify-admin";
 import { getProjectByIdUseCase } from "@/features/projects/application/get-project-by-id.use-case";
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
 import { createProjectWorkItemUseCase } from "@/features/projects/application/create-project-work-item.use-case";
+import { getProjectWorkItemByIdUseCase } from "@/features/projects/application/get-project-work-item-by-id.use-case";
+import { updateProjectWorkItemStatusUseCase } from "@/features/projects/application/update-project-work-item-status.use-case";
 import { SupabaseProjectWorkItemRepository } from "@/features/projects/infrastructure/supabase-project-work-item.repository";
 import {
   WORK_ITEM_CATEGORIES,
@@ -14,6 +16,10 @@ import {
   type WorkItemStatus,
   type WorkItemPriority,
 } from "@/features/projects/domain/project-work-item.types";
+import { getSupportTicketByWorkItemUseCase } from "@/features/support/application/get-support-ticket-by-work-item.use-case";
+import { createSupportTicketNoteUseCase } from "@/features/support/application/create-support-ticket-note.use-case";
+import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
+import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 
 const TITLE_MAX_LENGTH = 200;
 
@@ -74,5 +80,64 @@ export async function createProjectWorkItemAction(
   if (!result.ok) return { error: result.error };
 
   revalidatePath(`/admin/projects/${projectId}`);
+  return {};
+}
+
+export async function updateProjectWorkItemStatusAction(
+  workItemId: string,
+  status: string
+): Promise<{ error?: string; warning?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  if (!isValidEnumValue(WORK_ITEM_STATUSES, status)) return { error: "Estado inválido." };
+
+  const workItemRepository = new SupabaseProjectWorkItemRepository();
+  const workItemResult = await getProjectWorkItemByIdUseCase(workItemId, workItemRepository);
+  if (!workItemResult.ok) return { error: "Work item no encontrado." };
+
+  const { workItem } = workItemResult;
+
+  if (workItem.status === status) return {};
+
+  const outcome = await updateProjectWorkItemStatusUseCase(
+    workItemId,
+    { status: status as WorkItemStatus },
+    workItemRepository
+  );
+  if (!outcome.ok) return { error: outcome.error };
+
+  revalidatePath(`/admin/projects/${workItem.projectId}`);
+
+  // Development closing its own work does not resolve support — it only leaves
+  // a trail so support knows validation can proceed. The ticket's own status
+  // is never touched here.
+  if (status === "done") {
+    const ticketResult = await getSupportTicketByWorkItemUseCase(
+      workItemId,
+      new SupabaseSupportTicketRepository()
+    );
+
+    if (ticketResult.ok && ticketResult.ticket) {
+      const noteOutcome = await createSupportTicketNoteUseCase(
+        ticketResult.ticket.id,
+        `Desarrollo marcó el work item vinculado ("${workItem.title}") como completado. ` +
+          "El ticket permanece abierto para validación de soporte.",
+        user.email ?? null,
+        new SupabaseSupportTicketNoteRepository()
+      );
+
+      revalidatePath(`/admin/support/${ticketResult.ticket.id}`);
+
+      if (!noteOutcome.ok) {
+        return {
+          warning:
+            "El work item se marcó como completado, pero no se pudo agregar la nota automática " +
+            "en el ticket de soporte vinculado — revisalo manualmente.",
+        };
+      }
+    }
+  }
+
   return {};
 }

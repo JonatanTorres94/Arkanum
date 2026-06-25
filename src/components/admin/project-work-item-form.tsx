@@ -28,7 +28,7 @@ const STATUS_LABELS: Record<WorkItemStatus, string> = {
   blocked:     "Bloqueado",
   review:      "En revisión",
   testing:     "Testing",
-  done:        "Hecho",
+  done:        "Completado",
   cancelled:   "Cancelado",
 };
 

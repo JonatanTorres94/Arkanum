@@ -24,8 +24,15 @@ import { SupabaseClientRepository } from "@/features/clients/infrastructure/supa
 import { getProjectByIdUseCase } from "@/features/projects/application/get-project-by-id.use-case";
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
 import { createProjectWorkItemUseCase } from "@/features/projects/application/create-project-work-item.use-case";
+import { getProjectWorkItemByIdUseCase } from "@/features/projects/application/get-project-work-item-by-id.use-case";
 import { SupabaseProjectWorkItemRepository } from "@/features/projects/infrastructure/supabase-project-work-item.repository";
 import type { WorkItemCategory } from "@/features/projects/domain/project-work-item.types";
+import { createSupportTicketNoteUseCase } from "@/features/support/application/create-support-ticket-note.use-case";
+import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
+
+// A linked work item that finished or was scrapped no longer blocks support
+// resolution — only an actually-open work item should hold a ticket back.
+const TERMINAL_WORK_ITEM_STATUSES = ["done", "cancelled"];
 
 const TITLE_MAX_LENGTH = 200;
 
@@ -116,7 +123,7 @@ export async function createSupportTicketAction(
 export async function updateSupportTicketStatusAction(
   id: string,
   status: string
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; warning?: string }> {
   const user = await getAdminUser();
   if (!user) return { error: "No autorizado." };
 
@@ -130,10 +137,24 @@ export async function updateSupportTicketStatusAction(
 
   if (ticket.status === status) return {};
 
+  if (status === "resolved" && ticket.escalatedWorkItemId) {
+    const workItemResult = await getProjectWorkItemByIdUseCase(
+      ticket.escalatedWorkItemId,
+      new SupabaseProjectWorkItemRepository()
+    );
+    if (workItemResult.ok && !TERMINAL_WORK_ITEM_STATUSES.includes(workItemResult.workItem.status)) {
+      return {
+        error: "No se puede resolver el ticket mientras el trabajo de desarrollo vinculado siga abierto.",
+      };
+    }
+  }
+
+  const wasResolved = ticket.status === "resolved";
+
   let resolvedAt = ticket.resolvedAt;
   if (status === "resolved") {
     resolvedAt = new Date().toISOString();
-  } else if (ticket.status === "resolved") {
+  } else if (wasResolved) {
     resolvedAt = null;
   }
 
@@ -146,6 +167,24 @@ export async function updateSupportTicketStatusAction(
 
   revalidatePath(`/admin/support/${id}`);
   revalidatePath("/admin/support");
+
+  // Reopening must never touch the linked work item — development's
+  // completed status is historical context, not something support can revive.
+  if (wasResolved && status !== "resolved" && ticket.escalatedWorkItemId) {
+    const noteOutcome = await createSupportTicketNoteUseCase(
+      id,
+      "Soporte reabrió el ticket. El work item de desarrollo vinculado permanece cerrado.",
+      user.email ?? null,
+      new SupabaseSupportTicketNoteRepository()
+    );
+    if (!noteOutcome.ok) {
+      return {
+        warning:
+          "El ticket se reabrió, pero no se pudo agregar la nota automática de reapertura — " +
+          "revisalo manualmente.",
+      };
+    }
+  }
 
   return {};
 }
