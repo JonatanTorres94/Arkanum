@@ -13,22 +13,18 @@ export async function updateProjectUseCase(
   input: UpdateProjectInput,
   repository: ProjectRepository
 ): Promise<UpdateProjectResult> {
-  const existingProject = await repository.findById(id);
-  if (!existingProject) return { ok: false, error: "Proyecto no encontrado." };
-
-  let effectiveStartDate = input.startDate;
-
-  if (input.status === "in_development") {
-    if (existingProject.startDate) {
-      // The persisted date is authoritative — a null payload cannot wipe it.
-      effectiveStartDate = existingProject.startDate;
-    } else if (!input.startDate) {
-      // No persisted date, input is empty → auto-set to today.
-      effectiveStartDate = todayArgentina();
-    }
-  }
-
   try {
+    const existingProject = await repository.findById(id);
+    if (!existingProject) return { ok: false, error: "Proyecto no encontrado." };
+
+    // For in_development: an explicit date from the admin always wins; a null
+    // input falls back to the persisted date; if neither exists, auto-set today.
+    // For any other status the input date is used as-is (including null).
+    const effectiveStartDate =
+      input.status === "in_development"
+        ? input.startDate ?? existingProject.startDate ?? todayArgentina()
+        : input.startDate;
+
     await repository.update(id, { ...input, startDate: effectiveStartDate });
     return { ok: true };
   } catch {
