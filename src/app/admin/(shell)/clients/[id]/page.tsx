@@ -236,7 +236,7 @@ export default async function AdminClientDetailPage({
                   )}
                 </div>
 
-                {/* Latest activity — calculated only from successful sources */}
+                {/* Latest activity — only conclusive when both sources loaded */}
                 {latestRelatedActivityAt ? (
                   <div>
                     <p className="text-xs text-admin-text-muted">Última actividad relacionada</p>
@@ -248,11 +248,9 @@ export default async function AdminClientDetailPage({
                       })}
                     </p>
                   </div>
-                ) : (
-                  !projectsResult.ok && !supportResult.ok ? null : (
-                    <p className="text-xs text-admin-text-faint">Sin actividad operativa.</p>
-                  )
-                )}
+                ) : projectsResult.ok && supportResult.ok ? (
+                  <p className="text-xs text-admin-text-faint">Sin actividad operativa.</p>
+                ) : null}
               </div>
             </AdminSection>
 
