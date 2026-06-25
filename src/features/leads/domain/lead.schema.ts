@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { toTitleCase } from "@/lib/utils/normalize-name";
+
 export const INDUSTRY_OPTIONS = [
   "Distribución / mayorista",
   "Logística / repartos",
@@ -52,7 +54,7 @@ export const BUDGET_OPTIONS = [
 
 export const leadSchema = z.object({
   // Required
-  fullName:         z.string().min(2, "Ingresá tu nombre completo"),
+  fullName:         z.string().min(2, "Ingresá tu nombre completo").transform(toTitleCase),
   email:            z.string().email("Ingresá un email válido"),
   industry:         z.enum(INDUSTRY_OPTIONS, "Seleccioná un rubro"),
   companySize:      z.enum(COMPANY_SIZE_OPTIONS, "Seleccioná el tamaño de tu empresa"),
