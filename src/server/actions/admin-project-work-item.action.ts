@@ -35,15 +35,15 @@ function isValidEnumValue<T extends string>(options: readonly T[], value: string
 }
 
 // Centralized best-effort side effects for any status transition.
-// Revalidates project and support-ticket routes as applicable.
-// Returns warning strings for partial failures; never throws.
+// The caller is responsible for revalidating the project and work-item routes.
+// This helper only revalidates the support-ticket route when a note is added.
 async function applyStatusSideEffects(opts: {
-  workItemId:    string;
-  workItemTitle: string;
-  projectId:     string;
+  workItemId:     string;
+  workItemTitle:  string;
+  projectId:      string;
   previousStatus: WorkItemStatus;
   newStatus:      WorkItemStatus;
-  adminEmail:    string | null | undefined;
+  adminEmail:     string | null | undefined;
   workItemRepository: SupabaseProjectWorkItemRepository;
 }): Promise<string[]> {
   const {
@@ -58,8 +58,6 @@ async function applyStatusSideEffects(opts: {
     new SupabaseProjectRepository(),
     workItemRepository
   );
-
-  revalidatePath(`/admin/projects/${projectId}`);
 
   if (!syncOutcome.ok) {
     warnings.push(
@@ -186,6 +184,9 @@ export async function updateProjectWorkItemStatusAction(
   );
   if (!outcome.ok) return { error: outcome.error };
 
+  // Always revalidate the parent project after any status change.
+  revalidatePath(`/admin/projects/${workItem.projectId}`);
+
   const warnings = await applyStatusSideEffects({
     workItemId,
     workItemTitle:  workItem.title,
@@ -228,8 +229,9 @@ export async function updateProjectWorkItemAction(
     return { error: "Prioridad inválida." };
   }
 
-  // Load the existing work item before the update to capture previousStatus
-  // and to validate project ownership at the action boundary.
+  // Single read before the update: captures previousStatus and validates project
+  // ownership at the action boundary. The use case trusts this validation and
+  // does not repeat the findById, so there is only one DB read of the work item.
   const workItemRepository = new SupabaseProjectWorkItemRepository();
   const existingResult = await getProjectWorkItemByIdUseCase(workItemId, workItemRepository);
   if (!existingResult.ok) return { error: "Work item no encontrado." };
@@ -244,7 +246,6 @@ export async function updateProjectWorkItemAction(
 
   const outcome = await updateProjectWorkItemUseCase(
     workItemId,
-    projectId,
     {
       title,
       description: normalize(input.description),
@@ -258,10 +259,11 @@ export async function updateProjectWorkItemAction(
 
   if (!outcome.ok) return { error: outcome.error };
 
+  // Always revalidate detail + parent project, regardless of which fields changed.
   revalidatePath(`/admin/projects/${projectId}/work-items/${workItemId}`);
+  revalidatePath(`/admin/projects/${projectId}`);
 
-  // Skip side effects when status did not change — non-status edits must not
-  // trigger lifecycle sync or support notes.
+  // Skip lifecycle sync and support notes when status did not change.
   if (newStatus === previousStatus) return {};
 
   const warnings = await applyStatusSideEffects({

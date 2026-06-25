@@ -4,19 +4,14 @@ import type {
 } from "@/features/projects/domain/project-work-item.types";
 import type { ProjectWorkItemRepository } from "@/features/projects/infrastructure/project-work-item.repository";
 
+// Existence and project-ownership validation is the caller's responsibility
+// (action boundary). This use case only persists the update.
 export async function updateProjectWorkItemUseCase(
   id: string,
-  projectId: string,
   input: UpdateProjectWorkItemInput,
   repository: ProjectWorkItemRepository
 ): Promise<UpdateProjectWorkItemResult> {
   try {
-    const existing = await repository.findById(id);
-    if (!existing) return { ok: false, error: "Work item no encontrado." };
-    if (existing.projectId !== projectId) {
-      return { ok: false, error: "El work item no pertenece al proyecto indicado." };
-    }
-
     await repository.update(id, input);
     return { ok: true };
   } catch {
