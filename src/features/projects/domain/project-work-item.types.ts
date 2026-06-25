@@ -58,3 +58,16 @@ export type UpdateProjectWorkItemStatusInput = {
 export type UpdateProjectWorkItemStatusResult =
   | { ok: true }
   | { ok: false; error: string };
+
+export type UpdateProjectWorkItemInput = {
+  title:       string;
+  description: string | null;
+  category:    WorkItemCategory;
+  status:      WorkItemStatus;
+  priority:    WorkItemPriority;
+  notes:       string | null;
+};
+
+export type UpdateProjectWorkItemResult =
+  | { ok: true;  warning?: string }
+  | { ok: false; error: string };
