@@ -45,17 +45,3 @@ export type UpdateClientResult =
   | { ok: true }
   | { ok: false; error: string };
 
-export type ClientOperationalOverview = {
-  projects: {
-    total:         number;
-    inDevelopment: number;
-    paused:        number;
-    deployed:      number;
-  };
-  support: {
-    total:                   number;
-    open:                    number;
-    escalatedToDevelopment:  number;
-  };
-  latestRelatedActivityAt: string | null;
-};

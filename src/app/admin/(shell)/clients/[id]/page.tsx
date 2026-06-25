@@ -69,8 +69,7 @@ export default async function AdminClientDetailPage({
     new SupabaseSupportTicketRepository()
   );
 
-  const projects = overviewResult.ok ? overviewResult.projects : [];
-  const tickets  = overviewResult.ok ? overviewResult.tickets  : [];
+  const { projects: projectsResult, support: supportResult, latestRelatedActivityAt } = overviewResult;
 
   return (
     <ClientWorkspaceProvider
@@ -115,7 +114,13 @@ export default async function AdminClientDetailPage({
             </AdminSection>
 
             {/* Proyectos */}
-            <AdminSection title={`Proyectos${overviewResult.ok ? ` (${projects.length})` : ""}`}>
+            <AdminSection
+              title={
+                projectsResult.ok
+                  ? `Proyectos (${projectsResult.items.length})`
+                  : "Proyectos"
+              }
+            >
               <div className="mb-4 flex items-center justify-end">
                 <Link
                   href={`/admin/projects/new?clientId=${client.id}`}
@@ -125,13 +130,13 @@ export default async function AdminClientDetailPage({
                 </Link>
               </div>
 
-              {!overviewResult.ok ? (
-                <p className="text-sm text-admin-danger">{overviewResult.error}</p>
-              ) : projects.length === 0 ? (
+              {!projectsResult.ok ? (
+                <p className="text-sm text-admin-danger">{projectsResult.error}</p>
+              ) : projectsResult.items.length === 0 ? (
                 <p className="text-sm text-admin-text-faint">Este cliente todavía no tiene proyectos.</p>
               ) : (
                 <ul className="space-y-2">
-                  {projects.map((project) => (
+                  {projectsResult.items.map((project) => (
                     <li
                       key={project.id}
                       className="flex items-center justify-between rounded-lg border border-admin-border bg-admin-surface-hover px-4 py-3"
@@ -150,14 +155,20 @@ export default async function AdminClientDetailPage({
             </AdminSection>
 
             {/* Tickets de soporte */}
-            <AdminSection title={`Tickets de soporte${overviewResult.ok ? ` (${tickets.length})` : ""}`}>
-              {!overviewResult.ok ? (
-                <p className="text-sm text-admin-danger">{overviewResult.error}</p>
-              ) : tickets.length === 0 ? (
+            <AdminSection
+              title={
+                supportResult.ok
+                  ? `Tickets de soporte (${supportResult.items.length})`
+                  : "Tickets de soporte"
+              }
+            >
+              {!supportResult.ok ? (
+                <p className="text-sm text-admin-danger">{supportResult.error}</p>
+              ) : supportResult.items.length === 0 ? (
                 <p className="text-sm text-admin-text-faint">Este cliente todavía no tiene tickets de soporte.</p>
               ) : (
                 <ul className="space-y-2">
-                  {tickets.map((ticket) => (
+                  {supportResult.items.map((ticket) => (
                     <li
                       key={ticket.id}
                       className="rounded-lg border border-admin-border bg-admin-surface-hover px-4 py-3"
@@ -177,7 +188,8 @@ export default async function AdminClientDetailPage({
                         </div>
                       </div>
                       <p className="mt-1.5 text-xs text-admin-text-faint">
-                        Actualizado: {new Date(ticket.updatedAt).toLocaleDateString("es-AR", {
+                        Actualizado:{" "}
+                        {new Date(ticket.updatedAt).toLocaleDateString("es-AR", {
                           day:   "2-digit",
                           month: "short",
                           year:  "numeric",
@@ -194,46 +206,61 @@ export default async function AdminClientDetailPage({
           <>
             {/* Resumen operativo */}
             <AdminSection title="Resumen operativo">
-              {!overviewResult.ok ? (
-                <p className="text-xs text-admin-danger">{overviewResult.error}</p>
-              ) : (
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-medium text-admin-text-secondary">Proyectos</p>
-                    <OverviewStat label="Total"          value={overviewResult.overview.projects.total} />
-                    <OverviewStat label="En desarrollo"  value={overviewResult.overview.projects.inDevelopment} />
-                    <OverviewStat label="Pausados"       value={overviewResult.overview.projects.paused} />
-                    <OverviewStat label="Desplegados"    value={overviewResult.overview.projects.deployed} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-medium text-admin-text-secondary">Soporte</p>
-                    <OverviewStat label="Total"                  value={overviewResult.overview.support.total} />
-                    <OverviewStat label="Tickets abiertos"       value={overviewResult.overview.support.open} />
-                    <OverviewStat label="Escalados a desarrollo" value={overviewResult.overview.support.escalatedToDevelopment} />
-                  </div>
-                  {overviewResult.overview.latestRelatedActivityAt ? (
-                    <div>
-                      <p className="text-xs text-admin-text-muted">Última actividad relacionada</p>
-                      <p className="mt-0.5 text-xs text-admin-text">
-                        {new Date(overviewResult.overview.latestRelatedActivityAt).toLocaleDateString("es-AR", {
-                          day:   "2-digit",
-                          month: "short",
-                          year:  "numeric",
-                        })}
-                      </p>
-                    </div>
+              <div className="space-y-4">
+                {/* Projects summary */}
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-admin-text-secondary">Proyectos</p>
+                  {!projectsResult.ok ? (
+                    <p className="text-xs text-admin-danger">{projectsResult.error}</p>
                   ) : (
-                    <p className="text-xs text-admin-text-faint">Sin actividad operativa.</p>
+                    <>
+                      <OverviewStat label="Total"         value={projectsResult.summary.total} />
+                      <OverviewStat label="En desarrollo" value={projectsResult.summary.inDevelopment} />
+                      <OverviewStat label="Pausados"      value={projectsResult.summary.paused} />
+                      <OverviewStat label="Desplegados"   value={projectsResult.summary.deployed} />
+                    </>
                   )}
                 </div>
-              )}
+
+                {/* Support summary */}
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-admin-text-secondary">Soporte</p>
+                  {!supportResult.ok ? (
+                    <p className="text-xs text-admin-danger">{supportResult.error}</p>
+                  ) : (
+                    <>
+                      <OverviewStat label="Total"                  value={supportResult.summary.total} />
+                      <OverviewStat label="Tickets abiertos"       value={supportResult.summary.open} />
+                      <OverviewStat label="Escalados a desarrollo" value={supportResult.summary.escalatedToDevelopment} />
+                    </>
+                  )}
+                </div>
+
+                {/* Latest activity — calculated only from successful sources */}
+                {latestRelatedActivityAt ? (
+                  <div>
+                    <p className="text-xs text-admin-text-muted">Última actividad relacionada</p>
+                    <p className="mt-0.5 text-xs text-admin-text">
+                      {new Date(latestRelatedActivityAt).toLocaleDateString("es-AR", {
+                        day:   "2-digit",
+                        month: "short",
+                        year:  "numeric",
+                      })}
+                    </p>
+                  </div>
+                ) : (
+                  !projectsResult.ok && !supportResult.ok ? null : (
+                    <p className="text-xs text-admin-text-faint">Sin actividad operativa.</p>
+                  )
+                )}
+              </div>
             </AdminSection>
 
             {/* Contacto */}
             <AdminSection title="Contacto principal">
               <dl className="space-y-3">
-                <Field label="Nombre"             value={client.contactName} />
-                <Field label="Email"              value={client.contactEmail} />
+                <Field label="Nombre"              value={client.contactName} />
+                <Field label="Email"               value={client.contactEmail} />
                 <Field label="Teléfono / WhatsApp" value={client.contactPhone} />
                 {!client.contactName && !client.contactEmail && !client.contactPhone && (
                   <p className="text-sm text-admin-text-faint">Sin datos de contacto.</p>
