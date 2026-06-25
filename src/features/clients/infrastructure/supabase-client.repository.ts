@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
-import type { Client, ClientStatus, CreateClientInput } from "@/features/clients/domain/client.types";
+import type { Client, ClientStatus, CreateClientInput, UpdateClientInput } from "@/features/clients/domain/client.types";
 import type { ClientRepository } from "./client.repository";
 
 type ClientRow = {
@@ -54,6 +54,26 @@ export class SupabaseClientRepository implements ClientRepository {
     if (error || !data) throw new Error("Supabase insert failed");
 
     return { id: data.id };
+  }
+
+  async update(id: string, input: UpdateClientInput): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("clients")
+      .update({
+        name:          input.name,
+        company:       input.company,
+        contact_name:  input.contactName,
+        contact_email: input.contactEmail,
+        contact_phone: input.contactPhone,
+        industry:      input.industry,
+        status:        input.status,
+        notes:         input.notes,
+      })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase update failed");
   }
 
   async findAll(): Promise<Client[]> {

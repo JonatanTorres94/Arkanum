@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [0.39.0] - 2026-06-25
+
+### Added
+
+- `src/features/clients/domain/client.types.ts` — `UpdateClientInput`, `UpdateClientResult`, `ClientOperationalOverview`.
+- `src/features/clients/application/update-client.use-case.ts` — actualiza todos los campos editables del cliente; valida existencia antes de persistir (Alternativa A); errores controlados ante fallos de IO.
+- `src/features/clients/application/get-client-operational-overview.use-case.ts` — orquesta proyectos y tickets en paralelo (`Promise.all`); calcula en memoria: total/inDevelopment/paused/deployed de proyectos; total/open/escalatedToDevelopment de tickets; `latestRelatedActivityAt` como máximo de `updatedAt` entre proyectos y tickets (no incluye `client.updatedAt`). Devuelve además las listas crudas para que la página no necesite consultas adicionales.
+- `src/features/support/application/get-support-tickets-by-client-id.use-case.ts` — wrapper reutilizable sobre `findByClientId`, con manejo de errores.
+- `ClientRepository.update(id, input)` — nueva firma en interfaz e implementación Supabase.
+- `SupportTicketRepository.findByClientId(clientId)` — nueva firma en interfaz e implementación Supabase (ordenado por `updated_at DESC`).
+- `updateClientAction` en `admin-client.action.ts` — validación equivalente a creación: nombre requerido, status de enum, email con regex; opcionales normalizados a `null`.
+- `src/components/admin/client-details-form.tsx` — formulario de edición con todos los campos, `useTransition`, errores inline.
+- `src/components/admin/client-workspace.tsx` — `ClientWorkspaceProvider`, `EditClientButton` (se oculta al editar), `ClientDetailsSection` (read-only: empresa/rubro/notas; formulario full-width al editar).
+
+### Changed
+
+- `src/app/admin/(shell)/clients/[id]/page.tsx` — integra workspace en columna principal; botón "Editar cliente" en header; agrega sección tickets de soporte (título, estado, prioridad, updatedAt, link a detalle); sidebar con resumen operativo (conteos), contacto principal y metadata. Manejo de errores independiente por sección: si el overview falla el cliente sigue visible; no se inventan conteos en cero.
+
+### Notes
+
+- Sin cambios de DB — los campos y relaciones ya existían en `clients` y `support_tickets`.
+- Sin nuevas dependencias.
+- Cambios de status del cliente (active/paused/former) no modifican proyectos, tickets ni work items — cada lifecycle mantiene autoridad independiente.
+- Semántica operativa centralizada en `get-client-operational-overview.use-case.ts`; `page.tsx` solo renderiza lo que recibe.
+- Tickets abiertos = status ∉ {resolved, closed, cancelled}. Escalados a desarrollo ⊆ abiertos (subconjunto, no suma separada).
+
 ## [0.38.0] - 2026-06-25
 
 ### Added

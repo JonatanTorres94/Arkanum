@@ -29,3 +29,33 @@ export type CreateClientInput = {
 export type CreateClientResult =
   | { ok: true; id: string }
   | { ok: false; error: string };
+
+export type UpdateClientInput = {
+  name:         string;
+  company:      string | null;
+  contactName:  string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  industry:     string | null;
+  status:       ClientStatus;
+  notes:        string | null;
+};
+
+export type UpdateClientResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export type ClientOperationalOverview = {
+  projects: {
+    total:         number;
+    inDevelopment: number;
+    paused:        number;
+    deployed:      number;
+  };
+  support: {
+    total:                   number;
+    open:                    number;
+    escalatedToDevelopment:  number;
+  };
+  latestRelatedActivityAt: string | null;
+};

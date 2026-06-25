@@ -109,6 +109,21 @@ export class SupabaseSupportTicketRepository implements SupportTicketRepository 
     return toDomain(data);
   }
 
+  async findByClientId(clientId: string): Promise<SupportTicket[]> {
+    const supabase = createServerClient();
+
+    const { data, error } = await supabase
+      .from("support_tickets")
+      .select("*")
+      .eq("client_id", clientId)
+      .order("updated_at", { ascending: false })
+      .returns<SupportTicketRow[]>();
+
+    if (error) throw new Error("Supabase findByClientId failed");
+
+    return (data ?? []).map(toDomain);
+  }
+
   async findByEscalatedWorkItemId(workItemId: string): Promise<SupportTicket | null> {
     const supabase = createServerClient();
 
