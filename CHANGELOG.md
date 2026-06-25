@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+## [0.38.0] - 2026-06-25
+
+### Added
+
+- `src/features/projects/domain/project.types.ts` — `UpdateProjectInput`, `UpdateProjectResult`, `LifecycleWarning`.
+- `src/features/projects/domain/project-lifecycle.ts` — función pura `computeLifecycleWarnings(project, workItems)` y constante `OPEN_WORK_ITEM_STATUSES` (backlog / ready / in_progress / blocked / review / testing).
+- `src/features/projects/application/update-project.use-case.ts` — actualiza campos editables del proyecto; protege startDate existente contra sobrescritura por payload nulo; auto-setea startDate = hoy (America/Argentina/Buenos_Aires) al pasar a `in_development` solo si la fecha no estaba persistida.
+- `src/features/projects/application/synchronize-project-lifecycle.use-case.ts` — avance automático conservador del estado del proyecto disparado por cambios en work items. Reglas: planning + work item → in_progress = proyecto a `in_development` (+ auto-startDate si era null); planning/in_development + sin ítems abiertos + al menos uno done = proyecto a `testing`. Toda la operación (lecturas y escritura) queda en try/catch para garantizar éxito parcial ante cualquier fallo secundario.
+- `ProjectRepository.update(id, input)` — nueva firma en la interfaz e implementación Supabase.
+- `updateProjectAction` en `admin-project.action.ts` — acción de servidor para edición manual; acepta cualquier `PROJECT_STATUS` válido (sin restricciones de transición manual); misma validación de fechas y enums que la acción de creación.
+- `src/components/admin/project-workspace.tsx` — workspace pattern: `ProjectWorkspaceProvider`, `EditProjectButton` (aparece en header, se oculta con el formulario abierto), `ProjectDetailsSection` (read-only ↔ formulario en columna principal).
+- `src/components/admin/project-details-form.tsx` — formulario de edición de proyecto (nombre, descripción, estado, fechas, notas); warning inline al seleccionar `testing`/`deployed` con work items abiertos; usa `useTransition`.
+
+### Changed
+
+- `updateProjectWorkItemStatusAction` — ahora llama `synchronizeProjectLifecycleUseCase` tras actualizar el work item; si el sync falla, devuelve `warning` (éxito parcial explícito) en lugar de fallar globalmente.
+- `createProjectWorkItemAction` — ahora llama `synchronizeProjectLifecycleUseCase` tras crear el work item, cubriendo el caso de crear un ítem directamente en `in_progress` o `done`; firma actualizada a `{ error?: string; warning?: string }`.
+- `src/components/admin/project-work-item-form.tsx` — maneja `warning` además de `error`: resetea el formulario ante éxito parcial y muestra el aviso en amarillo.
+- `src/app/admin/(shell)/projects/[id]/page.tsx` — integra `ProjectWorkspaceProvider` y workspace en columna principal (primera sección); botón "Editar proyecto" en header junto al badge de estado; warnings pasivos de ciclo de vida en sidebar; metadata (fechas, timestamps) en sección separada.
+
+### Notes
+
+- Sin cambios de DB — toda la lógica opera sobre la tabla `projects` existente.
+- Sin nuevas dependencias.
+- La autoridad manual del administrador sobre los estados del proyecto está preservada: manual → cualquier valor válido. Solo las transiciones automáticas (vía work items) están restringidas a `planning → in_development` y `planning/in_development → testing`.
+- El campo `fieldClass` en `project-details-form.tsx` está definido localmente porque `admin-field-styles.ts` vive en `fix/admin-form-interaction-polish`, aún no mergeado. Consolidar cuando ese branch se integre.
+
 ## [0.37.0] - 2026-06-25
 
 ### Added

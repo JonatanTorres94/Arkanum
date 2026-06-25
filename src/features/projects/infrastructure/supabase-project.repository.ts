@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
-import type { CreateProjectInput, Project, ProjectStatus } from "@/features/projects/domain/project.types";
+import type { CreateProjectInput, UpdateProjectInput, Project, ProjectStatus } from "@/features/projects/domain/project.types";
 import type { ProjectRepository } from "./project.repository";
 
 type ProjectRow = {
@@ -51,6 +51,24 @@ export class SupabaseProjectRepository implements ProjectRepository {
     if (error || !data) throw new Error("Supabase insert failed");
 
     return { id: data.id };
+  }
+
+  async update(id: string, input: UpdateProjectInput): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from("projects")
+      .update({
+        name:        input.name,
+        description: input.description,
+        status:      input.status,
+        start_date:  input.startDate,
+        target_date: input.targetDate,
+        notes:       input.notes,
+      })
+      .eq("id", id);
+
+    if (error) throw new Error("Supabase update failed");
   }
 
   async findAll(): Promise<Project[]> {

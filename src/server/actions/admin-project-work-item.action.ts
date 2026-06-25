@@ -20,6 +20,7 @@ import { getSupportTicketByWorkItemUseCase } from "@/features/support/applicatio
 import { createSupportTicketNoteUseCase } from "@/features/support/application/create-support-ticket-note.use-case";
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
+import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
 
 const TITLE_MAX_LENGTH = 200;
 
@@ -42,7 +43,7 @@ export async function createProjectWorkItemAction(
     priority: string;
     notes: string;
   }
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; warning?: string }> {
   const user = await getAdminUser();
   if (!user) return { error: "No autorizado." };
 
@@ -79,7 +80,21 @@ export async function createProjectWorkItemAction(
 
   if (!result.ok) return { error: result.error };
 
+  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+    projectId,
+    new SupabaseProjectRepository(),
+    repository
+  );
+
   revalidatePath(`/admin/projects/${projectId}`);
+
+  if (!syncOutcome.ok) {
+    return {
+      warning:
+        "El work item se creó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente.",
+    };
+  }
+
   return {};
 }
 
@@ -107,7 +122,23 @@ export async function updateProjectWorkItemStatusAction(
   );
   if (!outcome.ok) return { error: outcome.error };
 
+  // Best-effort lifecycle sync. If it fails we still return success for the
+  // work item update — the admin sees a warning, not a blocking error.
+  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+    workItem.projectId,
+    new SupabaseProjectRepository(),
+    workItemRepository
+  );
+
   revalidatePath(`/admin/projects/${workItem.projectId}`);
+
+  const warnings: string[] = [];
+
+  if (!syncOutcome.ok) {
+    warnings.push(
+      "El work item se actualizó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
+    );
+  }
 
   // Development closing its own work does not resolve support — it only leaves
   // a trail so support knows validation can proceed. The ticket's own status
@@ -130,14 +161,13 @@ export async function updateProjectWorkItemStatusAction(
       revalidatePath(`/admin/support/${ticketResult.ticket.id}`);
 
       if (!noteOutcome.ok) {
-        return {
-          warning:
-            "El work item se marcó como completado, pero no se pudo agregar la nota automática " +
-            "en el ticket de soporte vinculado — revisalo manualmente.",
-        };
+        warnings.push(
+          "El work item se marcó como completado, pero no se pudo agregar la nota automática " +
+            "en el ticket de soporte vinculado — revisalo manualmente."
+        );
       }
     }
   }
 
-  return {};
+  return warnings.length > 0 ? { warning: warnings.join(" ") } : {};
 }
