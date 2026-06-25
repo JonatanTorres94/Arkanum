@@ -47,12 +47,14 @@ const labelClass = "mb-1.5 block text-xs font-medium text-admin-text-muted";
 export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError]           = useState<string | null>(null);
+  const [warning, setWarning]       = useState<string | null>(null);
   const formRef                     = useRef<HTMLFormElement>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     setError(null);
+    setWarning(null);
 
     startTransition(async () => {
       const result = await createProjectWorkItemAction(projectId, {
@@ -67,15 +69,15 @@ export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
         setError(result.error);
       } else {
         formRef.current?.reset();
+        if (result.warning) setWarning(result.warning);
       }
     });
   }
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-3">
-      {error && (
-        <p role="alert" className="text-xs text-admin-danger">{error}</p>
-      )}
+      {error   && <p role="alert" className="text-xs text-admin-danger">{error}</p>}
+      {warning && <p role="alert" className="text-xs text-amber-400">{warning}</p>}
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="sm:col-span-3">

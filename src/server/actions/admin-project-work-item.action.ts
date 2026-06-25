@@ -43,7 +43,7 @@ export async function createProjectWorkItemAction(
     priority: string;
     notes: string;
   }
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; warning?: string }> {
   const user = await getAdminUser();
   if (!user) return { error: "No autorizado." };
 
@@ -80,7 +80,21 @@ export async function createProjectWorkItemAction(
 
   if (!result.ok) return { error: result.error };
 
+  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+    projectId,
+    new SupabaseProjectRepository(),
+    repository
+  );
+
   revalidatePath(`/admin/projects/${projectId}`);
+
+  if (!syncOutcome.ok) {
+    return {
+      warning:
+        "El work item se creó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente.",
+    };
+  }
+
   return {};
 }
 
