@@ -1,12 +1,15 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getAdminUser } from "@/lib/auth/verify-admin";
 import { createProjectUseCase } from "@/features/projects/application/create-project.use-case";
+import { updateProjectUseCase } from "@/features/projects/application/update-project.use-case";
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
 import { PROJECT_STATUSES, type ProjectStatus } from "@/features/projects/domain/project.types";
 import { getClientByIdUseCase } from "@/features/clients/application/get-client-by-id.use-case";
 import { SupabaseClientRepository } from "@/features/clients/infrastructure/supabase-client.repository";
+import { getProjectByIdUseCase } from "@/features/projects/application/get-project-by-id.use-case";
 import { isValidCalendarDate } from "@/lib/validation/calendar-date";
 
 const NAME_MAX_LENGTH = 200;
@@ -72,4 +75,62 @@ export async function createProjectAction(
   if (!result.ok) return { error: result.error };
 
   redirect(`/admin/projects/${result.id}`);
+}
+
+export type UpdateProjectFormState = { error: string } | null;
+
+export async function updateProjectAction(
+  projectId: string,
+  input: {
+    name:        string;
+    description: string;
+    status:      string;
+    startDate:   string;
+    targetDate:  string;
+    notes:       string;
+  }
+): Promise<{ error?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  const repository = new SupabaseProjectRepository();
+  const projectResult = await getProjectByIdUseCase(projectId, repository);
+  if (!projectResult.ok) return { error: "El proyecto no existe." };
+
+  const name = input.name.trim();
+  if (!name) return { error: "El nombre del proyecto es obligatorio." };
+  if (name.length > NAME_MAX_LENGTH) return { error: "El nombre es demasiado largo." };
+
+  if (!isValidStatus(input.status)) return { error: "Estado inválido." };
+
+  const startDate  = input.startDate.trim()  || null;
+  const targetDate = input.targetDate.trim() || null;
+
+  if (startDate && !isValidCalendarDate(startDate)) {
+    return { error: "La fecha de inicio no es válida." };
+  }
+  if (targetDate && !isValidCalendarDate(targetDate)) {
+    return { error: "La fecha objetivo no es válida." };
+  }
+  if (startDate && targetDate && targetDate < startDate) {
+    return { error: "La fecha objetivo no puede ser anterior a la fecha de inicio." };
+  }
+
+  const result = await updateProjectUseCase(
+    projectId,
+    {
+      name,
+      description: input.description.trim() || null,
+      status:      input.status as ProjectStatus,
+      startDate,
+      targetDate,
+      notes:       input.notes.trim() || null,
+    },
+    repository
+  );
+
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath(`/admin/projects/${projectId}`);
+  return {};
 }
