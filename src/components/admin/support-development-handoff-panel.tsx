@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { SupportDevelopmentPhase } from "@/features/support/domain/support-development-phase";
 import type { WorkItemStatus } from "@/features/projects/domain/project-work-item.types";
+import type { TicketStatus } from "@/features/support/domain/support-ticket.types";
 import { resolveAfterDevelopmentAction, returnToDevelopmentAction } from "@/server/actions/admin-support-ticket.action";
 
 const WI_STATUS_LABELS: Record<WorkItemStatus, string> = {
@@ -17,6 +18,8 @@ const WI_STATUS_LABELS: Record<WorkItemStatus, string> = {
   cancelled:   "Cancelado",
 };
 
+const TERMINAL_TICKET_STATUSES = new Set<TicketStatus>(["resolved", "closed", "cancelled"]);
+
 type LinkedWorkItem = {
   id:        string;
   title:     string;
@@ -26,11 +29,13 @@ type LinkedWorkItem = {
 
 export function SupportDevelopmentHandoffPanel({
   ticketId,
+  ticketStatus,
   phase,
   workItem,
   missingWorkItemId,
 }: {
   ticketId:          string;
+  ticketStatus:      TicketStatus;
   phase:             SupportDevelopmentPhase;
   workItem:          LinkedWorkItem | null;
   missingWorkItemId: string | null;
@@ -40,6 +45,9 @@ export function SupportDevelopmentHandoffPanel({
   const [warning, setWarning]        = useState<string | null>(null);
   const [reason,  setReason]         = useState("");
   const [showReturnForm, setShowReturnForm] = useState(false);
+
+  // Actions are only shown when the ticket is still eligible.
+  const isTerminal = TERMINAL_TICKET_STATUSES.has(ticketStatus);
 
   function handleResolve() {
     setError(null);
@@ -80,43 +88,63 @@ export function SupportDevelopmentHandoffPanel({
 
   if (phase === "not_escalated" || !workItem) return null;
 
+  // Border/background color varies by phase; terminal tickets get a neutral tone.
+  const containerClass = isTerminal
+    ? "border-admin-border bg-admin-surface-hover"
+    : phase === "pending_support_validation"
+    ? "border-emerald-400/20 bg-emerald-400/5"
+    : phase === "development_cancelled"
+    ? "border-amber-400/20 bg-amber-400/5"
+    : "border-admin-border bg-admin-surface-hover";
+
   return (
-    <div
-      className={`rounded-lg border px-4 py-4 space-y-3 ${
-        phase === "pending_support_validation"
-          ? "border-emerald-400/20 bg-emerald-400/5"
-          : phase === "development_cancelled"
-          ? "border-amber-400/20 bg-amber-400/5"
-          : "border-admin-border bg-admin-surface-hover"
-      }`}
-    >
-      {/* Phase header */}
-      {phase === "development_in_progress" && (
+    <div className={`rounded-lg border px-4 py-4 space-y-3 ${containerClass}`}>
+
+      {/* Phase header — adapts to ticket status */}
+      {ticketStatus === "resolved" ? (
         <>
-          <p className="text-sm font-medium text-admin-text">Desarrollo en curso</p>
+          <p className="text-sm font-medium text-admin-text">Validación completada</p>
           <p className="text-xs text-admin-text-muted">
-            El work item vinculado todavía tiene trabajo pendiente.
+            Este ticket ya fue resuelto tras la validación del trabajo de desarrollo.
           </p>
         </>
-      )}
-      {phase === "pending_support_validation" && (
+      ) : (ticketStatus === "closed" || ticketStatus === "cancelled") ? (
         <>
-          <p className="text-sm font-medium text-emerald-400">Pendiente de validación de soporte</p>
+          <p className="text-sm font-medium text-admin-text-muted">Historial de desarrollo</p>
           <p className="text-xs text-admin-text-muted">
-            Desarrollo marcó el trabajo como completado. Validá el resultado antes de resolver el ticket.
+            El ticket está cerrado o cancelado. El vínculo con desarrollo se conserva como referencia.
           </p>
         </>
-      )}
-      {phase === "development_cancelled" && (
+      ) : (
         <>
-          <p className="text-sm font-medium text-amber-400">Desarrollo canceló el trabajo vinculado</p>
-          <p className="text-xs text-admin-text-muted">
-            Revisá el caso antes de cerrar, reasignar o devolverlo a desarrollo.
-          </p>
+          {phase === "development_in_progress" && (
+            <>
+              <p className="text-sm font-medium text-admin-text">Desarrollo en curso</p>
+              <p className="text-xs text-admin-text-muted">
+                El work item vinculado todavía tiene trabajo pendiente.
+              </p>
+            </>
+          )}
+          {phase === "pending_support_validation" && (
+            <>
+              <p className="text-sm font-medium text-emerald-400">Pendiente de validación de soporte</p>
+              <p className="text-xs text-admin-text-muted">
+                Desarrollo marcó el trabajo como completado. Validá el resultado antes de resolver el ticket.
+              </p>
+            </>
+          )}
+          {phase === "development_cancelled" && (
+            <>
+              <p className="text-sm font-medium text-amber-400">Desarrollo canceló el trabajo vinculado</p>
+              <p className="text-xs text-admin-text-muted">
+                Revisá el caso antes de cerrar, reasignar o devolverlo a desarrollo.
+              </p>
+            </>
+          )}
         </>
       )}
 
-      {/* Work item detail */}
+      {/* Work item detail — always visible for context */}
       <div className="rounded-lg border border-admin-border bg-admin-surface px-3 py-2.5 space-y-1">
         <p className="text-xs text-admin-text-muted">Work item vinculado</p>
         <p className="text-sm text-admin-text break-words">{workItem.title}</p>
@@ -141,40 +169,45 @@ export function SupportDevelopmentHandoffPanel({
       {error   && <p className="text-xs text-admin-danger">{error}</p>}
       {warning && <p className="text-xs text-amber-400">{warning}</p>}
 
-      {/* Actions */}
-      {phase === "pending_support_validation" && !showReturnForm && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={handleResolve}
-            disabled={isPending}
-            className="rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-medium text-admin-accent-foreground transition-opacity disabled:opacity-50"
-          >
-            {isPending ? "Procesando…" : "Resolver ticket"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowReturnForm(true)}
-            disabled={isPending}
-            className="rounded-lg border border-admin-border-strong px-3 py-1.5 text-xs text-admin-text-secondary transition-colors hover:text-admin-text disabled:opacity-50"
-          >
-            Devolver a desarrollo
-          </button>
-        </div>
+      {/* Actions — only when ticket is still eligible */}
+      {!isTerminal && !showReturnForm && (
+        <>
+          {phase === "pending_support_validation" && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleResolve}
+                disabled={isPending}
+                className="rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-medium text-admin-accent-foreground transition-opacity disabled:opacity-50"
+              >
+                {isPending ? "Procesando…" : "Resolver ticket"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowReturnForm(true)}
+                disabled={isPending}
+                className="rounded-lg border border-admin-border-strong px-3 py-1.5 text-xs text-admin-text-secondary transition-colors hover:text-admin-text disabled:opacity-50"
+              >
+                Devolver a desarrollo
+              </button>
+            </div>
+          )}
+
+          {phase === "development_cancelled" && (
+            <button
+              type="button"
+              onClick={() => setShowReturnForm(true)}
+              disabled={isPending}
+              className="rounded-lg border border-admin-border-strong px-3 py-1.5 text-xs text-admin-text-secondary transition-colors hover:text-admin-text disabled:opacity-50"
+            >
+              Devolver a desarrollo
+            </button>
+          )}
+        </>
       )}
 
-      {phase === "development_cancelled" && !showReturnForm && (
-        <button
-          type="button"
-          onClick={() => setShowReturnForm(true)}
-          disabled={isPending}
-          className="rounded-lg border border-admin-border-strong px-3 py-1.5 text-xs text-admin-text-secondary transition-colors hover:text-admin-text disabled:opacity-50"
-        >
-          Devolver a desarrollo
-        </button>
-      )}
-
-      {showReturnForm && (
+      {/* Return-to-development inline form */}
+      {!isTerminal && showReturnForm && (
         <div className="space-y-2">
           <label className="block text-xs text-admin-text-muted">
             Motivo de devolución (opcional)

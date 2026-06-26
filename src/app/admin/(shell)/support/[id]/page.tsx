@@ -163,6 +163,7 @@ export default async function AdminSupportDetailPage({
           {(ticket.escalatedWorkItemId) && (
             <SupportDevelopmentHandoffPanel
               ticketId={ticket.id}
+              ticketStatus={ticket.status}
               phase={developmentPhase}
               workItem={linkedWorkItem ? {
                 id:        linkedWorkItem.id,

@@ -380,7 +380,11 @@ export async function returnToDevelopmentAction(
   const user = await getAdminUser();
   if (!user) return { error: "No autorizado." };
 
-  const normalizedReason = reason.trim().slice(0, REASON_MAX_LENGTH) || null;
+  const trimmedReason = reason.trim();
+  if (trimmedReason.length > REASON_MAX_LENGTH) {
+    return { error: "El motivo no puede superar los 1000 caracteres." };
+  }
+  const normalizedReason = trimmedReason || null;
 
   const ticketRepository = new SupabaseSupportTicketRepository();
   const ticketResult = await getSupportTicketByIdUseCase(ticketId, ticketRepository);
@@ -448,18 +452,21 @@ export async function returnToDevelopmentAction(
     new SupabaseSupportTicketNoteRepository()
   );
 
-  if (!returnOutcome.ok) {
-    // Work item is already ready but ticket not synced — communicate clearly.
-    return { error: returnOutcome.error };
-  }
-
-  if (returnOutcome.warning) warnings.push(returnOutcome.warning);
-
+  // Revalidate all affected routes regardless of ticket-update outcome:
+  // work item and project are already persisted at this point.
   revalidatePath(`/admin/support/${ticketId}`);
   revalidatePath("/admin/support");
   if (ticket.clientId) {
     revalidatePath(`/admin/clients/${ticket.clientId}`);
   }
+
+  if (!returnOutcome.ok) {
+    // Work item is ready + lifecycle synced, but ticket status not updated.
+    // Return error so the user knows the ticket side is still stale.
+    return { error: returnOutcome.error };
+  }
+
+  if (returnOutcome.warning) warnings.push(returnOutcome.warning);
 
   return warnings.length > 0 ? { warning: warnings.join(" ") } : {};
 }
