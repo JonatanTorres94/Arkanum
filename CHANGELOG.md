@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+## [0.42.0] - 2026-06-26
+
+### Added
+
+- `supabase/migrations/20260626000000_create_project_work_item_comments_table.sql` — tabla `project_work_item_comments` con columnas `id`, `work_item_id`, `content`, `visible_to_support`, `created_by`, `created_at`. Índices para lookup por work item (asc) y filtro de soporte (partial index `where visible_to_support = true`). RLS habilitado; acceso solo via service role key.
+- `src/features/projects/domain/project-work-item-comment.types.ts` — `ProjectWorkItemComment`, `CreateProjectWorkItemCommentInput`, `COMMENT_MAX_LENGTH = 2000`.
+- `src/features/projects/infrastructure/project-work-item-comment.repository.ts` — interfaz con `findByWorkItemId`, `findByWorkItemIdVisibleToSupport`, `create`.
+- `src/features/projects/infrastructure/supabase-project-work-item-comment.repository.ts` — implementación Supabase. El filtro de soporte ocurre a nivel DB (`.eq("visible_to_support", true)`), no en cliente.
+- `src/features/projects/application/get-project-work-item-comments.use-case.ts` — retorna todos los comentarios de un work item (vista Desarrollo).
+- `src/features/projects/application/get-project-work-item-comments-support-visible.use-case.ts` — retorna solo comentarios con `visible_to_support = true` (vista Soporte).
+- `src/features/projects/application/create-project-work-item-comment.use-case.ts` — crea comentario append-only. Sin edición ni borrado.
+- `src/server/actions/admin-project-work-item-comment.action.ts` — `createWorkItemCommentAction`: valida auth + ownership del work item; revalida work-item detail siempre; revalida ticket de soporte solo cuando `visibleToSupport = true` (best effort).
+- `src/components/admin/project-work-item-comment-form.tsx` — client component; textarea + checkbox "Visible para Soporte"; usa `useTransition`; limpia el formulario al éxito.
+- `src/components/admin/project-work-item-comment-list.tsx` — componente de presentación puro; badge "Visible a Soporte" cuando aplica; fecha en locale `es-AR`.
+
+### Changed
+
+- `src/app/admin/(shell)/projects/[id]/work-items/[workItemId]/page.tsx` — carga comentarios en paralelo junto con el ticket vinculado; nueva sección "Comentarios" en el main area con formulario + lista.
+- `src/app/admin/(shell)/support/[id]/page.tsx` — carga comentarios visibles a soporte cuando hay work item vinculado; los pasa como prop `supportComments` al `SupportDevelopmentHandoffPanel`.
+- `src/components/admin/support-development-handoff-panel.tsx` — nueva prop opcional `supportComments?: ProjectWorkItemComment[]`; renderiza bloque "Comentarios de Desarrollo" cuando hay al menos uno.
+
+### Notes
+
+- No hay edición ni borrado de comentarios — append-only es intencional.
+- Soporte nunca puede crear comentarios; solo los lee si el equipo de Desarrollo los marcó como visibles.
+- Sin notificaciones, sin visibilidad para clientes, sin cambios automáticos de estado.
+- 12 tests nuevos agregados en `project-work-item-comment.use-cases.test.ts`. Total: 62 tests / 7 archivos.
+
 ## [0.41.0] - 2026-06-25
 
 ### Added

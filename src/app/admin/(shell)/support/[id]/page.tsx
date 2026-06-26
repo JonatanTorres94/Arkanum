@@ -9,8 +9,10 @@ import { SupabaseClientRepository } from "@/features/clients/infrastructure/supa
 import { getProjectByIdUseCase } from "@/features/projects/application/get-project-by-id.use-case";
 import { getProjectsByClientIdUseCase } from "@/features/projects/application/get-projects-by-client-id.use-case";
 import { getProjectWorkItemByIdUseCase } from "@/features/projects/application/get-project-work-item-by-id.use-case";
+import { getProjectWorkItemCommentsSupportVisibleUseCase } from "@/features/projects/application/get-project-work-item-comments-support-visible.use-case";
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
 import { SupabaseProjectWorkItemRepository } from "@/features/projects/infrastructure/supabase-project-work-item.repository";
+import { SupabaseProjectWorkItemCommentRepository } from "@/features/projects/infrastructure/supabase-project-work-item-comment.repository";
 import { deriveDevelopmentPhase } from "@/features/support/domain/support-development-phase";
 import { TicketPriorityBadge, TicketCategoryBadge } from "@/components/admin/support-ticket-badges";
 import { SupportTicketStatusForm } from "@/components/admin/support-ticket-status-form";
@@ -73,11 +75,20 @@ export default async function AdminSupportDetailPage({
   ]);
 
   // Distinguish "no work item" from "work item referenced but missing" (integrity error).
-  const linkedWorkItem   = workItemResult?.ok ? workItemResult.workItem : null;
+  const linkedWorkItem    = workItemResult?.ok ? workItemResult.workItem : null;
   const missingWorkItemId =
     ticket.escalatedWorkItemId && !linkedWorkItem ? ticket.escalatedWorkItemId : null;
 
   const developmentPhase = deriveDevelopmentPhase(ticket, linkedWorkItem);
+
+  // Load support-visible comments when there is a linked work item (best effort).
+  const supportCommentsResult = linkedWorkItem
+    ? await getProjectWorkItemCommentsSupportVisibleUseCase(
+        linkedWorkItem.id,
+        new SupabaseProjectWorkItemCommentRepository()
+      )
+    : null;
+  const supportComments = supportCommentsResult?.ok ? supportCommentsResult.comments : [];
 
   const projectOptions = projectsResult.ok
     ? projectsResult.projects.map((project) => ({ id: project.id, name: project.name }))
@@ -172,6 +183,7 @@ export default async function AdminSupportDetailPage({
                 projectId: linkedWorkItem.projectId,
               } : null}
               missingWorkItemId={missingWorkItemId}
+              supportComments={supportComments}
             />
           )}
 
