@@ -11,7 +11,7 @@ const INELIGIBLE_FOR_INTERVENTION = new Set(["awaiting_support", "done", "cancel
 
 export type RequestSupportInterventionResult =
   | { ok: true; warning?: string }
-  | { ok: false; error: string };
+  | { ok: false; error: string; partial?: true };
 
 export async function requestSupportInterventionUseCase(
   workItemId: string,
@@ -55,20 +55,22 @@ export async function requestSupportInterventionUseCase(
     return { ok: false, error: "No se pudo actualizar el estado del work item." };
   }
 
-  // Steps 3+4 — Update ticket status + audit note (best-effort).
-  const warnings: string[] = [];
-
+  // Step 3 — Update ticket to action_required.
+  // This is the primary signal for Support — failing here is a partial failure, not a warning.
   try {
     await ticketRepository.updateStatus(ticketId, {
       status:     "action_required",
       resolvedAt: null,
     });
   } catch {
-    warnings.push(
-      "El work item se actualizó, pero no se pudo marcar el ticket como 'Acción requerida' — revisalo manualmente."
-    );
+    return {
+      ok:    false,
+      error: "La solicitud quedó parcialmente aplicada: el comentario y el work item se actualizaron, pero el ticket no pudo marcarse como Requiere atención.",
+      partial: true,
+    };
   }
 
+  // Step 4 — Audit note (silent-fail).
   try {
     await noteRepository.create(
       ticketId,
@@ -76,8 +78,8 @@ export async function requestSupportInterventionUseCase(
       requestedBy
     );
   } catch {
-    // Note failure is silent — the comment + status changes are the primary signal.
+    // Intentional: note failure is non-blocking.
   }
 
-  return warnings.length > 0 ? { ok: true, warning: warnings.join(" ") } : { ok: true };
+  return { ok: true };
 }

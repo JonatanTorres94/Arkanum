@@ -557,13 +557,27 @@ export async function resolveSupportInterventionAction(
     new SupabaseSupportTicketNoteRepository()
   );
 
-  if (!outcome.ok) return { error: outcome.error };
-
-  // Re-fetch ticket for revalidation paths (projectId, clientId, workItemId).
+  // Re-fetch ticket for revalidation paths — needed for both success and partial failure.
   const ticketResult = await getSupportTicketByIdUseCase(ticketId, ticketRepository);
   const ticket = ticketResult.ok ? ticketResult.ticket : null;
 
-  // Lifecycle sync — WI goes to 'ready' (still open), project stays in_development.
+  // Partial failure: ticket updated, WI still awaiting_support. Show current state in UI.
+  if (!outcome.ok) {
+    if (outcome.partial) {
+      revalidatePath(`/admin/support/${ticketId}`);
+      revalidatePath("/admin/support");
+      if (ticket?.escalatedWorkItemId && ticket?.projectId) {
+        revalidatePath(
+          `/admin/projects/${ticket.projectId}/work-items/${ticket.escalatedWorkItemId}`
+        );
+      }
+      if (ticket?.projectId) revalidatePath(`/admin/projects/${ticket.projectId}`);
+      if (ticket?.clientId)  revalidatePath(`/admin/clients/${ticket.clientId}`);
+    }
+    return { error: outcome.error };
+  }
+
+  // Lifecycle sync — WI goes to 'ready' (still open), project may remain in_development.
   const warnings: string[] = [];
   if (ticket?.projectId) {
     const syncOutcome = await synchronizeProjectLifecycleUseCase(

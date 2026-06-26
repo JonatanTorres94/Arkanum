@@ -121,6 +121,17 @@ describe("resolveSupportInterventionUseCase — validation", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/esperando/i);
   });
+
+  it("rejects when ticket status is not action_required", async () => {
+    const ticketRepo = buildTicketRepo({
+      findById: vi.fn().mockResolvedValue(buildTicket({ status: "escalated_to_development" })),
+    });
+    const result = await resolveSupportInterventionUseCase(
+      "ticket-1", null, ticketRepo, buildWorkItemRepo(), buildNoteRepo()
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/no requiere/);
+  });
 });
 
 // ─── Happy path ───────────────────────────────────────────────────────────────
@@ -177,21 +188,23 @@ describe("resolveSupportInterventionUseCase — partial failure", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("returns ok:true with warning when work item update fails (best-effort)", async () => {
+  it("returns ok:false with partial:true when work item update fails", async () => {
     const wiRepo = buildWorkItemRepo({ updateStatus: vi.fn().mockRejectedValue(new Error("DB fail")) });
     const result = await resolveSupportInterventionUseCase(
       "ticket-1", null, buildTicketRepo(), wiRepo, buildNoteRepo()
     );
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.warning).toBeTruthy();
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.partial).toBe(true);
+      expect(result.error).toMatch(/parcialmente|no se pudo/i);
+    }
   });
 
-  it("returns ok:true (no warning) when only the audit note fails", async () => {
+  it("returns ok:true when only the audit note fails", async () => {
     const noteRepo = buildNoteRepo({ create: vi.fn().mockRejectedValue(new Error("DB fail")) });
     const result = await resolveSupportInterventionUseCase(
       "ticket-1", null, buildTicketRepo(), buildWorkItemRepo(), noteRepo
     );
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.warning).toBeUndefined();
   });
 });

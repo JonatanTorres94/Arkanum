@@ -390,7 +390,17 @@ export async function requestSupportInterventionAction(
     new SupabaseSupportTicketNoteRepository()
   );
 
-  if (!outcome.ok) return { error: outcome.error };
+  // Partial failure: comment + WI updated, ticket not marked. Revalidate so UI shows partial state.
+  if (!outcome.ok) {
+    if (outcome.partial) {
+      revalidatePath(`/admin/projects/${projectId}/work-items/${workItemId}`);
+      revalidatePath(`/admin/projects/${projectId}`);
+      revalidatePath(`/admin/support/${ticket.id}`);
+      revalidatePath("/admin/support");
+      if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
+    }
+    return { error: outcome.error };
+  }
 
   // Lifecycle sync — awaiting_support is an OPEN status, so project stays in_development.
   const syncOutcome = await synchronizeProjectLifecycleUseCase(

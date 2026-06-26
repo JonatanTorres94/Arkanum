@@ -208,23 +208,25 @@ describe("requestSupportInterventionUseCase — partial failure", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("returns ok:true with warning when ticket update fails (best-effort)", async () => {
+  it("returns ok:false with partial:true when ticket update fails", async () => {
     const ticketRepo = buildTicketRepo({ updateStatus: vi.fn().mockRejectedValue(new Error("DB fail")) });
     const result = await requestSupportInterventionUseCase(
       "wi-1", "ticket-1", VALID_COMMENT, null,
       buildCommentRepo(), buildWorkItemRepo(), ticketRepo, buildNoteRepo()
     );
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.warning).toBeTruthy();
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.partial).toBe(true);
+      expect(result.error).toMatch(/parcialmente/);
+    }
   });
 
-  it("returns ok:true (no warning) when only the audit note fails", async () => {
+  it("returns ok:true when only the audit note fails", async () => {
     const noteRepo = buildNoteRepo({ create: vi.fn().mockRejectedValue(new Error("DB fail")) });
     const result = await requestSupportInterventionUseCase(
       "wi-1", "ticket-1", VALID_COMMENT, null,
       buildCommentRepo(), buildWorkItemRepo(), buildTicketRepo(), noteRepo
     );
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.warning).toBeUndefined();
   });
 });

@@ -4,7 +4,7 @@ import type { SupportTicketNoteRepository } from "@/features/support/infrastruct
 
 export type ResolveSupportInterventionResult =
   | { ok: true; warning?: string }
-  | { ok: false; error: string };
+  | { ok: false; error: string; partial?: true };
 
 export async function resolveSupportInterventionUseCase(
   ticketId: string,
@@ -32,6 +32,13 @@ export async function resolveSupportInterventionUseCase(
     };
   }
 
+  if (ticket.status !== "action_required") {
+    return {
+      ok: false,
+      error: "El ticket no requiere actualmente una intervención de Soporte.",
+    };
+  }
+
   // Step 1 — Update ticket → escalated_to_development (authoritative).
   try {
     await ticketRepository.updateStatus(ticketId, {
@@ -42,17 +49,20 @@ export async function resolveSupportInterventionUseCase(
     return { ok: false, error: "No se pudo actualizar el estado del ticket." };
   }
 
-  // Steps 2+3 — Update work item → ready + audit note (best-effort).
-  const warnings: string[] = [];
-
+  // Step 2 — Update work item → ready.
+  // WI and ticket must both be updated to leave a consistent state.
+  // Failure here leaves ticket escalated but WI still awaiting_support — partial failure.
   try {
     await workItemRepository.updateStatus(ticket.escalatedWorkItemId, { status: "ready" });
   } catch {
-    warnings.push(
-      "El ticket se actualizó, pero no se pudo devolver el work item a 'Listo para iniciar' — revisalo manualmente."
-    );
+    return {
+      ok:    false,
+      error: "La intervención se registró en el ticket, pero no se pudo devolver el work item a 'Listo para iniciar' — actualizalo manualmente.",
+      partial: true,
+    };
   }
 
+  // Step 3 — Audit note (silent-fail).
   try {
     await noteRepository.create(
       ticketId,
@@ -60,8 +70,8 @@ export async function resolveSupportInterventionUseCase(
       resolvedBy
     );
   } catch {
-    // Note failure is silent — the status changes are the primary signal.
+    // Intentional: note failure is non-blocking.
   }
 
-  return warnings.length > 0 ? { ok: true, warning: warnings.join(" ") } : { ok: true };
+  return { ok: true };
 }
