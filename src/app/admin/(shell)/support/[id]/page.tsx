@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupportTicketByIdUseCase } from "@/features/support/application/get-support-ticket-by-id.use-case";
 import { getSupportTicketNotesUseCase } from "@/features/support/application/get-support-ticket-notes.use-case";
+import { getSupportTicketAttachmentsUseCase } from "@/features/support/application/get-support-ticket-attachments.use-case";
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
+import { SupabaseSupportTicketAttachmentRepository } from "@/features/support/infrastructure/supabase-support-ticket-attachment.repository";
 import { getClientByIdUseCase } from "@/features/clients/application/get-client-by-id.use-case";
 import { SupabaseClientRepository } from "@/features/clients/infrastructure/supabase-client.repository";
 import { getProjectByIdUseCase } from "@/features/projects/application/get-project-by-id.use-case";
@@ -20,6 +22,8 @@ import { SupportTicketEscalationPanel } from "@/components/admin/support-ticket-
 import { SupportTicketNoteForm } from "@/components/admin/support-ticket-note-form";
 import { SupportTicketNoteList } from "@/components/admin/support-ticket-note-list";
 import { SupportDevelopmentHandoffPanel } from "@/components/admin/support-development-handoff-panel";
+import { SupportTicketAttachmentUploadForm } from "@/components/admin/support-ticket-attachment-upload-form";
+import { SupportTicketAttachmentList } from "@/components/admin/support-ticket-attachment-list";
 import {
   SupportTicketWorkspaceProvider,
   EditTicketButton,
@@ -28,6 +32,7 @@ import {
 import { AdminSection } from "@/components/admin/admin-card";
 import { AdminDetailLayout } from "@/components/admin/admin-detail-layout";
 import type { TicketSource } from "@/features/support/domain/support-ticket.types";
+import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket-attachment.types";
 
 export const metadata = { title: "Ticket — Admin", robots: { index: false, follow: false } };
 
@@ -62,17 +67,22 @@ export default async function AdminSupportDetailPage({
 
   const { ticket } = ticketResult;
 
-  const [clientResult, projectResult, projectsResult, notesResult, workItemResult] = await Promise.all([
-    getClientByIdUseCase(ticket.clientId, new SupabaseClientRepository()),
-    ticket.projectId
-      ? getProjectByIdUseCase(ticket.projectId, new SupabaseProjectRepository())
-      : Promise.resolve(null),
-    getProjectsByClientIdUseCase(ticket.clientId, new SupabaseProjectRepository()),
-    getSupportTicketNotesUseCase(ticket.id, new SupabaseSupportTicketNoteRepository()),
-    ticket.escalatedWorkItemId
-      ? getProjectWorkItemByIdUseCase(ticket.escalatedWorkItemId, new SupabaseProjectWorkItemRepository())
-      : Promise.resolve(null),
-  ]);
+  const [clientResult, projectResult, projectsResult, notesResult, workItemResult, attachmentsResult] =
+    await Promise.all([
+      getClientByIdUseCase(ticket.clientId, new SupabaseClientRepository()),
+      ticket.projectId
+        ? getProjectByIdUseCase(ticket.projectId, new SupabaseProjectRepository())
+        : Promise.resolve(null),
+      getProjectsByClientIdUseCase(ticket.clientId, new SupabaseProjectRepository()),
+      getSupportTicketNotesUseCase(ticket.id, new SupabaseSupportTicketNoteRepository()),
+      ticket.escalatedWorkItemId
+        ? getProjectWorkItemByIdUseCase(ticket.escalatedWorkItemId, new SupabaseProjectWorkItemRepository())
+        : Promise.resolve(null),
+      getSupportTicketAttachmentsUseCase(ticket.id, new SupabaseSupportTicketAttachmentRepository()),
+    ]);
+
+  const attachments    = attachmentsResult.ok ? attachmentsResult.attachments : [];
+  const ticketReadOnly = TERMINAL_TICKET_STATUSES.has(ticket.status);
 
   // Distinguish "no work item" from "work item referenced but missing" (integrity error).
   const linkedWorkItem    = workItemResult?.ok ? workItemResult.workItem : null;
@@ -151,6 +161,24 @@ export default async function AdminSupportDetailPage({
         <>
           <AdminSection title="Descripción">
             <SupportTicketDetailsSection />
+          </AdminSection>
+
+          <AdminSection title="Adjuntos">
+            <div className="space-y-4">
+              {!ticketReadOnly && (
+                <SupportTicketAttachmentUploadForm ticketId={ticket.id} />
+              )}
+              {ticketReadOnly && (
+                <p className="text-xs text-admin-text-muted">
+                  Ticket cerrado — los adjuntos son de solo lectura.
+                </p>
+              )}
+              <SupportTicketAttachmentList
+                attachments={attachments}
+                ticketId={ticket.id}
+                readOnly={ticketReadOnly}
+              />
+            </div>
           </AdminSection>
 
           <AdminSection title="Notas internas">

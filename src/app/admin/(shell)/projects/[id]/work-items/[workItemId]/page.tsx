@@ -159,12 +159,20 @@ export default async function AdminWorkItemDetailPage({
                     {linkedTicket.title}
                   </Link>
                   <TicketStatusBadge status={linkedTicket.status} />
-                  <Link
-                    href={`/admin/support/${linkedTicket.id}`}
-                    className="inline-block text-xs text-admin-accent transition-colors hover:underline"
-                  >
-                    Ver ticket →
-                  </Link>
+                  <div className="flex flex-wrap gap-3 pt-0.5">
+                    <Link
+                      href={`/admin/support/${linkedTicket.id}`}
+                      className="inline-block text-xs text-admin-accent transition-colors hover:underline"
+                    >
+                      Ver ticket →
+                    </Link>
+                    <Link
+                      href={`/admin/support/${linkedTicket.id}`}
+                      className="inline-block text-xs text-admin-text-muted transition-colors hover:text-admin-accent hover:underline"
+                    >
+                      Ver evidencia adjunta →
+                    </Link>
+                  </div>
                 </div>
               </AdminSection>
             )}

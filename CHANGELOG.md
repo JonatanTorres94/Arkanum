@@ -2,6 +2,49 @@
 
 ## [Unreleased]
 
+## [0.44.1] - 2026-06-26
+
+### Fixed
+
+- `src/features/support/domain/support-ticket-attachment-validation.ts` (nuevo) — validación de firma binaria (magic bytes) para todos los tipos MIME permitidos. Rechaza archivos cuyo contenido no coincide con el tipo declarado por el cliente (ej. EXE declarado como PNG). Tipos soportados: JPEG, PNG, GIF, WEBP, PDF, ZIP/DOCX/XLSX (OLE2 ZIP), DOC/XLS (OLE2 legacy), text/plain y text/csv (ausencia de byte NUL).
+- `src/features/support/application/upload-support-ticket-attachment.use-case.ts` — llama a `validateAttachmentContent` después del allowlist de MIME y antes del upload al bucket. Rechaza el archivo antes de tocar el storage si la firma no coincide.
+- `src/features/support/application/get-support-ticket-attachment-signed-url.use-case.ts` — recibe `ticketId` como primer parámetro. Verifica `attachment.ticketId === ticketId` antes de generar la URL; el storage no es invocado si el adjunto no pertenece al ticket.
+- `src/features/support/application/delete-support-ticket-attachment.use-case.ts` — recibe `ticketId` como primer parámetro. Verifica ownership antes de ejecutar cualquier operación; ni `repository.delete` ni `storage.delete` son invocados si la validación falla. Agrega comentario documentando el orden deliberado DB-primero.
+- `src/server/actions/admin-support-ticket-attachment.action.ts` — pasa `ticketId` a los dos use cases corregidos. Corrige semántica de resultado en upload: `partial: true` ahora devuelve `{ error }` en lugar de `{ warning }` (la operación falló — no debe mostrarse como éxito parcial).
+
+### Tests
+
+- `src/features/support/domain/support-ticket-attachment-validation.test.ts` (nuevo) — 28 tests directos sobre `validateAttachmentContent`: vacío, text types (NUL byte), JPEG, PNG, GIF87a/89a, WEBP (RIFF+WEBP), PDF, ZIP/DOCX/XLSX, DOC/XLS (OLE2), escenarios de spoofing (EXE como PNG, HTML como text/plain, JPEG como PDF).
+- `src/features/support/application/upload-support-ticket-attachment.use-case.test.ts` — actualiza `DUMMY_BUFFER` por `PDF_BUFFER` con magic bytes `%PDF-`. Agrega 3 tests: firma inválida rechazada, spoofing rechazado, storage no invocado si contenido inválido.
+- `src/features/support/application/get-support-ticket-attachment-signed-url.use-case.test.ts` — agrega parámetro `ticketId` a todas las llamadas. Agrega 2 tests de ownership: adjunto de otro ticket rechazado; `storage.getSignedUrl` no invocado.
+- `src/features/support/application/delete-support-ticket-attachment.use-case.test.ts` — reescrito limpio con parámetro `ticketId`. Agrega 3 tests de ownership: adjunto de otro ticket rechazado; `storage.delete` no invocado; `repository.delete` no invocado.
+
+## [0.44.0] - 2026-06-26
+
+### Added
+
+- `supabase/migrations/20260628000000_create_support_ticket_attachments.sql` — tabla `support_ticket_attachments` con `id, ticket_id, filename, storage_key, mime_type, size_bytes, uploaded_by, created_at`. Bucket privado `support-ticket-attachments` en Supabase Storage. RLS habilitado.
+- `src/features/support/domain/support-ticket-attachment.types.ts` — tipos de dominio: `SupportTicketAttachment`, `ATTACHMENT_MAX_SIZE_BYTES` (10 MB), `ALLOWED_ATTACHMENT_MIME_TYPES`, `SIGNED_URL_EXPIRY_SECONDS` (60 s), `TERMINAL_TICKET_STATUSES`.
+- `src/features/support/infrastructure/support-ticket-attachment.repository.ts` — interfaz `SupportTicketAttachmentRepository` con `create`, `findByTicketId`, `findById`, `delete`.
+- `src/features/support/infrastructure/supabase-support-ticket-attachment.repository.ts` — implementación Supabase; mapeo snake_case → camelCase.
+- `src/features/support/infrastructure/support-ticket-attachment-storage.ts` — interfaz `SupportTicketAttachmentStorage` con `upload`, `getSignedUrl`, `delete`.
+- `src/features/support/infrastructure/supabase-support-ticket-attachment-storage.ts` — implementación Supabase Storage; bucket privado; `upsert: false`.
+- `src/features/support/application/upload-support-ticket-attachment.use-case.ts` — valida tamaño y MIME; genera `storageKey = tickets/{ticketId}/{uuid}`; sube al bucket (authoritative) → inserta metadata (authoritative) → compensación automática si falla la inserción (borra del bucket; `partial: true` si la compensación también falla).
+- `src/features/support/application/get-support-ticket-attachments.use-case.ts` — lista adjuntos por ticket.
+- `src/features/support/application/get-support-ticket-attachment-signed-url.use-case.ts` — genera URL firmada de 60 s vía `storageKey` del registro.
+- `src/features/support/application/delete-support-ticket-attachment.use-case.ts` — borra metadata primero (authoritative) → borra del bucket (partial: `true` si falla, con archivo huérfano en bucket).
+- `src/server/actions/admin-support-ticket-attachment.action.ts` — tres actions: `uploadSupportTicketAttachmentAction` (FormData), `getSupportTicketAttachmentUrlAction`, `deleteSupportTicketAttachmentAction`. Tickets terminales bloqueados en upload y delete.
+- `src/components/admin/support-ticket-attachment-upload-form.tsx` — formulario de subida; acepta MIME permitidos; muestra estados de carga, éxito, error y warning.
+- `src/components/admin/support-ticket-attachment-list.tsx` — lista adjuntos con descarga (URL firmada) y eliminación con confirmación inline; modo `readOnly` para tickets terminales.
+- `src/features/support/application/upload-support-ticket-attachment.use-case.test.ts` — 14 tests: validación, happy path, fallo de storage, compensación exitosa y fallida.
+- `src/features/support/application/delete-support-ticket-attachment.use-case.test.ts` — 7 tests: validación, orden de operaciones (DB primero), partial failure, seguridad.
+- `src/features/support/application/get-support-ticket-attachment-signed-url.use-case.test.ts` — 5 tests: URL firmada, duración configurada, fallo de storage.
+
+### Changed
+
+- `src/app/admin/(shell)/support/[id]/page.tsx` — sección "Adjuntos" con upload form + lista; carga en paralelo con notas; modo lectura para tickets terminales.
+- `src/app/admin/(shell)/projects/[id]/work-items/[workItemId]/page.tsx` — referencia "Ver evidencia adjunta →" en el panel de ticket vinculado.
+
 ## [0.43.0] - 2026-06-26
 
 ### Added
