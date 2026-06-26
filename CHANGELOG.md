@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [0.44.0] - 2026-06-26
+
+### Added
+
+- `supabase/migrations/20260628000000_create_support_ticket_attachments.sql` — tabla `support_ticket_attachments` con `id, ticket_id, filename, storage_key, mime_type, size_bytes, uploaded_by, created_at`. Bucket privado `support-ticket-attachments` en Supabase Storage. RLS habilitado.
+- `src/features/support/domain/support-ticket-attachment.types.ts` — tipos de dominio: `SupportTicketAttachment`, `ATTACHMENT_MAX_SIZE_BYTES` (10 MB), `ALLOWED_ATTACHMENT_MIME_TYPES`, `SIGNED_URL_EXPIRY_SECONDS` (60 s), `TERMINAL_TICKET_STATUSES`.
+- `src/features/support/infrastructure/support-ticket-attachment.repository.ts` — interfaz `SupportTicketAttachmentRepository` con `create`, `findByTicketId`, `findById`, `delete`.
+- `src/features/support/infrastructure/supabase-support-ticket-attachment.repository.ts` — implementación Supabase; mapeo snake_case → camelCase.
+- `src/features/support/infrastructure/support-ticket-attachment-storage.ts` — interfaz `SupportTicketAttachmentStorage` con `upload`, `getSignedUrl`, `delete`.
+- `src/features/support/infrastructure/supabase-support-ticket-attachment-storage.ts` — implementación Supabase Storage; bucket privado; `upsert: false`.
+- `src/features/support/application/upload-support-ticket-attachment.use-case.ts` — valida tamaño y MIME; genera `storageKey = tickets/{ticketId}/{uuid}`; sube al bucket (authoritative) → inserta metadata (authoritative) → compensación automática si falla la inserción (borra del bucket; `partial: true` si la compensación también falla).
+- `src/features/support/application/get-support-ticket-attachments.use-case.ts` — lista adjuntos por ticket.
+- `src/features/support/application/get-support-ticket-attachment-signed-url.use-case.ts` — genera URL firmada de 60 s vía `storageKey` del registro.
+- `src/features/support/application/delete-support-ticket-attachment.use-case.ts` — borra metadata primero (authoritative) → borra del bucket (partial: `true` si falla, con archivo huérfano en bucket).
+- `src/server/actions/admin-support-ticket-attachment.action.ts` — tres actions: `uploadSupportTicketAttachmentAction` (FormData), `getSupportTicketAttachmentUrlAction`, `deleteSupportTicketAttachmentAction`. Tickets terminales bloqueados en upload y delete.
+- `src/components/admin/support-ticket-attachment-upload-form.tsx` — formulario de subida; acepta MIME permitidos; muestra estados de carga, éxito, error y warning.
+- `src/components/admin/support-ticket-attachment-list.tsx` — lista adjuntos con descarga (URL firmada) y eliminación con confirmación inline; modo `readOnly` para tickets terminales.
+- `src/features/support/application/upload-support-ticket-attachment.use-case.test.ts` — 14 tests: validación, happy path, fallo de storage, compensación exitosa y fallida.
+- `src/features/support/application/delete-support-ticket-attachment.use-case.test.ts` — 7 tests: validación, orden de operaciones (DB primero), partial failure, seguridad.
+- `src/features/support/application/get-support-ticket-attachment-signed-url.use-case.test.ts` — 5 tests: URL firmada, duración configurada, fallo de storage.
+
+### Changed
+
+- `src/app/admin/(shell)/support/[id]/page.tsx` — sección "Adjuntos" con upload form + lista; carga en paralelo con notas; modo lectura para tickets terminales.
+- `src/app/admin/(shell)/projects/[id]/work-items/[workItemId]/page.tsx` — referencia "Ver evidencia adjunta →" en el panel de ticket vinculado.
+
 ## [0.43.0] - 2026-06-26
 
 ### Added
