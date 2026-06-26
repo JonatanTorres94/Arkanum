@@ -19,10 +19,13 @@ import {
 } from "@/features/projects/domain/project-work-item.types";
 import { getSupportTicketByWorkItemUseCase } from "@/features/support/application/get-support-ticket-by-work-item.use-case";
 import { createSupportTicketNoteUseCase } from "@/features/support/application/create-support-ticket-note.use-case";
+import { requestSupportInterventionUseCase } from "@/features/projects/application/request-support-intervention.use-case";
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
+import { SupabaseProjectWorkItemCommentRepository } from "@/features/projects/infrastructure/supabase-project-work-item-comment.repository";
 import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
 import type { SupportTicket } from "@/features/support/domain/support-ticket.types";
+import { COMMENT_MAX_LENGTH } from "@/features/projects/domain/project-work-item-comment.types";
 
 const TITLE_MAX_LENGTH = 200;
 
@@ -194,6 +197,10 @@ export async function updateProjectWorkItemStatusAction(
 
   if (!isValidEnumValue(WORK_ITEM_STATUSES, status)) return { error: "Estado inválido." };
 
+  if (status === "awaiting_support") {
+    return { error: "Usá el flujo de intervención de Soporte para establecer este estado." };
+  }
+
   const workItemRepository = new SupabaseProjectWorkItemRepository();
   const workItemResult = await getProjectWorkItemByIdUseCase(workItemId, workItemRepository);
   if (!workItemResult.ok) return { error: "Work item no encontrado." };
@@ -254,6 +261,10 @@ export async function updateProjectWorkItemAction(
   }
   if (!isValidEnumValue(WORK_ITEM_PRIORITIES, input.priority)) {
     return { error: "Prioridad inválida." };
+  }
+
+  if (input.status === "awaiting_support") {
+    return { error: "Usá el flujo de intervención de Soporte para establecer este estado." };
   }
 
   // Single read before the update: captures previousStatus and validates project
@@ -328,4 +339,90 @@ export async function updateProjectWorkItemAction(
   return [...warnings, ...sideEffectWarnings].length > 0
     ? { warning: [...warnings, ...sideEffectWarnings].join(" ") }
     : {};
+}
+
+export async function requestSupportInterventionAction(
+  projectId: string,
+  workItemId: string,
+  comment: string
+): Promise<{ error?: string; warning?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  // Boundary validation: content must not be empty at the action layer.
+  const trimmedComment = comment.trim();
+  if (!trimmedComment) return { error: "El comentario de intervención es obligatorio." };
+  if (trimmedComment.length > COMMENT_MAX_LENGTH) {
+    return { error: `El comentario no puede superar los ${COMMENT_MAX_LENGTH} caracteres.` };
+  }
+
+  // Validate work item ownership.
+  const workItemRepository = new SupabaseProjectWorkItemRepository();
+  const workItemResult = await getProjectWorkItemByIdUseCase(workItemId, workItemRepository);
+  if (!workItemResult.ok) return { error: "Work item no encontrado." };
+  if (workItemResult.workItem.projectId !== projectId) {
+    return { error: "El work item no pertenece al proyecto indicado." };
+  }
+
+  // Validate that a support ticket is linked (intervention only makes sense in that context).
+  const ticketResult = await getSupportTicketByWorkItemUseCase(
+    workItemId,
+    new SupabaseSupportTicketRepository()
+  );
+  if (!ticketResult.ok || !ticketResult.ticket) {
+    return { error: "Este work item no tiene un ticket de soporte vinculado." };
+  }
+
+  const { ticket } = ticketResult;
+
+  if (ticket.status === "closed" || ticket.status === "cancelled" || ticket.status === "resolved") {
+    return { error: "No se puede solicitar intervención en un ticket cerrado, cancelado o resuelto." };
+  }
+
+  const outcome = await requestSupportInterventionUseCase(
+    workItemId,
+    ticket.id,
+    trimmedComment,
+    user.email ?? null,
+    new SupabaseProjectWorkItemCommentRepository(),
+    workItemRepository,
+    new SupabaseSupportTicketRepository(),
+    new SupabaseSupportTicketNoteRepository()
+  );
+
+  // Partial failure: comment + WI updated, ticket not marked. Revalidate so UI shows partial state.
+  if (!outcome.ok) {
+    if (outcome.partial) {
+      revalidatePath(`/admin/projects/${projectId}/work-items/${workItemId}`);
+      revalidatePath(`/admin/projects/${projectId}`);
+      revalidatePath(`/admin/support/${ticket.id}`);
+      revalidatePath("/admin/support");
+      if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
+    }
+    return { error: outcome.error };
+  }
+
+  // Lifecycle sync — awaiting_support is an OPEN status, so project stays in_development.
+  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+    projectId,
+    new SupabaseProjectRepository(),
+    workItemRepository
+  );
+
+  // Revalidate all affected routes.
+  revalidatePath(`/admin/projects/${projectId}/work-items/${workItemId}`);
+  revalidatePath(`/admin/projects/${projectId}`);
+  revalidatePath(`/admin/support/${ticket.id}`);
+  revalidatePath("/admin/support");
+  if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
+
+  const warnings: string[] = [];
+  if (outcome.warning) warnings.push(outcome.warning);
+  if (!syncOutcome.ok) {
+    warnings.push(
+      "El work item se actualizó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
+    );
+  }
+
+  return warnings.length > 0 ? { warning: warnings.join(" ") } : {};
 }

@@ -16,10 +16,18 @@ export const WORK_ITEM_STATUSES = [
   "blocked",
   "review",
   "testing",
+  "awaiting_support",
   "done",
   "cancelled",
 ] as const;
 export type WorkItemStatus = (typeof WORK_ITEM_STATUSES)[number];
+
+// Statuses available in UI dropdowns.
+// 'awaiting_support' is managed exclusively by the intervention flow and must
+// not appear as a selectable option in standard create / edit forms.
+export const WORK_ITEM_SELECTABLE_STATUSES = WORK_ITEM_STATUSES.filter(
+  (s) => s !== "awaiting_support"
+) as ReadonlyArray<Exclude<WorkItemStatus, "awaiting_support">>;
 
 export const WORK_ITEM_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
 export type WorkItemPriority = (typeof WORK_ITEM_PRIORITIES)[number];

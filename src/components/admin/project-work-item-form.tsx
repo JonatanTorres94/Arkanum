@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import {
   WORK_ITEM_CATEGORIES,
-  WORK_ITEM_STATUSES,
+  WORK_ITEM_SELECTABLE_STATUSES,
   WORK_ITEM_PRIORITIES,
 } from "@/features/projects/domain/project-work-item.types";
 import { createProjectWorkItemAction } from "@/server/actions/admin-project-work-item.action";
@@ -91,7 +91,7 @@ export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
             disabled={isPending}
             className={`${inputClass} cursor-pointer`}
           >
-            {WORK_ITEM_STATUSES.map((status) => (
+            {WORK_ITEM_SELECTABLE_STATUSES.map((status) => (
               <option key={status} value={status}>{WORK_ITEM_STATUS_LABELS[status]}</option>
             ))}
           </select>

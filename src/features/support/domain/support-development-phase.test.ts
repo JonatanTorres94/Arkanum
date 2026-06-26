@@ -4,6 +4,9 @@ import { OPEN_WORK_ITEM_STATUSES } from "@/features/projects/domain/project-life
 import type { SupportTicket } from "./support-ticket.types";
 import type { ProjectWorkItem } from "@/features/projects/domain/project-work-item.types";
 
+// Open statuses that map to development_in_progress (excludes awaiting_support).
+const OPEN_EXCLUDING_AWAITING = OPEN_WORK_ITEM_STATUSES.filter((s) => s !== "awaiting_support");
+
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 function makeTicket(overrides: Partial<SupportTicket> = {}): SupportTicket {
@@ -60,9 +63,16 @@ describe("deriveDevelopmentPhase", () => {
     });
   });
 
-  describe("development_in_progress — uses OPEN_WORK_ITEM_STATUSES", () => {
-    // These statuses come from OPEN_WORK_ITEM_STATUSES — not a hardcoded list in the test.
-    for (const status of OPEN_WORK_ITEM_STATUSES) {
+  describe("support_action_required", () => {
+    it("returns support_action_required when work item status is awaiting_support", () => {
+      const ticket   = makeTicket({ escalatedWorkItemId: "wi1" });
+      const workItem = makeWorkItem({ status: "awaiting_support" });
+      expect(deriveDevelopmentPhase(ticket, workItem)).toBe("support_action_required");
+    });
+  });
+
+  describe("development_in_progress — uses OPEN_WORK_ITEM_STATUSES minus awaiting_support", () => {
+    for (const status of OPEN_EXCLUDING_AWAITING) {
       it(`returns development_in_progress when work item status is "${status}"`, () => {
         const ticket   = makeTicket({ escalatedWorkItemId: "wi1" });
         const workItem = makeWorkItem({ status });

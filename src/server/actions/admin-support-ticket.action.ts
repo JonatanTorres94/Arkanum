@@ -31,6 +31,7 @@ import { createSupportTicketNoteUseCase } from "@/features/support/application/c
 import { resolveTicketAfterDevelopmentUseCase } from "@/features/support/application/resolve-ticket-after-development.use-case";
 import { returnTicketToDevelopmentUseCase } from "@/features/support/application/return-ticket-to-development.use-case";
 import { closeTicketAfterDevelopmentCancellationUseCase } from "@/features/support/application/close-ticket-after-development-cancellation.use-case";
+import { resolveSupportInterventionUseCase } from "@/features/support/application/resolve-support-intervention.use-case";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 import { updateProjectWorkItemStatusUseCase } from "@/features/projects/application/update-project-work-item-status.use-case";
 import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
@@ -537,4 +538,71 @@ export async function closeTicketAfterDevelopmentCancellationAction(
   if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
 
   return outcome.warning ? { warning: outcome.warning } : {};
+}
+
+export async function resolveSupportInterventionAction(
+  ticketId: string
+): Promise<{ error?: string; warning?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  const ticketRepository   = new SupabaseSupportTicketRepository();
+  const workItemRepository = new SupabaseProjectWorkItemRepository();
+
+  const outcome = await resolveSupportInterventionUseCase(
+    ticketId,
+    user.email ?? null,
+    ticketRepository,
+    workItemRepository,
+    new SupabaseSupportTicketNoteRepository()
+  );
+
+  // Re-fetch ticket for revalidation paths — needed for both success and partial failure.
+  const ticketResult = await getSupportTicketByIdUseCase(ticketId, ticketRepository);
+  const ticket = ticketResult.ok ? ticketResult.ticket : null;
+
+  // Partial failure: ticket updated, WI still awaiting_support. Show current state in UI.
+  if (!outcome.ok) {
+    if (outcome.partial) {
+      revalidatePath(`/admin/support/${ticketId}`);
+      revalidatePath("/admin/support");
+      if (ticket?.escalatedWorkItemId && ticket?.projectId) {
+        revalidatePath(
+          `/admin/projects/${ticket.projectId}/work-items/${ticket.escalatedWorkItemId}`
+        );
+      }
+      if (ticket?.projectId) revalidatePath(`/admin/projects/${ticket.projectId}`);
+      if (ticket?.clientId)  revalidatePath(`/admin/clients/${ticket.clientId}`);
+    }
+    return { error: outcome.error };
+  }
+
+  // Lifecycle sync — WI goes to 'ready' (still open), project may remain in_development.
+  const warnings: string[] = [];
+  if (ticket?.projectId) {
+    const syncOutcome = await synchronizeProjectLifecycleUseCase(
+      ticket.projectId,
+      new SupabaseProjectRepository(),
+      workItemRepository
+    );
+    if (!syncOutcome.ok) {
+      warnings.push(
+        "La intervención se atendió, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
+      );
+    }
+  }
+
+  revalidatePath(`/admin/support/${ticketId}`);
+  revalidatePath("/admin/support");
+  if (ticket?.escalatedWorkItemId && ticket?.projectId) {
+    revalidatePath(
+      `/admin/projects/${ticket.projectId}/work-items/${ticket.escalatedWorkItemId}`
+    );
+  }
+  if (ticket?.projectId) revalidatePath(`/admin/projects/${ticket.projectId}`);
+  if (ticket?.clientId)  revalidatePath(`/admin/clients/${ticket.clientId}`);
+
+  if (outcome.warning) warnings.push(outcome.warning);
+
+  return warnings.length > 0 ? { warning: warnings.join(" ") } : {};
 }

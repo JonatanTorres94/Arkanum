@@ -19,6 +19,7 @@ export const TICKET_STATUSES = [
   "waiting_client",
   "waiting_internal",
   "escalated_to_development",
+  "action_required",
   "resolved",
   "closed",
   "cancelled",

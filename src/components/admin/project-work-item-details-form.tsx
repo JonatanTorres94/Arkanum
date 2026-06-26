@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import {
   WORK_ITEM_CATEGORIES,
-  WORK_ITEM_STATUSES,
+  WORK_ITEM_SELECTABLE_STATUSES,
   WORK_ITEM_PRIORITIES,
   type WorkItemCategory,
   type WorkItemStatus,
@@ -123,8 +123,12 @@ export function ProjectWorkItemDetailsForm({
             disabled={isPending}
             className={fieldClass}
           >
-            {WORK_ITEM_STATUSES.map((s) => (
-              <option key={s} value={s}>{WORK_ITEM_STATUS_LABELS[s]}</option>
+            {/* Always include current status (may be awaiting_support) so the select renders correctly. */}
+            {(status === "awaiting_support"
+              ? (["awaiting_support", ...WORK_ITEM_SELECTABLE_STATUSES] as readonly string[])
+              : WORK_ITEM_SELECTABLE_STATUSES
+            ).map((s) => (
+              <option key={s} value={s}>{WORK_ITEM_STATUS_LABELS[s as WorkItemStatus]}</option>
             ))}
           </select>
         </div>
