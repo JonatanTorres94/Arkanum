@@ -139,17 +139,4 @@ export class SupabaseAttentionItemRepository implements AttentionItemRepository 
       return { ticket, workItem, workItemMissing };
     });
   }
-
-  async countAttentionTickets(): Promise<number> {
-    const supabase = createServerClient();
-
-    const { count, error } = await supabase
-      .from("support_tickets")
-      .select("id", { count: "exact", head: true })
-      .not("status", "in", `(${TERMINAL_STATUSES.map((s) => `"${s}"`).join(",")})`)
-      .or("status.eq.action_required,status.eq.escalated_to_development,escalated_work_item_id.not.is.null");
-
-    if (error) return 0; // fail-open: don't break the layout if the badge query fails
-    return count ?? 0;
-  }
 }

@@ -98,9 +98,12 @@ function AttentionItemRow({ item }: { item: AttentionItem }) {
 
 // ─── Main component ──────────────────────────────────────────────────────────
 
+const VALID_FILTER_VALUES = new Set(["all", "support", "development", "integrity"]);
+
 export function AttentionInbox({ items }: { items: AttentionItem[] }) {
-  const searchParams  = useSearchParams();
-  const activeFilter  = (searchParams.get("audience") ?? "all") as "all" | AttentionAudience;
+  const searchParams = useSearchParams();
+  const rawAudience  = searchParams.get("audience") ?? "all";
+  const activeFilter = (VALID_FILTER_VALUES.has(rawAudience) ? rawAudience : "all") as "all" | AttentionAudience;
 
   const filtered = activeFilter === "all"
     ? items

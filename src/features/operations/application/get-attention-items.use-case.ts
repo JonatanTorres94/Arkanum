@@ -48,35 +48,56 @@ function candidateToItems(candidate: AttentionCandidate): AttentionItem[] {
     return items;
   }
 
-  // Support intervention pending: Development requested Support response.
-  // Ticket is action_required; WI is awaiting_support.
+  // Support intervention pending: requires the valid pair
+  // ticket.status === "action_required" AND workItem.status === "awaiting_support".
+  // Any other combination signals an inconsistent workflow state → integrity item.
   if (ticket.status === "action_required") {
+    // WI missing (workItemMissing already added integrity_missing_work_item above).
+    if (workItemMissing || !workItem) {
+      return items; // only the integrity_missing_work_item added earlier
+    }
+
+    // WI exists but is not in awaiting_support — inconsistent state.
+    if (workItem.status !== "awaiting_support") {
+      items.push(makeItem(
+        `integrity-action-mismatch-${ticket.id}`,
+        "integrity_action_required_mismatch",
+        ticket.id,
+        ticket.title,
+        ticket.priority,
+        workItem.id,
+        workItem.projectId,
+        `/admin/support/${ticket.id}`,
+        ticket.updatedAt,
+      ));
+      return items;
+    }
+
+    // Valid pair: ticket=action_required, WI=awaiting_support.
     items.push(makeItem(
       `support-intervention-${ticket.id}`,
       "support_intervention_pending",
       ticket.id,
       ticket.title,
       ticket.priority,
-      workItem?.id ?? null,
-      workItem?.projectId ?? null,
+      workItem.id,
+      workItem.projectId,
       `/admin/support/${ticket.id}`,
       ticket.updatedAt,
     ));
 
     // From the Development side: their WI is waiting for Support's response.
-    if (workItem) {
-      items.push(makeItem(
-        `dev-intervention-active-${workItem.id}`,
-        "development_intervention_active",
-        ticket.id,
-        ticket.title,
-        ticket.priority,
-        workItem.id,
-        workItem.projectId,
-        `/admin/projects/${workItem.projectId}/work-items/${workItem.id}`,
-        workItem.updatedAt,
-      ));
-    }
+    items.push(makeItem(
+      `dev-intervention-active-${workItem.id}`,
+      "development_intervention_active",
+      ticket.id,
+      ticket.title,
+      ticket.priority,
+      workItem.id,
+      workItem.projectId,
+      `/admin/projects/${workItem.projectId}/work-items/${workItem.id}`,
+      workItem.updatedAt,
+    ));
 
     return items;
   }
@@ -153,7 +174,10 @@ function sortItems(items: AttentionItem[]): AttentionItem[] {
       PRIORITY_SORT_WEIGHT[a.ticketPriority] - PRIORITY_SORT_WEIGHT[b.ticketPriority];
     if (priorityDiff !== 0) return priorityDiff;
     // Secondary: oldest first (most overdue).
-    return a.updatedAt < b.updatedAt ? -1 : a.updatedAt > b.updatedAt ? 1 : 0;
+    if (a.updatedAt < b.updatedAt) return -1;
+    if (a.updatedAt > b.updatedAt) return  1;
+    // Tertiary: stable id-based tiebreaker.
+    return a.id.localeCompare(b.id);
   });
 }
 
@@ -177,14 +201,14 @@ export async function getAttentionItemsUseCase(
 
 // ─── Nav badge use case ───────────────────────────────────────────────────────
 
-// Fast path: returns a raw ticket count (not derived items) for the nav badge.
-// May slightly over- or under-count relative to the full derivation, which is
-// acceptable for a badge — accuracy matters less than latency here.
+// Returns the exact derived item count — same derivation as getAttentionItemsUseCase
+// so the badge always matches what the inbox actually shows.
 export async function getAttentionItemCountUseCase(
   repository: AttentionItemRepository
 ): Promise<number> {
   try {
-    return await repository.countAttentionTickets();
+    const candidates = await repository.findAttentionCandidates();
+    return candidates.flatMap(candidateToItems).length;
   } catch {
     return 0; // fail-open: badge hides rather than breaks the layout
   }

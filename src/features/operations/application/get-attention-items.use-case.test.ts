@@ -61,10 +61,9 @@ function makeCandidate(overrides: {
   };
 }
 
-function buildRepo(candidates: AttentionCandidate[], count = 0): AttentionItemRepository {
+function buildRepo(candidates: AttentionCandidate[]): AttentionItemRepository {
   return {
     findAttentionCandidates: vi.fn().mockResolvedValue(candidates),
-    countAttentionTickets:   vi.fn().mockResolvedValue(count),
   };
 }
 
@@ -79,7 +78,7 @@ describe("getAttentionItemsUseCase — item derivation", () => {
     if (result.ok) expect(result.items).toHaveLength(0);
   });
 
-  it("produces support_intervention_pending when ticket is action_required", async () => {
+  it("produces support_intervention_pending when ticket is action_required and WI is awaiting_support", async () => {
     const candidate = makeCandidate({
       ticket:   { status: "action_required", escalatedWorkItemId: "wi-1" },
       workItem: { status: "awaiting_support" },
@@ -94,7 +93,7 @@ describe("getAttentionItemsUseCase — item derivation", () => {
     expect(item?.href).toBe("/admin/support/ticket-1");
   });
 
-  it("also produces development_intervention_active when ticket is action_required with a linked WI", async () => {
+  it("also produces development_intervention_active for the valid action_required+awaiting_support pair", async () => {
     const candidate = makeCandidate({
       ticket:   { status: "action_required", escalatedWorkItemId: "wi-1" },
       workItem: { status: "awaiting_support", id: "wi-1", projectId: "project-1" },
@@ -141,9 +140,59 @@ describe("getAttentionItemsUseCase — item derivation", () => {
   });
 });
 
-// ─── Integrity ────────────────────────────────────────────────────────────────
+// ─── Integrity: action_required mismatch ──────────────────────────────────────
 
-describe("getAttentionItemsUseCase — integrity items", () => {
+describe("getAttentionItemsUseCase — action_required WI state mismatch", () => {
+  const nonWaitingStatuses = [
+    "ready", "in_progress", "blocked", "review", "testing", "done", "cancelled", "backlog",
+  ] as const;
+
+  for (const status of nonWaitingStatuses) {
+    it(`produces integrity_action_required_mismatch when ticket is action_required and WI is ${status}`, async () => {
+      const candidate = makeCandidate({
+        ticket:   { status: "action_required", escalatedWorkItemId: "wi-1" },
+        workItem: { status },
+      });
+      const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      const item = result.items.find((i) => i.kind === "integrity_action_required_mismatch");
+      expect(item, `WI status=${status}`).toBeDefined();
+      expect(item?.audience).toBe("integrity");
+    });
+  }
+
+  it("does NOT produce support_intervention_pending when WI is not awaiting_support", async () => {
+    const candidate = makeCandidate({
+      ticket:   { status: "action_required", escalatedWorkItemId: "wi-1" },
+      workItem: { status: "in_progress" },
+    });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const operational = result.items.find((i) =>
+      i.kind === "support_intervention_pending" || i.kind === "development_intervention_active"
+    );
+    expect(operational).toBeUndefined();
+  });
+
+  it("produces only integrity_missing_work_item (not operational items) when ticket is action_required and WI is missing", async () => {
+    const candidate = makeCandidate({
+      ticket:          { status: "action_required", escalatedWorkItemId: "wi-missing" },
+      workItem:        null,
+      workItemMissing: true,
+    });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].kind).toBe("integrity_missing_work_item");
+  });
+});
+
+// ─── Integrity: other cases ───────────────────────────────────────────────────
+
+describe("getAttentionItemsUseCase — other integrity items", () => {
   it("produces integrity_missing_work_item when escalatedWorkItemId set but WI not found", async () => {
     const candidate = makeCandidate({
       ticket:          { escalatedWorkItemId: "wi-missing" },
@@ -189,7 +238,7 @@ describe("getAttentionItemsUseCase — sorting", () => {
   it("sorts urgent before high, high before medium, medium before low", async () => {
     const candidates = [
       makeCandidate({ ticket: { id: "t-low",    priority: "low",    escalatedWorkItemId: "wi-low",    updatedAt: "2026-06-20T10:00:00Z" }, workItem: { id: "wi-low",    status: "done" } }),
-      makeCandidate({ ticket: { id: "t-urgent",  priority: "urgent", escalatedWorkItemId: "wi-urgent", updatedAt: "2026-06-20T10:00:00Z" }, workItem: { id: "wi-urgent", status: "done" } }),
+      makeCandidate({ ticket: { id: "t-urgent", priority: "urgent", escalatedWorkItemId: "wi-urgent", updatedAt: "2026-06-20T10:00:00Z" }, workItem: { id: "wi-urgent", status: "done" } }),
       makeCandidate({ ticket: { id: "t-high",   priority: "high",   escalatedWorkItemId: "wi-high",   updatedAt: "2026-06-20T10:00:00Z" }, workItem: { id: "wi-high",   status: "done" } }),
     ];
     const result = await getAttentionItemsUseCase(buildRepo(candidates));
@@ -212,6 +261,20 @@ describe("getAttentionItemsUseCase — sorting", () => {
     const ids = result.items.map((i) => i.ticketId);
     expect(ids.indexOf("t-old")).toBeLessThan(ids.indexOf("t-new"));
   });
+
+  it("uses id as deterministic tiebreaker when priority and updatedAt are equal", async () => {
+    const ts = "2026-06-20T12:00:00Z";
+    const candidates = [
+      makeCandidate({ ticket: { id: "t-z", priority: "high", escalatedWorkItemId: "wi-z", updatedAt: ts }, workItem: { id: "wi-z", status: "done", updatedAt: ts } }),
+      makeCandidate({ ticket: { id: "t-a", priority: "high", escalatedWorkItemId: "wi-a", updatedAt: ts }, workItem: { id: "wi-a", status: "done", updatedAt: ts } }),
+    ];
+    const result = await getAttentionItemsUseCase(buildRepo(candidates));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ids = result.items.map((i) => i.id);
+    // Items for t-a come before t-z lexicographically.
+    expect(ids.findIndex((id) => id.includes("t-a"))).toBeLessThan(ids.findIndex((id) => id.includes("t-z")));
+  });
 });
 
 // ─── Error handling ──────────────────────────────────────────────────────────
@@ -220,7 +283,6 @@ describe("getAttentionItemsUseCase — error handling", () => {
   it("returns ok:false when repository throws", async () => {
     const repo: AttentionItemRepository = {
       findAttentionCandidates: vi.fn().mockRejectedValue(new Error("DB fail")),
-      countAttentionTickets:   vi.fn().mockResolvedValue(0),
     };
     const result = await getAttentionItemsUseCase(repo);
     expect(result.ok).toBe(false);
@@ -231,16 +293,37 @@ describe("getAttentionItemsUseCase — error handling", () => {
 // ─── Nav badge ───────────────────────────────────────────────────────────────
 
 describe("getAttentionItemCountUseCase", () => {
-  it("returns the count from the repository", async () => {
-    const repo = buildRepo([], 7);
-    const count = await getAttentionItemCountUseCase(repo);
-    expect(count).toBe(7);
+  it("returns the exact derived item count (same derivation as inbox)", async () => {
+    // One action_required+awaiting_support pair produces 2 items (support + development).
+    const candidates = [
+      makeCandidate({
+        ticket:   { status: "action_required", escalatedWorkItemId: "wi-1" },
+        workItem: { status: "awaiting_support" },
+      }),
+    ];
+    const count = await getAttentionItemCountUseCase(buildRepo(candidates));
+    expect(count).toBe(2);
   });
 
-  it("returns 0 when the repository throws", async () => {
+  it("counts correctly when escalated_to_development + WI in_progress (no items)", async () => {
+    const candidates = [
+      makeCandidate({ ticket: { status: "escalated_to_development" }, workItem: { status: "in_progress" } }),
+    ];
+    const count = await getAttentionItemCountUseCase(buildRepo(candidates));
+    expect(count).toBe(0);
+  });
+
+  it("counts 1 for escalated_to_development + WI done (only validation item)", async () => {
+    const candidates = [
+      makeCandidate({ ticket: { status: "escalated_to_development" }, workItem: { status: "done" } }),
+    ];
+    const count = await getAttentionItemCountUseCase(buildRepo(candidates));
+    expect(count).toBe(1);
+  });
+
+  it("returns 0 when the repository throws (fail-open)", async () => {
     const repo: AttentionItemRepository = {
-      findAttentionCandidates: vi.fn(),
-      countAttentionTickets:   vi.fn().mockRejectedValue(new Error("DB fail")),
+      findAttentionCandidates: vi.fn().mockRejectedValue(new Error("DB fail")),
     };
     const count = await getAttentionItemCountUseCase(repo);
     expect(count).toBe(0);

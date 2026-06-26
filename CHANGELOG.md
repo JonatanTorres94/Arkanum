@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.45.1] - 2026-06-26
+
+### Changed
+
+- `src/features/operations/domain/attention-item.types.ts` — agrega kind `integrity_action_required_mismatch` (ticket `action_required` con WI que no está `awaiting_support`); actualiza `ATTENTION_AUDIENCE_FOR_KIND` y `ATTENTION_KIND_LABELS`.
+- `src/features/operations/infrastructure/attention-item.repository.ts` — elimina `countAttentionTickets` de la interfaz (reemplazado por derivación exacta en el use case).
+- `src/features/operations/infrastructure/supabase-attention-item.repository.ts` — elimina implementación de `countAttentionTickets`.
+- `src/features/operations/application/get-attention-items.use-case.ts` — (1) `action_required` ahora exige el par `action_required + awaiting_support`; sin WI → sólo `integrity_missing_work_item`; WI en otro estado → `integrity_action_required_mismatch`. (2) `sortItems` agrega tiebreaker determinista `a.id.localeCompare(b.id)`. (3) `getAttentionItemCountUseCase` reutiliza `findAttentionCandidates + candidateToItems` en vez de `countAttentionTickets`, garantizando que el badge coincida exactamente con la bandeja.
+- `src/components/admin/attention-inbox.tsx` — valida `?audience` contra el set de valores conocidos (`all / support / development / integrity`) antes del cast; valor inválido cae en `"all"`.
+
+### Tests
+
+- `src/features/operations/application/get-attention-items.use-case.test.ts` — 27 tests: agrega casos de `integrity_action_required_mismatch` (8 WI statuses), verifica ausencia de ítems operativos en mismatch, verifica que `action_required + WI missing` produce sólo `integrity_missing_work_item`, tiebreaker de sort por id, badge count reescrito con derivación exacta y fail-open.
+
 ## [0.45.0] - 2026-06-26
 
 ### Added

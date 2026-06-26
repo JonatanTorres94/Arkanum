@@ -13,7 +13,4 @@ export interface AttentionItemRepository {
   // Returns all ticket+workItem pairs that may need operational attention.
   // Excludes terminal tickets (resolved / closed / cancelled).
   findAttentionCandidates(): Promise<AttentionCandidate[]>;
-
-  // Fast path for the navigation badge — counts items without full derivation.
-  countAttentionTickets(): Promise<number>;
 }
