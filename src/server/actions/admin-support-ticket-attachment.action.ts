@@ -50,11 +50,8 @@ export async function uploadSupportTicketAttachmentAction(
 
   revalidatePath(`/admin/support/${ticketId}`);
 
-  if (!outcome.ok) {
-    return outcome.partial
-      ? { warning: outcome.error }
-      : { error: outcome.error };
-  }
+  // partial:true means: orphaned storage object + no metadata → upload failed, not a warning.
+  if (!outcome.ok) return { error: outcome.error };
   return {};
 }
 
@@ -74,6 +71,7 @@ export async function getSupportTicketAttachmentUrlAction(
   if (!ticketResult.ok) return { error: "Ticket no encontrado." };
 
   const outcome = await getSupportTicketAttachmentSignedUrlUseCase(
+    ticketId,
     attachmentId,
     new SupabaseSupportTicketAttachmentStorage(),
     new SupabaseSupportTicketAttachmentRepository()
@@ -103,6 +101,7 @@ export async function deleteSupportTicketAttachmentAction(
   }
 
   const outcome = await deleteSupportTicketAttachmentUseCase(
+    ticketId,
     attachmentId,
     new SupabaseSupportTicketAttachmentStorage(),
     new SupabaseSupportTicketAttachmentRepository()

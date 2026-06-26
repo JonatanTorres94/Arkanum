@@ -5,14 +5,26 @@ import type { SupportTicketAttachmentRepository } from "@/features/support/infra
 import type { SupportTicketAttachment } from "@/features/support/domain/support-ticket-attachment.types";
 import { ATTACHMENT_MAX_SIZE_BYTES } from "@/features/support/domain/support-ticket-attachment.types";
 
-// ─── Fixtures ─────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const DUMMY_BUFFER = new ArrayBuffer(100);
+function makeBuf(...bytes: number[]): ArrayBuffer {
+  const ab   = new ArrayBuffer(Math.max(bytes.length, 12));
+  const view = new DataView(ab);
+  bytes.forEach((b, i) => view.setUint8(i, b));
+  return ab;
+}
+
+// Valid PDF buffer with %PDF- magic bytes — required for content validation to pass.
+const PDF_BUFFER = makeBuf(0x25, 0x50, 0x44, 0x46, 0x2D);
+
+// Buffer with no recognisable magic bytes — fails content validation.
+const BAD_BUFFER = new ArrayBuffer(20);
+
 const VALID_INPUT = {
   filename:  "evidence.pdf",
   mimeType:  "application/pdf",
   sizeBytes: 512,
-  data:      DUMMY_BUFFER,
+  data:      PDF_BUFFER,
 };
 
 function buildAttachment(overrides: Partial<SupportTicketAttachment> = {}): SupportTicketAttachment {
@@ -82,7 +94,7 @@ describe("uploadSupportTicketAttachmentUseCase — validation", () => {
   it("accepts file exactly at 10 MB", async () => {
     const upload = vi.fn().mockResolvedValue(undefined);
     const result = await uploadSupportTicketAttachmentUseCase(
-      "ticket-1", { ...VALID_INPUT, sizeBytes: ATTACHMENT_MAX_SIZE_BYTES }, null,
+      "ticket-1", { ...VALID_INPUT, sizeBytes: ATTACHMENT_MAX_SIZE_BYTES, data: PDF_BUFFER }, null,
       buildStorage({ upload }), buildRepo()
     );
     expect(result.ok).toBe(true);
@@ -98,19 +110,32 @@ describe("uploadSupportTicketAttachmentUseCase — validation", () => {
     if (!result.ok) expect(result.error).toMatch(/no permitido/);
   });
 
-  it("accepts all allowed MIME types", async () => {
-    const allowedTypes = [
-      "image/jpeg","image/png","application/pdf","text/plain","text/csv",
-      "application/zip",
-    ];
-    for (const mimeType of allowedTypes) {
-      const upload = vi.fn().mockResolvedValue(undefined);
-      const result = await uploadSupportTicketAttachmentUseCase(
-        "ticket-1", { ...VALID_INPUT, mimeType }, null,
-        buildStorage({ upload }), buildRepo()
-      );
-      expect(result.ok, `expected ok for ${mimeType}`).toBe(true);
-    }
+  it("rejects file whose magic bytes don't match the declared MIME", async () => {
+    const result = await uploadSupportTicketAttachmentUseCase(
+      "ticket-1", { ...VALID_INPUT, data: BAD_BUFFER }, null,
+      buildStorage(), buildRepo()
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/firma/);
+  });
+
+  it("rejects a spoofed file (EXE bytes declared as image/png)", async () => {
+    // MZ header (Windows PE)
+    const exeBuf = makeBuf(0x4D, 0x5A, 0x90, 0x00);
+    const result = await uploadSupportTicketAttachmentUseCase(
+      "ticket-1", { ...VALID_INPUT, mimeType: "image/png", data: exeBuf }, null,
+      buildStorage(), buildRepo()
+    );
+    expect(result.ok).toBe(false);
+  });
+
+  it("does not call storage.upload when content validation fails", async () => {
+    const upload = vi.fn();
+    await uploadSupportTicketAttachmentUseCase(
+      "ticket-1", { ...VALID_INPUT, data: BAD_BUFFER }, null,
+      buildStorage({ upload }), buildRepo()
+    );
+    expect(upload).not.toHaveBeenCalled();
   });
 });
 

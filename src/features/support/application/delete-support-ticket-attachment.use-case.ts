@@ -3,6 +3,7 @@ import type { SupportTicketAttachmentStorage } from "@/features/support/infrastr
 import type { SupportTicketAttachmentRepository } from "@/features/support/infrastructure/support-ticket-attachment.repository";
 
 export async function deleteSupportTicketAttachmentUseCase(
+  ticketId:     string,
   attachmentId: string,
   storage:      SupportTicketAttachmentStorage,
   repository:   SupportTicketAttachmentRepository
@@ -10,8 +11,15 @@ export async function deleteSupportTicketAttachmentUseCase(
   const attachment = await repository.findById(attachmentId);
   if (!attachment) return { ok: false, error: "El adjunto no fue encontrado." };
 
+  if (attachment.ticketId !== ticketId) {
+    return { ok: false, error: "El adjunto no pertenece al ticket indicado." };
+  }
+
   // Step 1 — Delete metadata row first (authoritative).
-  // If this fails, nothing changes — the file is still accessible.
+  // Deliberate order: removing metadata immediately makes the file inaccessible from the app,
+  // even if the storage delete that follows fails. The trade-off is a potentially orphaned bucket
+  // object, surfaced as partial:true and reported as a warning. Alternative (storage first) would
+  // leave a dangling download link visible to users if the metadata delete then fails.
   try {
     await repository.delete(attachmentId);
   } catch {

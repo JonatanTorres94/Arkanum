@@ -46,9 +46,43 @@ beforeEach(() => vi.clearAllMocks());
 describe("deleteSupportTicketAttachmentUseCase — validation", () => {
   it("returns ok:false when attachment is not found", async () => {
     const repo   = buildRepo({ findById: vi.fn().mockResolvedValue(null) });
-    const result = await deleteSupportTicketAttachmentUseCase("att-missing", buildStorage(), repo);
+    const result = await deleteSupportTicketAttachmentUseCase("ticket-1", "att-missing", buildStorage(), repo);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/encontrado/);
+  });
+});
+
+// ─── Ownership ────────────────────────────────────────────────────────────────
+
+describe("deleteSupportTicketAttachmentUseCase — ownership", () => {
+  it("rejects when attachment belongs to a different ticket", async () => {
+    const attachment = buildAttachment({ ticketId: "ticket-OTHER" });
+    const repo       = buildRepo({ findById: vi.fn().mockResolvedValue(attachment) });
+    const result     = await deleteSupportTicketAttachmentUseCase("ticket-1", "att-1", buildStorage(), repo);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/pertenece/);
+  });
+
+  it("does not call storage.delete when ownership check fails", async () => {
+    const storageDelete = vi.fn();
+    const attachment    = buildAttachment({ ticketId: "ticket-OTHER" });
+    await deleteSupportTicketAttachmentUseCase(
+      "ticket-1", "att-1",
+      buildStorage({ delete: storageDelete }),
+      buildRepo({ findById: vi.fn().mockResolvedValue(attachment) })
+    );
+    expect(storageDelete).not.toHaveBeenCalled();
+  });
+
+  it("does not call repository.delete when ownership check fails", async () => {
+    const repoDelete = vi.fn();
+    const attachment = buildAttachment({ ticketId: "ticket-OTHER" });
+    await deleteSupportTicketAttachmentUseCase(
+      "ticket-1", "att-1",
+      buildStorage(),
+      buildRepo({ findById: vi.fn().mockResolvedValue(attachment), delete: repoDelete })
+    );
+    expect(repoDelete).not.toHaveBeenCalled();
   });
 });
 
@@ -56,7 +90,7 @@ describe("deleteSupportTicketAttachmentUseCase — validation", () => {
 
 describe("deleteSupportTicketAttachmentUseCase — happy path", () => {
   it("returns ok:true on success", async () => {
-    const result = await deleteSupportTicketAttachmentUseCase("att-1", buildStorage(), buildRepo());
+    const result = await deleteSupportTicketAttachmentUseCase("ticket-1", "att-1", buildStorage(), buildRepo());
     expect(result.ok).toBe(true);
   });
 
@@ -64,13 +98,11 @@ describe("deleteSupportTicketAttachmentUseCase — happy path", () => {
     const calls: string[] = [];
     const repoDelete    = vi.fn().mockImplementation(() => { calls.push("db"); });
     const storageDelete = vi.fn().mockImplementation(() => { calls.push("storage"); });
-
     await deleteSupportTicketAttachmentUseCase(
-      "att-1",
+      "ticket-1", "att-1",
       buildStorage({ delete: storageDelete }),
       buildRepo({ delete: repoDelete })
     );
-
     expect(calls).toEqual(["db", "storage"]);
   });
 
@@ -78,7 +110,7 @@ describe("deleteSupportTicketAttachmentUseCase — happy path", () => {
     const storageDelete = vi.fn().mockResolvedValue(undefined);
     const attachment    = buildAttachment({ storageKey: "tickets/t-1/custom-key" });
     await deleteSupportTicketAttachmentUseCase(
-      "att-1",
+      "ticket-1", "att-1",
       buildStorage({ delete: storageDelete }),
       buildRepo({ findById: vi.fn().mockResolvedValue(attachment) })
     );
@@ -91,7 +123,7 @@ describe("deleteSupportTicketAttachmentUseCase — happy path", () => {
 describe("deleteSupportTicketAttachmentUseCase — failure cases", () => {
   it("returns ok:false (no partial) when metadata delete fails", async () => {
     const repo   = buildRepo({ delete: vi.fn().mockRejectedValue(new Error("DB fail")) });
-    const result = await deleteSupportTicketAttachmentUseCase("att-1", buildStorage(), repo);
+    const result = await deleteSupportTicketAttachmentUseCase("ticket-1", "att-1", buildStorage(), repo);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.partial).toBeUndefined();
   });
@@ -99,7 +131,7 @@ describe("deleteSupportTicketAttachmentUseCase — failure cases", () => {
   it("does not call storage.delete when metadata delete fails", async () => {
     const storageDelete = vi.fn();
     await deleteSupportTicketAttachmentUseCase(
-      "att-1",
+      "ticket-1", "att-1",
       buildStorage({ delete: storageDelete }),
       buildRepo({ delete: vi.fn().mockRejectedValue(new Error("DB fail")) })
     );
@@ -108,7 +140,7 @@ describe("deleteSupportTicketAttachmentUseCase — failure cases", () => {
 
   it("returns ok:false with partial:true when storage delete fails after metadata is deleted", async () => {
     const result = await deleteSupportTicketAttachmentUseCase(
-      "att-1",
+      "ticket-1", "att-1",
       buildStorage({ delete: vi.fn().mockRejectedValue(new Error("storage fail")) }),
       buildRepo()
     );
@@ -123,9 +155,12 @@ describe("deleteSupportTicketAttachmentUseCase — security", () => {
   it("only deletes the attachment with the given ID (no wildcard)", async () => {
     const repoDelete = vi.fn().mockResolvedValue(undefined);
     await deleteSupportTicketAttachmentUseCase(
-      "att-specific",
+      "ticket-1", "att-specific",
       buildStorage(),
-      buildRepo({ delete: repoDelete, findById: vi.fn().mockResolvedValue(buildAttachment({ id: "att-specific" })) })
+      buildRepo({
+        delete:  repoDelete,
+        findById: vi.fn().mockResolvedValue(buildAttachment({ id: "att-specific" })),
+      })
     );
     expect(repoDelete).toHaveBeenCalledWith("att-specific");
     expect(repoDelete).toHaveBeenCalledTimes(1);

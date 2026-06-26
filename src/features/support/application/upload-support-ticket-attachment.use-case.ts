@@ -4,6 +4,7 @@ import {
   type UploadSupportTicketAttachmentInput,
   type UploadSupportTicketAttachmentResult,
 } from "@/features/support/domain/support-ticket-attachment.types";
+import { validateAttachmentContent } from "@/features/support/domain/support-ticket-attachment-validation";
 import type { SupportTicketAttachmentStorage } from "@/features/support/infrastructure/support-ticket-attachment-storage";
 import type { SupportTicketAttachmentRepository } from "@/features/support/infrastructure/support-ticket-attachment.repository";
 
@@ -25,6 +26,12 @@ export async function uploadSupportTicketAttachmentUseCase(
 
   if (!(ALLOWED_ATTACHMENT_MIME_TYPES as ReadonlyArray<string>).includes(input.mimeType)) {
     return { ok: false, error: "Tipo de archivo no permitido." };
+  }
+
+  // Validate magic bytes to reject spoofed MIME types (e.g. EXE declared as image/png).
+  const contentCheck = validateAttachmentContent(input.data, input.mimeType);
+  if (!contentCheck.valid) {
+    return { ok: false, error: contentCheck.reason };
   }
 
   // Deterministic key scoped to ticket; ID generated here so it is available for compensation.

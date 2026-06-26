@@ -43,13 +43,13 @@ beforeEach(() => vi.clearAllMocks());
 describe("getSupportTicketAttachmentSignedUrlUseCase", () => {
   it("returns ok:false when attachment is not found", async () => {
     const repo   = buildRepo({ findById: vi.fn().mockResolvedValue(null) });
-    const result = await getSupportTicketAttachmentSignedUrlUseCase("att-missing", buildStorage(), repo);
+    const result = await getSupportTicketAttachmentSignedUrlUseCase("ticket-1", "att-missing", buildStorage(), repo);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/encontrado/);
   });
 
   it("returns ok:true with signed URL and filename on success", async () => {
-    const result = await getSupportTicketAttachmentSignedUrlUseCase("att-1", buildStorage(), buildRepo());
+    const result = await getSupportTicketAttachmentSignedUrlUseCase("ticket-1", "att-1", buildStorage(), buildRepo());
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.url).toContain("signed");
@@ -61,6 +61,7 @@ describe("getSupportTicketAttachmentSignedUrlUseCase", () => {
     const getSignedUrl = vi.fn().mockResolvedValue("https://signed.url");
     const attachment   = buildAttachment({ storageKey: "tickets/t-1/custom-key" });
     await getSupportTicketAttachmentSignedUrlUseCase(
+      "ticket-1",
       "att-1",
       buildStorage({ getSignedUrl }),
       buildRepo({ findById: vi.fn().mockResolvedValue(attachment) })
@@ -70,7 +71,7 @@ describe("getSupportTicketAttachmentSignedUrlUseCase", () => {
 
   it("uses the configured expiry duration", async () => {
     const getSignedUrl = vi.fn().mockResolvedValue("https://signed.url");
-    await getSupportTicketAttachmentSignedUrlUseCase("att-1", buildStorage({ getSignedUrl }), buildRepo());
+    await getSupportTicketAttachmentSignedUrlUseCase("ticket-1", "att-1", buildStorage({ getSignedUrl }), buildRepo());
     const [, expiry] = getSignedUrl.mock.calls[0] as [string, number];
     expect(expiry).toBe(SIGNED_URL_EXPIRY_SECONDS);
     expect(expiry).toBeLessThanOrEqual(300); // short-lived
@@ -78,8 +79,33 @@ describe("getSupportTicketAttachmentSignedUrlUseCase", () => {
 
   it("returns ok:false when signed URL generation fails", async () => {
     const storage = buildStorage({ getSignedUrl: vi.fn().mockRejectedValue(new Error("storage error")) });
-    const result  = await getSupportTicketAttachmentSignedUrlUseCase("att-1", storage, buildRepo());
+    const result  = await getSupportTicketAttachmentSignedUrlUseCase("ticket-1", "att-1", storage, buildRepo());
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/enlace/);
+  });
+});
+
+// ─── Ownership ────────────────────────────────────────────────────────────────
+
+describe("getSupportTicketAttachmentSignedUrlUseCase — ownership", () => {
+  it("rejects when attachment belongs to a different ticket", async () => {
+    const attachment = buildAttachment({ ticketId: "ticket-OTHER" });
+    const repo       = buildRepo({ findById: vi.fn().mockResolvedValue(attachment) });
+    const result     = await getSupportTicketAttachmentSignedUrlUseCase(
+      "ticket-1", "att-1", buildStorage(), repo
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/pertenece/);
+  });
+
+  it("does not call storage.getSignedUrl when ownership check fails", async () => {
+    const getSignedUrl = vi.fn();
+    const attachment   = buildAttachment({ ticketId: "ticket-OTHER" });
+    await getSupportTicketAttachmentSignedUrlUseCase(
+      "ticket-1", "att-1",
+      buildStorage({ getSignedUrl }),
+      buildRepo({ findById: vi.fn().mockResolvedValue(attachment) })
+    );
+    expect(getSignedUrl).not.toHaveBeenCalled();
   });
 });
