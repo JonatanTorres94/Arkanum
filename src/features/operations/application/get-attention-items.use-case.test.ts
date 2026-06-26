@@ -189,11 +189,75 @@ describe("getAttentionItemsUseCase — generic development work items", () => {
     expect(result.items.find((i) => i.kind === "development_open_work_item")).toBeUndefined();
   });
 
-  it("produces development_open_work_item for awaiting_support standalone WI", async () => {
+  it("produces integrity_awaiting_support_mismatch for awaiting_support standalone WI (not a generic dev item)", async () => {
     const result = await getAttentionItemsUseCase(buildRepo([makeStandaloneWi({ status: "awaiting_support" })]));
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.items.find((i) => i.kind === "development_open_work_item")).toBeDefined();
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].kind).toBe("integrity_awaiting_support_mismatch");
+    expect(result.items[0].audience).toBe("integrity");
+    expect(result.items[0].ticketId).toBeNull();
+    expect(result.items.find((i) => i.kind === "development_open_work_item")).toBeUndefined();
+  });
+});
+
+// ─── Integrity: awaiting_support mismatch (reciprocal validation) ────────────
+
+describe("getAttentionItemsUseCase — awaiting_support without action_required ticket", () => {
+  it("awaiting_support standalone WI → integrity_awaiting_support_mismatch only (no generic dev item)", async () => {
+    const result = await getAttentionItemsUseCase(buildRepo([makeStandaloneWi({ status: "awaiting_support" })]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].kind).toBe("integrity_awaiting_support_mismatch");
+    expect(result.items[0].audience).toBe("integrity");
+    expect(result.items[0].ticketId).toBeNull();
+    expect(result.items.find((i) => i.kind === "development_open_work_item")).toBeUndefined();
+  });
+
+  it("awaiting_support WI + ticket open → integrity_awaiting_support_mismatch only (no support_open_ticket, no dev item)", async () => {
+    const candidate = makeTicketCandidate({
+      ticket:   { status: "new", escalatedWorkItemId: "wi-1" },
+      workItem: { status: "awaiting_support" },
+    });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].kind).toBe("integrity_awaiting_support_mismatch");
+    expect(result.items[0].audience).toBe("integrity");
+    expect(result.items[0].ticketId).toBe("ticket-1");
+    expect(result.items[0].href).toBe("/admin/support/ticket-1");
+    expect(result.items.find((i) => i.kind === "support_open_ticket")).toBeUndefined();
+    expect(result.items.find((i) => i.kind === "development_open_work_item")).toBeUndefined();
+  });
+
+  it("awaiting_support WI + ticket escalated_to_development → integrity only", async () => {
+    const candidate = makeTicketCandidate({
+      ticket:   { status: "escalated_to_development", escalatedWorkItemId: "wi-1" },
+      workItem: { status: "awaiting_support" },
+    });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].kind).toBe("integrity_awaiting_support_mismatch");
+    expect(result.items.find((i) => i.kind === "support_open_ticket")).toBeUndefined();
+  });
+
+  it("awaiting_support WI + ticket action_required → specific pair (support_intervention_pending + development_intervention_active), NO integrity", async () => {
+    const candidate = makeTicketCandidate({
+      ticket:   { status: "action_required", escalatedWorkItemId: "wi-1" },
+      workItem: { status: "awaiting_support" },
+    });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.items.find((i) => i.kind === "support_intervention_pending")).toBeDefined();
+    expect(result.items.find((i) => i.kind === "development_intervention_active")).toBeDefined();
+    expect(result.items.find((i) => i.kind === "integrity_awaiting_support_mismatch")).toBeUndefined();
+    expect(result.items.find((i) => i.kind === "support_open_ticket")).toBeUndefined();
+    expect(result.items.find((i) => i.kind === "development_open_work_item")).toBeUndefined();
   });
 });
 

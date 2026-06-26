@@ -112,6 +112,21 @@ function ticketCandidateToItems({ ticket, workItem, workItemMissing }: TicketCan
     return items;
   }
 
+  // WI awaiting_support with a non-action_required ticket → inconsistent workflow state.
+  // The valid pair (action_required + awaiting_support) is already handled above.
+  // Dest: ticket page so Support can investigate and align the states.
+  if (workItem.status === "awaiting_support") {
+    items.push(makeItem(
+      `integrity-awaiting-support-${workItem.id}`,
+      "integrity_awaiting_support_mismatch",
+      ticket.id, ticket.title, ticket.priority,
+      workItem.id, workItem.projectId,
+      `/admin/support/${ticket.id}`,
+      workItem.updatedAt,
+    ));
+    return items;
+  }
+
   // WI is in an active state — generic support ticket + development item.
   items.push(makeItem(`support-open-${ticket.id}`, "support_open_ticket", ticket.id, ticket.title, ticket.priority, workItem.id, workItem.projectId, `/admin/support/${ticket.id}`, ticket.updatedAt));
   items.push(...workItemToItems(workItem, ticket.id));
@@ -121,7 +136,21 @@ function ticketCandidateToItems({ ticket, workItem, workItemMissing }: TicketCan
 
 // ─── Work item derivation (shared by ticket-linked and standalone paths) ──────
 
+// ticketId: null for standalone WIs; non-null for WIs linked to a ticket.
+// caller is responsible for ensuring awaiting_support WIs are not passed here
+// (they are handled upstream as integrity items in both paths).
 function workItemToItems(workItem: ProjectWorkItem, ticketId: string | null): AttentionItem[] {
+  if (workItem.status === "awaiting_support") {
+    // Standalone or linked to a non-action_required ticket → inconsistent state.
+    return [makeItem(
+      `integrity-awaiting-support-${workItem.id}`,
+      "integrity_awaiting_support_mismatch",
+      ticketId, workItem.title, workItem.priority as TicketPriority,
+      workItem.id, workItem.projectId,
+      `/admin/projects/${workItem.projectId}/work-items/${workItem.id}`,
+      workItem.updatedAt,
+    )];
+  }
   if (workItem.status === "blocked") {
     return [makeItem(
       `dev-blocked-${workItem.id}`,

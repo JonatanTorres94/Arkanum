@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.45.3] - 2026-06-26
+
+### Added
+
+- `attention-item.types.ts` — kind `integrity_awaiting_support_mismatch` (integrity): WI con status `awaiting_support` sin ticket `action_required` activo vinculado. Etiqueta: "WI en espera sin intervención activa". Sort weight 0 (mismo nivel que otros integrity items).
+
+### Changed
+
+- `get-attention-items.use-case.ts` — validación recíproca al existente `integrity_action_required_mismatch`: (1) En `workItemToItems()`: `awaiting_support` → `integrity_awaiting_support_mismatch` con href al WI (ruta standalone). (2) En `ticketCandidateToItems()`: `awaiting_support` con ticket no-`action_required` → `integrity_awaiting_support_mismatch` con href al ticket, antes del fallback genérico; evita emitir `support_open_ticket` para ese par inconsistente.
+- `attention-inbox.tsx` — agrega `integrity_awaiting_support_mismatch` a `KIND_INDICATOR_CLASSES` (bg-admin-text-faint).
+
+### Tests
+
+- `get-attention-items.use-case.test.ts` — 46 tests (era 42): grupo "awaiting_support without action_required ticket" con 4 casos: WI standalone, ticket open, ticket escalated_to_development, ticket action_required (caso válido — sin integrity).
+
 ## [0.45.2] - 2026-06-26
 
 ### Added
