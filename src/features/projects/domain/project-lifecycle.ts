@@ -9,6 +9,7 @@ export const OPEN_WORK_ITEM_STATUSES = [
   "blocked",
   "review",
   "testing",
+  "awaiting_support",
 ] as const;
 
 // Pure domain computation — no IO. Called from the detail page (server) and

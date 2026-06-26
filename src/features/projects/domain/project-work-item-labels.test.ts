@@ -17,4 +17,8 @@ describe("WORK_ITEM_STATUS_LABELS", () => {
   it("maps done to 'Completado'", () => {
     expect(WORK_ITEM_STATUS_LABELS.done).toBe("Completado");
   });
+
+  it("maps awaiting_support to 'Esperando a Soporte'", () => {
+    expect(WORK_ITEM_STATUS_LABELS.awaiting_support).toBe("Esperando a Soporte");
+  });
 });

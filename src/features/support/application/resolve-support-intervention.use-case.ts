@@ -1,0 +1,67 @@
+import type { SupportTicketRepository } from "@/features/support/infrastructure/support-ticket.repository";
+import type { ProjectWorkItemRepository } from "@/features/projects/infrastructure/project-work-item.repository";
+import type { SupportTicketNoteRepository } from "@/features/support/infrastructure/support-ticket-note.repository";
+
+export type ResolveSupportInterventionResult =
+  | { ok: true; warning?: string }
+  | { ok: false; error: string };
+
+export async function resolveSupportInterventionUseCase(
+  ticketId: string,
+  resolvedBy: string | null,
+  ticketRepository: SupportTicketRepository,
+  workItemRepository: ProjectWorkItemRepository,
+  noteRepository: SupportTicketNoteRepository
+): Promise<ResolveSupportInterventionResult> {
+  const ticket = await ticketRepository.findById(ticketId);
+  if (!ticket) return { ok: false, error: "Ticket no encontrado." };
+
+  if (!ticket.escalatedWorkItemId) {
+    return { ok: false, error: "Este ticket no tiene un work item de desarrollo vinculado." };
+  }
+
+  const workItem = await workItemRepository.findById(ticket.escalatedWorkItemId);
+  if (!workItem) {
+    return { ok: false, error: "El work item vinculado ya no está disponible." };
+  }
+
+  if (workItem.status !== "awaiting_support") {
+    return {
+      ok: false,
+      error: "El work item no está esperando intervención de Soporte.",
+    };
+  }
+
+  // Step 1 — Update ticket → escalated_to_development (authoritative).
+  try {
+    await ticketRepository.updateStatus(ticketId, {
+      status:     "escalated_to_development",
+      resolvedAt: null,
+    });
+  } catch {
+    return { ok: false, error: "No se pudo actualizar el estado del ticket." };
+  }
+
+  // Steps 2+3 — Update work item → ready + audit note (best-effort).
+  const warnings: string[] = [];
+
+  try {
+    await workItemRepository.updateStatus(ticket.escalatedWorkItemId, { status: "ready" });
+  } catch {
+    warnings.push(
+      "El ticket se actualizó, pero no se pudo devolver el work item a 'Listo para iniciar' — revisalo manualmente."
+    );
+  }
+
+  try {
+    await noteRepository.create(
+      ticketId,
+      "Soporte atendió la solicitud de intervención de Desarrollo y devolvió el trabajo al equipo.",
+      resolvedBy
+    );
+  } catch {
+    // Note failure is silent — the status changes are the primary signal.
+  }
+
+  return warnings.length > 0 ? { ok: true, warning: warnings.join(" ") } : { ok: true };
+}

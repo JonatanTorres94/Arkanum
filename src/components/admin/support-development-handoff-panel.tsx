@@ -11,6 +11,7 @@ import {
   resolveAfterDevelopmentAction,
   returnToDevelopmentAction,
   closeTicketAfterDevelopmentCancellationAction,
+  resolveSupportInterventionAction,
 } from "@/server/actions/admin-support-ticket.action";
 
 const TERMINAL_TICKET_STATUSES = new Set<TicketStatus>(["resolved", "closed", "cancelled"]);
@@ -42,6 +43,16 @@ export function SupportDevelopmentHandoffPanel({
   const [warning, setWarning]        = useState<string | null>(null);
   const [reason,  setReason]         = useState("");
   const [showReturnForm, setShowReturnForm] = useState(false);
+
+  function handleResolveIntervention() {
+    setError(null);
+    setWarning(null);
+    startTransition(async () => {
+      const result = await resolveSupportInterventionAction(ticketId);
+      if (result.error)   setError(result.error);
+      if (result.warning) setWarning(result.warning);
+    });
+  }
 
   const isTerminal = TERMINAL_TICKET_STATUSES.has(ticketStatus);
 
@@ -96,6 +107,8 @@ export function SupportDevelopmentHandoffPanel({
 
   const containerClass = isTerminal
     ? "border-admin-border bg-admin-surface-hover"
+    : phase === "support_action_required"
+    ? "border-orange-400/20 bg-orange-400/5"
     : phase === "pending_support_validation"
     ? "border-emerald-400/20 bg-emerald-400/5"
     : phase === "development_cancelled"
@@ -122,6 +135,14 @@ export function SupportDevelopmentHandoffPanel({
         </>
       ) : (
         <>
+          {phase === "support_action_required" && (
+            <>
+              <p className="text-sm font-medium text-orange-400">Intervención de Soporte requerida</p>
+              <p className="text-xs text-admin-text-muted">
+                Desarrollo solicitó tu intervención. Revisá los comentarios del work item y atendé el pedido.
+              </p>
+            </>
+          )}
           {phase === "development_in_progress" && (
             <>
               <p className="text-sm font-medium text-admin-text">Desarrollo en curso</p>
@@ -201,6 +222,19 @@ export function SupportDevelopmentHandoffPanel({
       {/* Actions — only when ticket is still eligible */}
       {!isTerminal && !showReturnForm && (
         <>
+          {phase === "support_action_required" && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleResolveIntervention}
+                disabled={isPending}
+                className="rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-medium text-admin-accent-foreground transition-opacity disabled:opacity-50"
+              >
+                {isPending ? "Procesando…" : "Atender intervención"}
+              </button>
+            </div>
+          )}
+
           {phase === "pending_support_validation" && (
             <div className="flex flex-wrap gap-2">
               <button

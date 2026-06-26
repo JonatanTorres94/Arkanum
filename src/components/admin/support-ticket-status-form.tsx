@@ -10,6 +10,7 @@ const LABELS: Record<TicketStatus, string> = {
   waiting_client:           "Esperando cliente",
   waiting_internal:         "Esperando interno",
   escalated_to_development: "Escalado a desarrollo",
+  action_required:          "Acción requerida",
   resolved:                 "Resuelto",
   closed:                   "Cerrado",
   cancelled:                "Cancelado",

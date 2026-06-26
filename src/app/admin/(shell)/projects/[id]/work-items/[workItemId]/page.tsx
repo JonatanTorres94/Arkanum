@@ -20,6 +20,7 @@ import {
 } from "@/components/admin/project-work-item-workspace";
 import { ProjectWorkItemCommentForm } from "@/components/admin/project-work-item-comment-form";
 import { ProjectWorkItemCommentList } from "@/components/admin/project-work-item-comment-list";
+import { SupportInterventionRequestPanel } from "@/components/admin/support-intervention-request-panel";
 
 export const metadata = { title: "Work item — Admin", robots: { index: false, follow: false } };
 
@@ -120,6 +121,15 @@ export default async function AdminWorkItemDetailPage({
                 />
                 <ProjectWorkItemCommentList comments={comments} />
               </div>
+            </AdminSection>
+
+            <AdminSection title="Intervención de Soporte">
+              <SupportInterventionRequestPanel
+                projectId={projectId}
+                workItemId={workItemId}
+                currentStatus={workItem.status}
+                linkedTicketId={linkedTicket?.id ?? null}
+              />
             </AdminSection>
           </>
         }

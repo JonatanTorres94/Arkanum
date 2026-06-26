@@ -2,6 +2,40 @@
 
 ## [Unreleased]
 
+## [0.43.0] - 2026-06-26
+
+### Added
+
+- `supabase/migrations/20260627000000_add_work_item_awaiting_support_status.sql` — agrega `awaiting_support` al constraint `check` de `project_work_items.status`.
+- `supabase/migrations/20260627010000_add_ticket_action_required_status.sql` — agrega `action_required` al constraint `check` de `support_tickets.status`.
+- `src/features/projects/application/request-support-intervention.use-case.ts` — orquesta: crea comentario `visible_to_support=true` (autoritative) + actualiza WI a `awaiting_support` (autoritative) + marca ticket como `action_required` (best-effort) + nota de auditoría (silent-fail).
+- `src/features/support/application/resolve-support-intervention.use-case.ts` — orquesta: actualiza ticket a `escalated_to_development` (autoritative) + devuelve WI a `ready` (best-effort) + nota de auditoría (silent-fail).
+- `src/server/actions/admin-project-work-item.action.ts` — `requestSupportInterventionAction`: valida auth + ownership + estado del ticket; llama al use case; sincroniza lifecycle; revalida rutas afectadas.
+- `src/server/actions/admin-support-ticket.action.ts` — `resolveSupportInterventionAction`: valida auth; llama al use case; sincroniza lifecycle; revalida rutas afectadas.
+- `src/components/admin/support-intervention-request-panel.tsx` — panel client en detalle de work item: muestra formulario cuando hay ticket vinculado; renderiza estado de espera si ya está `awaiting_support`; oculto para estados terminales o sin ticket.
+- `src/features/projects/application/request-support-intervention.use-case.test.ts` — 15 tests: validación, happy path, partial failure.
+- `src/features/support/application/resolve-support-intervention.use-case.test.ts` — 9 tests: validación, happy path, partial failure.
+
+### Changed
+
+- `src/features/projects/domain/project-work-item.types.ts` — `WORK_ITEM_STATUSES` incluye `awaiting_support`; `WORK_ITEM_SELECTABLE_STATUSES` lo excluye para que UI no lo ofrezca en dropdowns normales.
+- `src/features/projects/domain/project-lifecycle.ts` — `OPEN_WORK_ITEM_STATUSES` incluye `awaiting_support` para que el lifecycle del proyecto permanezca `in_development` mientras el WI espera intervención.
+- `src/features/projects/domain/project-work-item-labels.ts` — label `awaiting_support: "Esperando a Soporte"`.
+- `src/features/support/domain/support-ticket.types.ts` — `TICKET_STATUSES` incluye `action_required`.
+- `src/features/support/domain/support-development-phase.ts` — nueva fase `support_action_required` derivada cuando `workItem.status === "awaiting_support"`; `OPEN_EXCLUDING_AWAITING` evita colisión con la derivación genérica `development_in_progress`.
+- `src/components/admin/project-work-item-badges.tsx` — badge `awaiting_support` en naranja.
+- `src/components/admin/support-ticket-badges.tsx` — label y badge `action_required` en naranja.
+- `src/components/admin/support-ticket-form.tsx` — mapa `STATUS_LABELS` incluye `action_required`.
+- `src/components/admin/support-ticket-status-form.tsx` — mapa `LABELS` incluye `action_required`.
+- `src/components/admin/project-work-item-form.tsx` — usa `WORK_ITEM_SELECTABLE_STATUSES` en lugar de `WORK_ITEM_STATUSES`.
+- `src/components/admin/project-work-item-details-form.tsx` — usa `WORK_ITEM_SELECTABLE_STATUSES`; si estado actual es `awaiting_support`, lo antepone como opción de sólo-lectura.
+- `src/components/admin/project-work-item-status-form.tsx` — mismo tratamiento que el formulario de detalles.
+- `src/server/actions/admin-project-work-item.action.ts` — `updateProjectWorkItemStatusAction` y `updateProjectWorkItemAction` rechazan `awaiting_support` con mensaje explícito que indica el flujo correcto.
+- `src/components/admin/support-development-handoff-panel.tsx` — renderiza fase `support_action_required` con título en naranja y botón "Atender intervención"; llama a `resolveSupportInterventionAction`.
+- `src/app/admin/(shell)/projects/[id]/work-items/[workItemId]/page.tsx` — integra `SupportInterventionRequestPanel`.
+- `src/features/support/domain/support-development-phase.test.ts` — cubre `support_action_required`; corrige iteración sobre estados abiertos para excluir `awaiting_support`.
+- `src/features/projects/domain/project-work-item-labels.test.ts` — cubre `awaiting_support`.
+
 ## [0.42.0] - 2026-06-26
 
 ### Added
