@@ -174,6 +174,7 @@ export async function updateSupportTicketStatusAction(
 
   revalidatePath(`/admin/support/${id}`);
   revalidatePath("/admin/support");
+  revalidatePath("/admin/attention");
 
   // Reopening must never touch the linked work item — development's
   // completed status is historical context, not something support can revive.
@@ -383,6 +384,7 @@ export async function resolveAfterDevelopmentAction(
 
   revalidatePath(`/admin/support/${ticketId}`);
   revalidatePath("/admin/support");
+  revalidatePath("/admin/attention");
   revalidatePath(
     `/admin/projects/${workItemResult.workItem.projectId}/work-items/${ticket.escalatedWorkItemId}`
   );
@@ -477,6 +479,7 @@ export async function returnToDevelopmentAction(
   // work item and project are already persisted at this point.
   revalidatePath(`/admin/support/${ticketId}`);
   revalidatePath("/admin/support");
+  revalidatePath("/admin/attention");
   if (ticket.clientId) {
     revalidatePath(`/admin/clients/${ticket.clientId}`);
   }
@@ -531,6 +534,7 @@ export async function closeTicketAfterDevelopmentCancellationAction(
 
   revalidatePath(`/admin/support/${ticketId}`);
   revalidatePath("/admin/support");
+  revalidatePath("/admin/attention");
   revalidatePath(
     `/admin/projects/${workItemResult.workItem.projectId}/work-items/${ticket.escalatedWorkItemId}`
   );
@@ -566,6 +570,7 @@ export async function resolveSupportInterventionAction(
     if (outcome.partial) {
       revalidatePath(`/admin/support/${ticketId}`);
       revalidatePath("/admin/support");
+      revalidatePath("/admin/attention");
       if (ticket?.escalatedWorkItemId && ticket?.projectId) {
         revalidatePath(
           `/admin/projects/${ticket.projectId}/work-items/${ticket.escalatedWorkItemId}`
@@ -594,6 +599,7 @@ export async function resolveSupportInterventionAction(
 
   revalidatePath(`/admin/support/${ticketId}`);
   revalidatePath("/admin/support");
+  revalidatePath("/admin/attention");
   if (ticket?.escalatedWorkItemId && ticket?.projectId) {
     revalidatePath(
       `/admin/projects/${ticket.projectId}/work-items/${ticket.escalatedWorkItemId}`

@@ -6,7 +6,7 @@ import { ADMIN_NAV_ITEMS, ADMIN_NAV_DOMAIN_LABELS, ADMIN_NAV_DOMAIN_ORDER } from
 import { ThemeToggle } from "@/components/admin/theme-toggle";
 import { signOutAction } from "@/server/actions/auth.action";
 
-export function AdminSidebar() {
+export function AdminSidebar({ attentionCount = 0 }: { attentionCount?: number }) {
   const pathname = usePathname();
 
   return (
@@ -35,13 +35,18 @@ export function AdminSidebar() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                      className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
                         active
                           ? "bg-admin-accent/10 text-admin-accent"
                           : "text-admin-text-secondary hover:bg-admin-surface-hover hover:text-admin-text"
                       }`}
                     >
-                      {item.label}
+                      <span>{item.label}</span>
+                      {item.href === "/admin/attention" && attentionCount > 0 && (
+                        <span className="ml-2 min-w-[1.25rem] rounded-full bg-admin-accent px-1.5 py-0.5 text-center text-[10px] font-semibold leading-none text-white">
+                          {attentionCount > 99 ? "99+" : attentionCount}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}

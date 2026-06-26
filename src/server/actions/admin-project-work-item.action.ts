@@ -41,6 +41,7 @@ function isValidEnumValue<T extends string>(options: readonly T[], value: string
 function revalidateSupportTicketRoutes(ticket: SupportTicket): void {
   revalidatePath(`/admin/support/${ticket.id}`);
   revalidatePath("/admin/support");
+  revalidatePath("/admin/attention");
   if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
 }
 
@@ -397,6 +398,7 @@ export async function requestSupportInterventionAction(
       revalidatePath(`/admin/projects/${projectId}`);
       revalidatePath(`/admin/support/${ticket.id}`);
       revalidatePath("/admin/support");
+      revalidatePath("/admin/attention");
       if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
     }
     return { error: outcome.error };
@@ -414,6 +416,7 @@ export async function requestSupportInterventionAction(
   revalidatePath(`/admin/projects/${projectId}`);
   revalidatePath(`/admin/support/${ticket.id}`);
   revalidatePath("/admin/support");
+  revalidatePath("/admin/attention");
   if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
 
   const warnings: string[] = [];

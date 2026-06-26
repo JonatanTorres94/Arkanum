@@ -2,6 +2,76 @@
 
 ## [Unreleased]
 
+## [0.45.3] - 2026-06-26
+
+### Added
+
+- `attention-item.types.ts` — kind `integrity_awaiting_support_mismatch` (integrity): WI con status `awaiting_support` sin ticket `action_required` activo vinculado. Etiqueta: "WI en espera sin intervención activa". Sort weight 0 (mismo nivel que otros integrity items).
+
+### Changed
+
+- `get-attention-items.use-case.ts` — validación recíproca al existente `integrity_action_required_mismatch`: (1) En `workItemToItems()`: `awaiting_support` → `integrity_awaiting_support_mismatch` con href al WI (ruta standalone). (2) En `ticketCandidateToItems()`: `awaiting_support` con ticket no-`action_required` → `integrity_awaiting_support_mismatch` con href al ticket, antes del fallback genérico; evita emitir `support_open_ticket` para ese par inconsistente.
+- `attention-inbox.tsx` — agrega `integrity_awaiting_support_mismatch` a `KIND_INDICATOR_CLASSES` (bg-admin-text-faint).
+
+### Tests
+
+- `get-attention-items.use-case.test.ts` — 46 tests (era 42): grupo "awaiting_support without action_required ticket" con 4 casos: WI standalone, ticket open, ticket escalated_to_development, ticket action_required (caso válido — sin integrity).
+
+## [0.45.2] - 2026-06-26
+
+### Added
+
+- `attention-item.types.ts` — 3 nuevos kinds genéricos: `support_open_ticket` (support), `development_open_work_item` (development), `development_blocked_work_item` (development). Tabla `ATTENTION_KIND_SORT_WEIGHT` para ordenar por especificidad (integrity → specific workflow → blocked → generic). `AttentionItem` unificado: `ticketId` nullable, `title`/`priority` reemplazan `ticketTitle`/`ticketPriority` para cubrir ítems de WIs sin ticket.
+
+### Changed
+
+- `attention-item.repository.ts` — `AttentionCandidate` pasa a ser union discriminada: `TicketCandidate { type: "ticket" }` y `StandaloneWorkItemCandidate { type: "standalone_work_item" }`.
+- `supabase-attention-item.repository.ts` — tres queries: (1) todos los tickets no-terminales; (2) todos los WIs activos (ready/in_progress/blocked/review/testing/awaiting_support); (3) condicional: WIs vinculados a tickets que están en done/cancelled. Produce `TicketCandidate[]` + `StandaloneWorkItemCandidate[]`. Evita N+1.
+- `get-attention-items.use-case.ts` — `candidateToItems` es ahora un dispatcher sobre la union; `ticketCandidateToItems` genera `support_open_ticket` para tickets sin ítem específico; `workItemToItems` (shared) genera `development_blocked_work_item` o `development_open_work_item`; `sortItems` usa `ATTENTION_KIND_SORT_WEIGHT` como clave primaria; interfaz de `makeItem` actualizada.
+- `attention-inbox.tsx` — usa `item.title` y `item.priority` (campos unificados); agrega indicadores visuales para los 3 nuevos kinds.
+
+### Tests
+
+- `get-attention-items.use-case.test.ts` — 42 tests (era 27): agrega grupos genéricos (Support tickets abiertos, WIs de Desarrollo), deduplicación (6 casos), sorting por especificidad y tiebreakers, badge count con candidatos mixtos.
+
+## [0.45.1] - 2026-06-26
+
+### Changed
+
+- `src/features/operations/domain/attention-item.types.ts` — agrega kind `integrity_action_required_mismatch` (ticket `action_required` con WI que no está `awaiting_support`); actualiza `ATTENTION_AUDIENCE_FOR_KIND` y `ATTENTION_KIND_LABELS`.
+- `src/features/operations/infrastructure/attention-item.repository.ts` — elimina `countAttentionTickets` de la interfaz (reemplazado por derivación exacta en el use case).
+- `src/features/operations/infrastructure/supabase-attention-item.repository.ts` — elimina implementación de `countAttentionTickets`.
+- `src/features/operations/application/get-attention-items.use-case.ts` — (1) `action_required` ahora exige el par `action_required + awaiting_support`; sin WI → sólo `integrity_missing_work_item`; WI en otro estado → `integrity_action_required_mismatch`. (2) `sortItems` agrega tiebreaker determinista `a.id.localeCompare(b.id)`. (3) `getAttentionItemCountUseCase` reutiliza `findAttentionCandidates + candidateToItems` en vez de `countAttentionTickets`, garantizando que el badge coincida exactamente con la bandeja.
+- `src/components/admin/attention-inbox.tsx` — valida `?audience` contra el set de valores conocidos (`all / support / development / integrity`) antes del cast; valor inválido cae en `"all"`.
+
+### Tests
+
+- `src/features/operations/application/get-attention-items.use-case.test.ts` — 27 tests: agrega casos de `integrity_action_required_mismatch` (8 WI statuses), verifica ausencia de ítems operativos en mismatch, verifica que `action_required + WI missing` produce sólo `integrity_missing_work_item`, tiebreaker de sort por id, badge count reescrito con derivación exacta y fail-open.
+
+## [0.45.0] - 2026-06-26
+
+### Added
+
+- `src/features/operations/domain/attention-item.types.ts` — tipos de dominio: `AttentionItemKind` (6 variantes), `AttentionAudience` (`support` / `development` / `integrity`), `AttentionItem`, mapas de audiencia y etiquetas, `PRIORITY_SORT_WEIGHT`.
+- `src/features/operations/infrastructure/attention-item.repository.ts` — interfaz `AttentionItemRepository` con `findAttentionCandidates` y `countAttentionTickets`. Tipo `AttentionCandidate` (ticket + workItem + workItemMissing flag).
+- `src/features/operations/infrastructure/supabase-attention-item.repository.ts` — implementación Supabase: dos queries (tickets no-terminales relevantes → WIs por IDs); `countAttentionTickets` con query `head: true` para el badge; fail-open en count.
+- `src/features/operations/application/get-attention-items.use-case.ts` — dos casos de uso: `getAttentionItemsUseCase` (derivación completa + sort) y `getAttentionItemCountUseCase` (fast path para el badge). Derivación: `action_required` → `support_intervention_pending` + `development_intervention_active`; WI `done` → `support_validation_pending`; WI `cancelled` → `support_cancellation_review`; `workItemMissing` → `integrity_missing_work_item`; escalado sin WI → `integrity_orphan_escalation`. Orden: prioridad desc → antigüedad asc.
+- `src/components/admin/attention-inbox.tsx` — componente client con filtros por URL searchParam (`?audience=`): Todos / Soporte / Desarrollo / Integridad. Indicador de color por kind. Badge por filtro. Sin acciones directas.
+- `src/app/admin/(shell)/attention/page.tsx` — página server component; metadata; carga items; maneja error de use case; pasa items a `AttentionInbox` dentro de `Suspense`.
+
+### Changed
+
+- `src/config/admin-nav.ts` — agrega dominio `"operations"` y nav item `"Atención"` (`/admin/attention`). Reordena dominios: `operations` primero.
+- `src/components/admin/admin-shell.tsx` — acepta prop `attentionCount?: number` y la pasa a `AdminSidebar`.
+- `src/components/admin/admin-sidebar.tsx` — acepta prop `attentionCount?: number`; renderiza badge numérico en el ítem "Atención" si `count > 0`; cap en "99+".
+- `src/app/admin/(shell)/layout.tsx` — llama `getAttentionItemCountUseCase` para poblar el badge en el layout.
+- `src/server/actions/admin-project-work-item.action.ts` — agrega `revalidatePath("/admin/attention")` en `revalidateSupportTicketRoutes` (aplica a todos los cambios de WI con ticket vinculado) y en `requestSupportInterventionAction` (partial + success).
+- `src/server/actions/admin-support-ticket.action.ts` — agrega `revalidatePath("/admin/attention")` en `updateSupportTicketStatusAction`, `resolveTicketAfterDevelopmentAction`, `returnToDevelopmentAction`, `closeTicketAfterDevelopmentCancellationAction` y `resolveSupportInterventionAction` (partial + success).
+
+### Tests
+
+- `src/features/operations/application/get-attention-items.use-case.test.ts` — 14 tests: derivación por kind (todos los casos), items de integridad, ausencia de items en estado normal, sort por prioridad y antigüedad, error handling, count use case.
+
 ## [0.44.1] - 2026-06-26
 
 ### Fixed
