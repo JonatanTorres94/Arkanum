@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [0.46.0] - 2026-06-26
+
+### Added
+
+- `project-lifecycle.ts` — `assessProjectLifecycle()` con 7 casos de inconsistencia: `planning_while_execution_exists`, `planning_while_testing_exists`, `in_development_while_testing_exists`, `ahead_of_execution`, `completed_with_active_work`, `execution_status_missing_start_date`, `all_work_items_cancelled`. Retorna `ProjectLifecycleAssessment` con `consistent`, `inconsistencies[]`, `suggestedStatus`, `severity` y `warnings[]` compatible hacia atrás. Agrega constantes `PROTECTED_PROJECT_STATUSES` y `EXECUTION_WI_STATUSES`.
+- `project-lifecycle-summary.tsx` — componente `ProjectLifecycleSummary` para el sidebar del detalle de proyecto: tabla de progreso de WIs por estado, advertencias de inconsistencia con severidad visual (warning/info), botón "Actualizar a {Estado}" que aplica la sugerencia via server action.
+- `admin-project.action.ts` — `applyLifecycleSuggestionAction()`: aplica la transición de estado sugerida pasando por la misma validación de `updateProjectUseCase`; rechaza transiciones hacia estados protegidos.
+
+### Changed
+
+- `synchronize-project-lifecycle.use-case.ts` — regla de trigger de testing reemplaza la antigua regla de regresión: (Regla 2) `planning/in_development → testing` cuando cualquier WI entra en `testing`. Elimina Regla 3 (regresión `testing → in_development`): un proyecto en testing permanece allí hasta que el admin lo cambie explícitamente. `planning → testing` directo inicializa `startDate` si es null.
+- `admin-project.action.ts` — `updateProjectAction` revalida `/admin/projects` y `/admin/attention` además del detalle del proyecto.
+- `page.tsx` (detalle de proyecto) — reemplaza la lista de advertencias legacy por `ProjectLifecycleSummary` en el sidebar.
+
+### Tests
+
+- `project-lifecycle.test.ts` (nuevo) — 30 tests: cubre `assessProjectLifecycle` con cada caso de inconsistencia, casos consistent, top-level fields y retrocompatibilidad de `warnings[]`.
+- `synchronize-project-lifecycle-escalation.test.ts` — reescrito con 27 tests: Regla 1 (planning→in_development), Regla 2 (→testing), no-regresión (4 escenarios de testing), estados protegidos (4), no-op, y fallas de repositorio.
+
 ## [0.45.3] - 2026-06-26
 
 ### Added
