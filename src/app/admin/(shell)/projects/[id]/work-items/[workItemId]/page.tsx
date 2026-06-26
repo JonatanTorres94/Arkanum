@@ -4,6 +4,8 @@ import { getProjectByIdUseCase } from "@/features/projects/application/get-proje
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
 import { getProjectWorkItemByIdUseCase } from "@/features/projects/application/get-project-work-item-by-id.use-case";
 import { SupabaseProjectWorkItemRepository } from "@/features/projects/infrastructure/supabase-project-work-item.repository";
+import { getProjectWorkItemCommentsUseCase } from "@/features/projects/application/get-project-work-item-comments.use-case";
+import { SupabaseProjectWorkItemCommentRepository } from "@/features/projects/infrastructure/supabase-project-work-item-comment.repository";
 import { getSupportTicketByWorkItemUseCase } from "@/features/support/application/get-support-ticket-by-work-item.use-case";
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import { AdminSection } from "@/components/admin/admin-card";
@@ -16,6 +18,8 @@ import {
   EditWorkItemButton,
   WorkItemDetailsSection,
 } from "@/components/admin/project-work-item-workspace";
+import { ProjectWorkItemCommentForm } from "@/components/admin/project-work-item-comment-form";
+import { ProjectWorkItemCommentList } from "@/components/admin/project-work-item-comment-list";
 
 export const metadata = { title: "Work item — Admin", robots: { index: false, follow: false } };
 
@@ -59,11 +63,13 @@ export default async function AdminWorkItemDetailPage({
   // Ownership guard: route projectId must match the persisted work item.
   if (workItem.projectId !== projectId) notFound();
 
-  const linkedTicketResult = await getSupportTicketByWorkItemUseCase(
-    workItemId,
-    new SupabaseSupportTicketRepository()
-  );
+  const [linkedTicketResult, commentsResult] = await Promise.all([
+    getSupportTicketByWorkItemUseCase(workItemId, new SupabaseSupportTicketRepository()),
+    getProjectWorkItemCommentsUseCase(workItemId, new SupabaseProjectWorkItemCommentRepository()),
+  ]);
+
   const linkedTicket = linkedTicketResult.ok ? linkedTicketResult.ticket : null;
+  const comments     = commentsResult.ok ? commentsResult.comments : [];
 
   return (
     <ProjectWorkItemWorkspaceProvider
@@ -104,6 +110,16 @@ export default async function AdminWorkItemDetailPage({
           <>
             <AdminSection title="Detalle">
               <WorkItemDetailsSection />
+            </AdminSection>
+
+            <AdminSection title="Comentarios">
+              <div className="space-y-4">
+                <ProjectWorkItemCommentForm
+                  projectId={projectId}
+                  workItemId={workItemId}
+                />
+                <ProjectWorkItemCommentList comments={comments} />
+              </div>
             </AdminSection>
           </>
         }
