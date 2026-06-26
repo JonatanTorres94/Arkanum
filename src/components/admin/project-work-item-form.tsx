@@ -5,39 +5,13 @@ import {
   WORK_ITEM_CATEGORIES,
   WORK_ITEM_STATUSES,
   WORK_ITEM_PRIORITIES,
-  type WorkItemCategory,
-  type WorkItemStatus,
-  type WorkItemPriority,
 } from "@/features/projects/domain/project-work-item.types";
 import { createProjectWorkItemAction } from "@/server/actions/admin-project-work-item.action";
-
-const CATEGORY_LABELS: Record<WorkItemCategory, string> = {
-  feature:             "Feature",
-  bug:                 "Bug",
-  task:                "Tarea",
-  improvement:         "Mejora",
-  technical_debt:      "Deuda técnica",
-  research:            "Investigación",
-  support_escalation:  "Escalación de soporte",
-};
-
-const STATUS_LABELS: Record<WorkItemStatus, string> = {
-  backlog:     "Backlog",
-  ready:       "Listo para iniciar",
-  in_progress: "En progreso",
-  blocked:     "Bloqueado",
-  review:      "En revisión",
-  testing:     "Testing",
-  done:        "Completado",
-  cancelled:   "Cancelado",
-};
-
-const PRIORITY_LABELS: Record<WorkItemPriority, string> = {
-  low:    "Baja",
-  medium: "Media",
-  high:   "Alta",
-  urgent: "Urgente",
-};
+import {
+  WORK_ITEM_STATUS_LABELS,
+  WORK_ITEM_PRIORITY_LABELS,
+  WORK_ITEM_CATEGORY_LABELS,
+} from "@/features/projects/domain/project-work-item-labels";
 
 const inputClass =
   "w-full rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50";
@@ -103,7 +77,7 @@ export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
             className={`${inputClass} cursor-pointer`}
           >
             {WORK_ITEM_CATEGORIES.map((category) => (
-              <option key={category} value={category}>{CATEGORY_LABELS[category]}</option>
+              <option key={category} value={category}>{WORK_ITEM_CATEGORY_LABELS[category]}</option>
             ))}
           </select>
         </div>
@@ -118,7 +92,7 @@ export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
             className={`${inputClass} cursor-pointer`}
           >
             {WORK_ITEM_STATUSES.map((status) => (
-              <option key={status} value={status}>{STATUS_LABELS[status]}</option>
+              <option key={status} value={status}>{WORK_ITEM_STATUS_LABELS[status]}</option>
             ))}
           </select>
         </div>
@@ -133,7 +107,7 @@ export function ProjectWorkItemForm({ projectId }: { projectId: string }) {
             className={`${inputClass} cursor-pointer`}
           >
             {WORK_ITEM_PRIORITIES.map((priority) => (
-              <option key={priority} value={priority}>{PRIORITY_LABELS[priority]}</option>
+              <option key={priority} value={priority}>{WORK_ITEM_PRIORITY_LABELS[priority]}</option>
             ))}
           </select>
         </div>

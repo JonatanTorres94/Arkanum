@@ -30,6 +30,7 @@ import type { WorkItemCategory } from "@/features/projects/domain/project-work-i
 import { createSupportTicketNoteUseCase } from "@/features/support/application/create-support-ticket-note.use-case";
 import { resolveTicketAfterDevelopmentUseCase } from "@/features/support/application/resolve-ticket-after-development.use-case";
 import { returnTicketToDevelopmentUseCase } from "@/features/support/application/return-ticket-to-development.use-case";
+import { closeTicketAfterDevelopmentCancellationUseCase } from "@/features/support/application/close-ticket-after-development-cancellation.use-case";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 import { updateProjectWorkItemStatusUseCase } from "@/features/projects/application/update-project-work-item-status.use-case";
 import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
@@ -469,4 +470,52 @@ export async function returnToDevelopmentAction(
   if (returnOutcome.warning) warnings.push(returnOutcome.warning);
 
   return warnings.length > 0 ? { warning: warnings.join(" ") } : {};
+}
+
+export async function closeTicketAfterDevelopmentCancellationAction(
+  ticketId: string
+): Promise<{ error?: string; warning?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  const ticketRepository  = new SupabaseSupportTicketRepository();
+  const ticketResult = await getSupportTicketByIdUseCase(ticketId, ticketRepository);
+  if (!ticketResult.ok) return { error: "Ticket no encontrado." };
+
+  const { ticket } = ticketResult;
+
+  if (!ticket.escalatedWorkItemId) {
+    return { error: "Este ticket no tiene un work item de desarrollo vinculado." };
+  }
+
+  const workItemResult = await getProjectWorkItemByIdUseCase(
+    ticket.escalatedWorkItemId,
+    new SupabaseProjectWorkItemRepository()
+  );
+  if (!workItemResult.ok) {
+    return { error: "El work item vinculado ya no está disponible." };
+  }
+
+  if (workItemResult.workItem.status !== "cancelled") {
+    return { error: "Solo se puede cerrar el ticket cuando el work item de Desarrollo está cancelado." };
+  }
+
+  const outcome = await closeTicketAfterDevelopmentCancellationUseCase(
+    ticketId,
+    user.email ?? null,
+    ticketRepository,
+    new SupabaseSupportTicketNoteRepository()
+  );
+
+  if (!outcome.ok) return { error: outcome.error };
+
+  revalidatePath(`/admin/support/${ticketId}`);
+  revalidatePath("/admin/support");
+  revalidatePath(
+    `/admin/projects/${workItemResult.workItem.projectId}/work-items/${ticket.escalatedWorkItemId}`
+  );
+  revalidatePath(`/admin/projects/${workItemResult.workItem.projectId}`);
+  if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
+
+  return outcome.warning ? { warning: outcome.warning } : {};
 }

@@ -10,32 +10,11 @@ import {
   type WorkItemPriority,
 } from "@/features/projects/domain/project-work-item.types";
 import { updateProjectWorkItemAction } from "@/server/actions/admin-project-work-item.action";
-
-const CATEGORY_LABELS: Record<WorkItemCategory, string> = {
-  feature:            "Feature",
-  bug:                "Bug",
-  task:               "Tarea",
-  improvement:        "Mejora",
-  technical_debt:     "Deuda técnica",
-  research:           "Investigación",
-  support_escalation: "Escalación de soporte",
-};
-const STATUS_LABELS: Record<WorkItemStatus, string> = {
-  backlog:    "Backlog",
-  ready:      "Listo",
-  in_progress:"En progreso",
-  blocked:    "Bloqueado",
-  review:     "En revisión",
-  testing:    "Testing",
-  done:       "Completado",
-  cancelled:  "Cancelado",
-};
-const PRIORITY_LABELS: Record<WorkItemPriority, string> = {
-  low:    "Baja",
-  medium: "Media",
-  high:   "Alta",
-  urgent: "Urgente",
-};
+import {
+  WORK_ITEM_STATUS_LABELS,
+  WORK_ITEM_PRIORITY_LABELS,
+  WORK_ITEM_CATEGORY_LABELS,
+} from "@/features/projects/domain/project-work-item-labels";
 
 const fieldClass =
   "w-full min-w-0 rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text placeholder-admin-text-faint transition-colors focus:border-admin-accent focus:outline-none disabled:opacity-50";
@@ -130,7 +109,7 @@ export function ProjectWorkItemDetailsForm({
             className={fieldClass}
           >
             {WORK_ITEM_CATEGORIES.map((c) => (
-              <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
+              <option key={c} value={c}>{WORK_ITEM_CATEGORY_LABELS[c]}</option>
             ))}
           </select>
         </div>
@@ -145,7 +124,7 @@ export function ProjectWorkItemDetailsForm({
             className={fieldClass}
           >
             {WORK_ITEM_STATUSES.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+              <option key={s} value={s}>{WORK_ITEM_STATUS_LABELS[s]}</option>
             ))}
           </select>
         </div>
@@ -160,7 +139,7 @@ export function ProjectWorkItemDetailsForm({
             className={fieldClass}
           >
             {WORK_ITEM_PRIORITIES.map((p) => (
-              <option key={p} value={p}>{PRIORITY_LABELS[p]}</option>
+              <option key={p} value={p}>{WORK_ITEM_PRIORITY_LABELS[p]}</option>
             ))}
           </select>
         </div>

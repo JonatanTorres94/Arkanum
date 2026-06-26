@@ -5,18 +5,12 @@ import { useState, useTransition } from "react";
 import type { SupportDevelopmentPhase } from "@/features/support/domain/support-development-phase";
 import type { WorkItemStatus } from "@/features/projects/domain/project-work-item.types";
 import type { TicketStatus } from "@/features/support/domain/support-ticket.types";
-import { resolveAfterDevelopmentAction, returnToDevelopmentAction } from "@/server/actions/admin-support-ticket.action";
-
-const WI_STATUS_LABELS: Record<WorkItemStatus, string> = {
-  backlog:     "Backlog",
-  ready:       "Listo para iniciar",
-  in_progress: "En progreso",
-  blocked:     "Bloqueado",
-  review:      "En revisión",
-  testing:     "Testing",
-  done:        "Completado",
-  cancelled:   "Cancelado",
-};
+import { WORK_ITEM_STATUS_LABELS } from "@/features/projects/domain/project-work-item-labels";
+import {
+  resolveAfterDevelopmentAction,
+  returnToDevelopmentAction,
+  closeTicketAfterDevelopmentCancellationAction,
+} from "@/server/actions/admin-support-ticket.action";
 
 const TERMINAL_TICKET_STATUSES = new Set<TicketStatus>(["resolved", "closed", "cancelled"]);
 
@@ -25,6 +19,7 @@ type LinkedWorkItem = {
   title:     string;
   status:    WorkItemStatus;
   projectId: string;
+  notes:     string | null;
 };
 
 export function SupportDevelopmentHandoffPanel({
@@ -46,7 +41,6 @@ export function SupportDevelopmentHandoffPanel({
   const [reason,  setReason]         = useState("");
   const [showReturnForm, setShowReturnForm] = useState(false);
 
-  // Actions are only shown when the ticket is still eligible.
   const isTerminal = TERMINAL_TICKET_STATUSES.has(ticketStatus);
 
   function handleResolve() {
@@ -54,6 +48,16 @@ export function SupportDevelopmentHandoffPanel({
     setWarning(null);
     startTransition(async () => {
       const result = await resolveAfterDevelopmentAction(ticketId);
+      if (result.error)   setError(result.error);
+      if (result.warning) setWarning(result.warning);
+    });
+  }
+
+  function handleClose() {
+    setError(null);
+    setWarning(null);
+    startTransition(async () => {
+      const result = await closeTicketAfterDevelopmentCancellationAction(ticketId);
       if (result.error)   setError(result.error);
       if (result.warning) setWarning(result.warning);
     });
@@ -88,7 +92,6 @@ export function SupportDevelopmentHandoffPanel({
 
   if (phase === "not_escalated" || !workItem) return null;
 
-  // Border/background color varies by phase; terminal tickets get a neutral tone.
   const containerClass = isTerminal
     ? "border-admin-border bg-admin-surface-hover"
     : phase === "pending_support_validation"
@@ -148,7 +151,7 @@ export function SupportDevelopmentHandoffPanel({
       <div className="rounded-lg border border-admin-border bg-admin-surface px-3 py-2.5 space-y-1">
         <p className="text-xs text-admin-text-muted">Work item vinculado</p>
         <p className="text-sm text-admin-text break-words">{workItem.title}</p>
-        <p className="text-xs text-admin-text-muted">{WI_STATUS_LABELS[workItem.status]}</p>
+        <p className="text-xs text-admin-text-muted">{WORK_ITEM_STATUS_LABELS[workItem.status]}</p>
         <div className="flex flex-wrap gap-3 pt-0.5">
           <Link
             href={`/admin/projects/${workItem.projectId}`}
@@ -164,6 +167,14 @@ export function SupportDevelopmentHandoffPanel({
           </Link>
         </div>
       </div>
+
+      {/* Development notes snapshot — editable by Desarrollo, read-only here */}
+      {workItem.notes && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-admin-text-muted">Notas de Desarrollo</p>
+          <p className="text-sm text-admin-text whitespace-pre-wrap break-words">{workItem.notes}</p>
+        </div>
+      )}
 
       {/* Feedback */}
       {error   && <p className="text-xs text-admin-danger">{error}</p>}
@@ -194,14 +205,24 @@ export function SupportDevelopmentHandoffPanel({
           )}
 
           {phase === "development_cancelled" && (
-            <button
-              type="button"
-              onClick={() => setShowReturnForm(true)}
-              disabled={isPending}
-              className="rounded-lg border border-admin-border-strong px-3 py-1.5 text-xs text-admin-text-secondary transition-colors hover:text-admin-text disabled:opacity-50"
-            >
-              Devolver a desarrollo
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleClose}
+                disabled={isPending}
+                className="rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-medium text-admin-accent-foreground transition-opacity disabled:opacity-50"
+              >
+                {isPending ? "Procesando…" : "Cerrar ticket"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowReturnForm(true)}
+                disabled={isPending}
+                className="rounded-lg border border-admin-border-strong px-3 py-1.5 text-xs text-admin-text-secondary transition-colors hover:text-admin-text disabled:opacity-50"
+              >
+                Devolver a desarrollo
+              </button>
+            </div>
           )}
         </>
       )}

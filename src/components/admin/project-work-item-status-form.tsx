@@ -2,18 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { WORK_ITEM_STATUSES, type WorkItemStatus } from "@/features/projects/domain/project-work-item.types";
+import { WORK_ITEM_STATUS_LABELS } from "@/features/projects/domain/project-work-item-labels";
 import { updateProjectWorkItemStatusAction } from "@/server/actions/admin-project-work-item.action";
-
-const LABELS: Record<WorkItemStatus, string> = {
-  backlog:     "Backlog",
-  ready:       "Listo para iniciar",
-  in_progress: "En progreso",
-  blocked:     "Bloqueado",
-  review:      "En revisión",
-  testing:     "Testing",
-  done:        "Completado",
-  cancelled:   "Cancelado",
-};
 
 export function ProjectWorkItemStatusForm({
   workItemId,
@@ -48,7 +38,7 @@ export function ProjectWorkItemStatusForm({
         className="rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text focus:border-admin-accent focus:outline-none disabled:opacity-50"
       >
         {WORK_ITEM_STATUSES.map((status) => (
-          <option key={status} value={status}>{LABELS[status]}</option>
+          <option key={status} value={status}>{WORK_ITEM_STATUS_LABELS[status]}</option>
         ))}
       </select>
       {feedback && (

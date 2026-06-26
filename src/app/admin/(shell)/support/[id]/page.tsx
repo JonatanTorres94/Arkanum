@@ -170,6 +170,7 @@ export default async function AdminSupportDetailPage({
                 title:     linkedWorkItem.title,
                 status:    linkedWorkItem.status,
                 projectId: linkedWorkItem.projectId,
+                notes:     linkedWorkItem.notes,
               } : null}
               missingWorkItemId={missingWorkItemId}
             />
