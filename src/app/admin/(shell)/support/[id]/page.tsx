@@ -11,12 +11,13 @@ import { getProjectsByClientIdUseCase } from "@/features/projects/application/ge
 import { getProjectWorkItemByIdUseCase } from "@/features/projects/application/get-project-work-item-by-id.use-case";
 import { SupabaseProjectRepository } from "@/features/projects/infrastructure/supabase-project.repository";
 import { SupabaseProjectWorkItemRepository } from "@/features/projects/infrastructure/supabase-project-work-item.repository";
-import type { WorkItemStatus } from "@/features/projects/domain/project-work-item.types";
+import { deriveDevelopmentPhase } from "@/features/support/domain/support-development-phase";
 import { TicketPriorityBadge, TicketCategoryBadge } from "@/components/admin/support-ticket-badges";
 import { SupportTicketStatusForm } from "@/components/admin/support-ticket-status-form";
 import { SupportTicketEscalationPanel } from "@/components/admin/support-ticket-escalation-panel";
 import { SupportTicketNoteForm } from "@/components/admin/support-ticket-note-form";
 import { SupportTicketNoteList } from "@/components/admin/support-ticket-note-list";
+import { SupportDevelopmentHandoffPanel } from "@/components/admin/support-development-handoff-panel";
 import {
   SupportTicketWorkspaceProvider,
   EditTicketButton,
@@ -35,19 +36,6 @@ const SOURCE_LABELS: Record<TicketSource, string> = {
   client_portal: "Portal cliente",
   internal:      "Interno",
 };
-
-const WI_STATUS_LABELS: Record<WorkItemStatus, string> = {
-  backlog:     "Backlog",
-  ready:       "Listo para iniciar",
-  in_progress: "En progreso",
-  blocked:     "Bloqueado",
-  review:      "En revisión",
-  testing:     "Testing",
-  done:        "Completado",
-  cancelled:   "Cancelado",
-};
-
-const TERMINAL_WORK_ITEM_STATUSES: WorkItemStatus[] = ["done", "cancelled"];
 
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null;
@@ -84,9 +72,12 @@ export default async function AdminSupportDetailPage({
       : Promise.resolve(null),
   ]);
 
-  const linkedWorkItem = workItemResult?.ok ? workItemResult.workItem : null;
-  const linkedWorkItemOpen = linkedWorkItem ? !TERMINAL_WORK_ITEM_STATUSES.includes(linkedWorkItem.status) : false;
-  const linkedWorkItemCancelled = linkedWorkItem?.status === "cancelled";
+  // Distinguish "no work item" from "work item referenced but missing" (integrity error).
+  const linkedWorkItem   = workItemResult?.ok ? workItemResult.workItem : null;
+  const missingWorkItemId =
+    ticket.escalatedWorkItemId && !linkedWorkItem ? ticket.escalatedWorkItemId : null;
+
+  const developmentPhase = deriveDevelopmentPhase(ticket, linkedWorkItem);
 
   const projectOptions = projectsResult.ok
     ? projectsResult.projects.map((project) => ({ id: project.id, name: project.name }))
@@ -168,6 +159,21 @@ export default async function AdminSupportDetailPage({
       }
       sidebar={
         <>
+          {/* Validation handoff panel — prominent when development completed */}
+          {(ticket.escalatedWorkItemId) && (
+            <SupportDevelopmentHandoffPanel
+              ticketId={ticket.id}
+              phase={developmentPhase}
+              workItem={linkedWorkItem ? {
+                id:        linkedWorkItem.id,
+                title:     linkedWorkItem.title,
+                status:    linkedWorkItem.status,
+                projectId: linkedWorkItem.projectId,
+              } : null}
+              missingWorkItemId={missingWorkItemId}
+            />
+          )}
+
           <AdminSection title="Estado">
             <div className="flex flex-wrap items-center gap-3">
               <SupportTicketStatusForm ticketId={ticket.id} currentStatus={ticket.status} />
@@ -176,39 +182,7 @@ export default async function AdminSupportDetailPage({
               <TicketPriorityBadge priority={ticket.priority} />
               <TicketCategoryBadge category={ticket.category} />
             </div>
-            {linkedWorkItemOpen && ticket.status !== "resolved" && (
-              <p className="mt-3 text-xs text-admin-text-faint">
-                No se puede resolver mientras el work item de desarrollo vinculado siga abierto.
-              </p>
-            )}
-            {linkedWorkItemCancelled && ticket.status !== "resolved" && (
-              <p className="mt-3 text-xs text-admin-warning">
-                El trabajo de desarrollo fue cancelado. Confirmá que el caso pueda resolverse por
-                otra vía antes de cerrar soporte.
-              </p>
-            )}
           </AdminSection>
-
-          {linkedWorkItem && (
-            <AdminSection title="Desarrollo vinculado">
-              <p className="text-sm text-admin-text break-words">{linkedWorkItem.title}</p>
-              <p className="mt-1 text-xs text-admin-text-muted">
-                {WI_STATUS_LABELS[linkedWorkItem.status]}
-              </p>
-              {linkedWorkItemCancelled && (
-                <p className="mt-2 text-xs text-admin-warning">
-                  La intervención de desarrollo fue cancelada. Esto no implica que el ticket de
-                  soporte esté resuelto.
-                </p>
-              )}
-              <Link
-                href={`/admin/projects/${ticket.projectId}`}
-                className="mt-2 inline-block text-sm text-admin-accent transition-colors hover:underline"
-              >
-                Ver trabajo
-              </Link>
-            </AdminSection>
-          )}
 
           <AdminSection title="Escalación a desarrollo">
             <SupportTicketEscalationPanel

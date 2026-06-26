@@ -28,7 +28,12 @@ import { getProjectWorkItemByIdUseCase } from "@/features/projects/application/g
 import { SupabaseProjectWorkItemRepository } from "@/features/projects/infrastructure/supabase-project-work-item.repository";
 import type { WorkItemCategory } from "@/features/projects/domain/project-work-item.types";
 import { createSupportTicketNoteUseCase } from "@/features/support/application/create-support-ticket-note.use-case";
+import { resolveTicketAfterDevelopmentUseCase } from "@/features/support/application/resolve-ticket-after-development.use-case";
+import { returnTicketToDevelopmentUseCase } from "@/features/support/application/return-ticket-to-development.use-case";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
+import { updateProjectWorkItemStatusUseCase } from "@/features/projects/application/update-project-work-item-status.use-case";
+import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
+import { OPEN_WORK_ITEM_STATUSES } from "@/features/projects/domain/project-lifecycle";
 
 // A linked work item that finished or was scrapped no longer blocks support
 // resolution — only an actually-open work item should hold a ticket back.
@@ -312,4 +317,149 @@ export async function escalateSupportTicketAction(id: string): Promise<{ error?:
   revalidatePath("/admin/support");
 
   return {};
+}
+
+const REASON_MAX_LENGTH = 1000;
+
+export async function resolveAfterDevelopmentAction(
+  ticketId: string
+): Promise<{ error?: string; warning?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  const ticketRepository = new SupabaseSupportTicketRepository();
+  const ticketResult = await getSupportTicketByIdUseCase(ticketId, ticketRepository);
+  if (!ticketResult.ok) return { error: "Ticket no encontrado." };
+
+  const { ticket } = ticketResult;
+
+  if (!ticket.escalatedWorkItemId) {
+    return { error: "Este ticket no tiene un work item de desarrollo vinculado." };
+  }
+
+  const workItemResult = await getProjectWorkItemByIdUseCase(
+    ticket.escalatedWorkItemId,
+    new SupabaseProjectWorkItemRepository()
+  );
+  if (!workItemResult.ok) {
+    return { error: "El work item vinculado ya no está disponible." };
+  }
+
+  if (workItemResult.workItem.status !== "done") {
+    return {
+      error: "Solo se puede validar cuando el work item de desarrollo está completado.",
+    };
+  }
+
+  const outcome = await resolveTicketAfterDevelopmentUseCase(
+    ticketId,
+    user.email ?? null,
+    ticketRepository,
+    new SupabaseSupportTicketNoteRepository()
+  );
+
+  if (!outcome.ok) return { error: outcome.error };
+
+  revalidatePath(`/admin/support/${ticketId}`);
+  revalidatePath("/admin/support");
+  revalidatePath(
+    `/admin/projects/${workItemResult.workItem.projectId}/work-items/${ticket.escalatedWorkItemId}`
+  );
+  revalidatePath(`/admin/projects/${workItemResult.workItem.projectId}`);
+  if (ticket.clientId) {
+    revalidatePath(`/admin/clients/${ticket.clientId}`);
+  }
+
+  return outcome.warning ? { warning: outcome.warning } : {};
+}
+
+export async function returnToDevelopmentAction(
+  ticketId: string,
+  reason: string
+): Promise<{ error?: string; warning?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  const normalizedReason = reason.trim().slice(0, REASON_MAX_LENGTH) || null;
+
+  const ticketRepository = new SupabaseSupportTicketRepository();
+  const ticketResult = await getSupportTicketByIdUseCase(ticketId, ticketRepository);
+  if (!ticketResult.ok) return { error: "Ticket no encontrado." };
+
+  const { ticket } = ticketResult;
+
+  if (ticket.status === "closed" || ticket.status === "cancelled") {
+    return { error: "No se puede devolver a desarrollo un ticket cerrado o cancelado." };
+  }
+
+  if (!ticket.escalatedWorkItemId) {
+    return { error: "Este ticket no tiene un work item de desarrollo vinculado." };
+  }
+
+  const workItemRepository = new SupabaseProjectWorkItemRepository();
+  const workItemResult = await getProjectWorkItemByIdUseCase(
+    ticket.escalatedWorkItemId,
+    workItemRepository
+  );
+  if (!workItemResult.ok) {
+    return { error: "El work item vinculado ya no está disponible." };
+  }
+
+  const { workItem } = workItemResult;
+  const openStatuses = new Set<string>(OPEN_WORK_ITEM_STATUSES);
+
+  if (openStatuses.has(workItem.status)) {
+    return { error: "El work item ya está abierto — no hay nada que devolver." };
+  }
+
+  const warnings: string[] = [];
+
+  // Step 1 — update work item to ready (authoritative; ticket unchanged if this fails).
+  const workItemOutcome = await updateProjectWorkItemStatusUseCase(
+    ticket.escalatedWorkItemId,
+    { status: "ready" },
+    workItemRepository
+  );
+  if (!workItemOutcome.ok) return { error: workItemOutcome.error };
+
+  revalidatePath(
+    `/admin/projects/${workItem.projectId}/work-items/${ticket.escalatedWorkItemId}`
+  );
+  revalidatePath(`/admin/projects/${workItem.projectId}`);
+
+  // Step 2 — lifecycle sync (best effort).
+  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+    workItem.projectId,
+    new SupabaseProjectRepository(),
+    workItemRepository
+  );
+  if (!syncOutcome.ok) {
+    warnings.push(
+      "El work item se devolvió a Desarrollo, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
+    );
+  }
+
+  // Step 3+4 — ticket status + note (partial-failure semantics inside use case).
+  const returnOutcome = await returnTicketToDevelopmentUseCase(
+    ticketId,
+    normalizedReason,
+    user.email ?? null,
+    ticketRepository,
+    new SupabaseSupportTicketNoteRepository()
+  );
+
+  if (!returnOutcome.ok) {
+    // Work item is already ready but ticket not synced — communicate clearly.
+    return { error: returnOutcome.error };
+  }
+
+  if (returnOutcome.warning) warnings.push(returnOutcome.warning);
+
+  revalidatePath(`/admin/support/${ticketId}`);
+  revalidatePath("/admin/support");
+  if (ticket.clientId) {
+    revalidatePath(`/admin/clients/${ticket.clientId}`);
+  }
+
+  return warnings.length > 0 ? { warning: warnings.join(" ") } : {};
 }
