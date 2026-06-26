@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [0.45.0] - 2026-06-26
+
+### Added
+
+- `src/features/operations/domain/attention-item.types.ts` — tipos de dominio: `AttentionItemKind` (6 variantes), `AttentionAudience` (`support` / `development` / `integrity`), `AttentionItem`, mapas de audiencia y etiquetas, `PRIORITY_SORT_WEIGHT`.
+- `src/features/operations/infrastructure/attention-item.repository.ts` — interfaz `AttentionItemRepository` con `findAttentionCandidates` y `countAttentionTickets`. Tipo `AttentionCandidate` (ticket + workItem + workItemMissing flag).
+- `src/features/operations/infrastructure/supabase-attention-item.repository.ts` — implementación Supabase: dos queries (tickets no-terminales relevantes → WIs por IDs); `countAttentionTickets` con query `head: true` para el badge; fail-open en count.
+- `src/features/operations/application/get-attention-items.use-case.ts` — dos casos de uso: `getAttentionItemsUseCase` (derivación completa + sort) y `getAttentionItemCountUseCase` (fast path para el badge). Derivación: `action_required` → `support_intervention_pending` + `development_intervention_active`; WI `done` → `support_validation_pending`; WI `cancelled` → `support_cancellation_review`; `workItemMissing` → `integrity_missing_work_item`; escalado sin WI → `integrity_orphan_escalation`. Orden: prioridad desc → antigüedad asc.
+- `src/components/admin/attention-inbox.tsx` — componente client con filtros por URL searchParam (`?audience=`): Todos / Soporte / Desarrollo / Integridad. Indicador de color por kind. Badge por filtro. Sin acciones directas.
+- `src/app/admin/(shell)/attention/page.tsx` — página server component; metadata; carga items; maneja error de use case; pasa items a `AttentionInbox` dentro de `Suspense`.
+
+### Changed
+
+- `src/config/admin-nav.ts` — agrega dominio `"operations"` y nav item `"Atención"` (`/admin/attention`). Reordena dominios: `operations` primero.
+- `src/components/admin/admin-shell.tsx` — acepta prop `attentionCount?: number` y la pasa a `AdminSidebar`.
+- `src/components/admin/admin-sidebar.tsx` — acepta prop `attentionCount?: number`; renderiza badge numérico en el ítem "Atención" si `count > 0`; cap en "99+".
+- `src/app/admin/(shell)/layout.tsx` — llama `getAttentionItemCountUseCase` para poblar el badge en el layout.
+- `src/server/actions/admin-project-work-item.action.ts` — agrega `revalidatePath("/admin/attention")` en `revalidateSupportTicketRoutes` (aplica a todos los cambios de WI con ticket vinculado) y en `requestSupportInterventionAction` (partial + success).
+- `src/server/actions/admin-support-ticket.action.ts` — agrega `revalidatePath("/admin/attention")` en `updateSupportTicketStatusAction`, `resolveTicketAfterDevelopmentAction`, `returnToDevelopmentAction`, `closeTicketAfterDevelopmentCancellationAction` y `resolveSupportInterventionAction` (partial + success).
+
+### Tests
+
+- `src/features/operations/application/get-attention-items.use-case.test.ts` — 14 tests: derivación por kind (todos los casos), items de integridad, ausencia de items en estado normal, sort por prioridad y antigüedad, error handling, count use case.
+
 ## [0.44.1] - 2026-06-26
 
 ### Fixed
