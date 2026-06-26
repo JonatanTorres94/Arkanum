@@ -19,7 +19,6 @@ type LinkedWorkItem = {
   title:     string;
   status:    WorkItemStatus;
   projectId: string;
-  notes:     string | null;
 };
 
 export function SupportDevelopmentHandoffPanel({
@@ -168,13 +167,7 @@ export function SupportDevelopmentHandoffPanel({
         </div>
       </div>
 
-      {/* Development notes snapshot — editable by Desarrollo, read-only here */}
-      {workItem.notes && (
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-admin-text-muted">Notas de Desarrollo</p>
-          <p className="text-sm text-admin-text whitespace-pre-wrap break-words">{workItem.notes}</p>
-        </div>
-      )}
+
 
       {/* Feedback */}
       {error   && <p className="text-xs text-admin-danger">{error}</p>}

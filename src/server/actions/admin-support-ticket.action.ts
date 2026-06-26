@@ -256,7 +256,7 @@ export async function updateSupportTicketDetailsAction(
   return {};
 }
 
-export async function escalateSupportTicketAction(id: string): Promise<{ error?: string }> {
+export async function escalateSupportTicketAction(id: string): Promise<{ error?: string; warning?: string }> {
   const user = await getAdminUser();
   if (!user) return { error: "No autorizado." };
 
@@ -280,6 +280,8 @@ export async function escalateSupportTicketAction(id: string): Promise<{ error?:
     return { error: "El proyecto asociado no pertenece al cliente del ticket." };
   }
 
+  const workItemRepository = new SupabaseProjectWorkItemRepository();
+
   const workItemResult = await createProjectWorkItemUseCase(
     {
       projectId:   ticket.projectId,
@@ -290,7 +292,7 @@ export async function escalateSupportTicketAction(id: string): Promise<{ error?:
       priority:    ticket.priority,
       notes:       `Escalado desde el ticket de soporte "${ticket.title}".`,
     },
-    new SupabaseProjectWorkItemRepository()
+    workItemRepository
   );
 
   if (!workItemResult.ok) return { error: workItemResult.error };
@@ -313,9 +315,26 @@ export async function escalateSupportTicketAction(id: string): Promise<{ error?:
     };
   }
 
+  // Lifecycle sync is best effort: work item + ticket are already persisted.
+  // A project in testing with a new backlog work item must regress to in_development.
+  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+    ticket.projectId,
+    new SupabaseProjectRepository(),
+    workItemRepository
+  );
+
   revalidatePath(`/admin/support/${id}`);
-  revalidatePath(`/admin/projects/${ticket.projectId}`);
   revalidatePath("/admin/support");
+  revalidatePath(`/admin/projects/${ticket.projectId}`);
+  revalidatePath(`/admin/projects/${ticket.projectId}/work-items/${workItemResult.id}`);
+  if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
+
+  if (!syncOutcome.ok) {
+    return {
+      warning:
+        "El ticket fue escalado y el work item se creó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente.",
+    };
+  }
 
   return {};
 }
