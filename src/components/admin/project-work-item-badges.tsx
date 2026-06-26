@@ -1,15 +1,6 @@
 import type { WorkItemStatus, WorkItemPriority } from "@/features/projects/domain/project-work-item.types";
+import { WORK_ITEM_STATUS_LABELS, WORK_ITEM_PRIORITY_LABELS } from "@/features/projects/domain/project-work-item-labels";
 
-const STATUS_LABELS: Record<WorkItemStatus, string> = {
-  backlog:     "Backlog",
-  ready:       "Listo",
-  in_progress: "En progreso",
-  blocked:     "Bloqueado",
-  review:      "En revisión",
-  testing:     "Testing",
-  done:        "Completado",
-  cancelled:   "Cancelado",
-};
 const STATUS_COLORS: Record<WorkItemStatus, string> = {
   backlog:     "bg-slate-400/10 text-slate-400 border-slate-700",
   ready:       "bg-blue-400/10 text-blue-400 border-blue-400/20",
@@ -21,12 +12,6 @@ const STATUS_COLORS: Record<WorkItemStatus, string> = {
   cancelled:   "bg-slate-400/10 text-slate-400 border-slate-700",
 };
 
-const PRIORITY_LABELS: Record<WorkItemPriority, string> = {
-  low:    "Baja",
-  medium: "Media",
-  high:   "Alta",
-  urgent: "Urgente",
-};
 const PRIORITY_COLORS: Record<WorkItemPriority, string> = {
   low:    "bg-slate-400/10 text-slate-400 border-slate-700",
   medium: "bg-cyan-400/10 text-cyan-400 border-cyan-400/20",
@@ -39,7 +24,7 @@ export function WorkItemStatusBadge({ status }: { status: WorkItemStatus }) {
     <span
       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[status]}`}
     >
-      {STATUS_LABELS[status]}
+      {WORK_ITEM_STATUS_LABELS[status]}
     </span>
   );
 }
@@ -49,7 +34,7 @@ export function WorkItemPriorityBadge({ priority }: { priority: WorkItemPriority
     <span
       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${PRIORITY_COLORS[priority]}`}
     >
-      {PRIORITY_LABELS[priority]}
+      {WORK_ITEM_PRIORITY_LABELS[priority]}
     </span>
   );
 }

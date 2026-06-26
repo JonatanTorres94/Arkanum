@@ -18,7 +18,8 @@ export function SupportTicketEscalationPanel({
   escalatedBy: string | null;
 }) {
   const [isPending, startTransition] = useTransition();
-  const [error, setError]           = useState<string | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
 
   if (escalatedWorkItemId) {
     return (
@@ -51,9 +52,11 @@ export function SupportTicketEscalationPanel({
 
   function handleEscalate() {
     setError(null);
+    setWarning(null);
     startTransition(async () => {
       const result = await escalateSupportTicketAction(ticketId);
-      if (result?.error) setError(result.error);
+      if (result?.error)   setError(result.error);
+      if (result?.warning) setWarning(result.warning);
     });
   }
 
@@ -62,9 +65,8 @@ export function SupportTicketEscalationPanel({
       <p className="text-sm text-admin-text-muted">
         Esto crea un work item en el proyecto asociado y marca el ticket como escalado a desarrollo.
       </p>
-      {error && (
-        <p role="alert" className="text-xs text-admin-danger">{error}</p>
-      )}
+      {error   && <p role="alert" className="text-xs text-admin-danger">{error}</p>}
+      {warning && <p role="alert" className="text-xs text-amber-400">{warning}</p>}
       <button
         type="button"
         onClick={handleEscalate}

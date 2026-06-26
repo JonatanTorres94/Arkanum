@@ -22,6 +22,7 @@ import { createSupportTicketNoteUseCase } from "@/features/support/application/c
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
+import type { SupportTicket } from "@/features/support/domain/support-ticket.types";
 
 const TITLE_MAX_LENGTH = 200;
 
@@ -34,21 +35,36 @@ function isValidEnumValue<T extends string>(options: readonly T[], value: string
   return (options as readonly string[]).includes(value);
 }
 
+function revalidateSupportTicketRoutes(ticket: SupportTicket): void {
+  revalidatePath(`/admin/support/${ticket.id}`);
+  revalidatePath("/admin/support");
+  if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
+}
+
 // Centralized best-effort side effects for any status transition.
-// The caller is responsible for revalidating the project and work-item routes.
-// This helper only revalidates the support-ticket route when a note is added.
+//
+// When `preloadedTicket` is provided the function skips the ticket fetch and
+// the support-route revalidation (the caller already did both). This prevents a
+// double DB read when transitioning to "done" inside updateProjectWorkItemAction,
+// which fetches the ticket upfront so it can revalidate support routes even when
+// the status has not changed.
+//
+// When `preloadedTicket` is NOT provided (e.g. inline-status path), this
+// function fetches the ticket itself and revalidates support routes.
 async function applyStatusSideEffects(opts: {
-  workItemId:     string;
-  workItemTitle:  string;
-  projectId:      string;
-  previousStatus: WorkItemStatus;
-  newStatus:      WorkItemStatus;
-  adminEmail:     string | null | undefined;
+  workItemId:      string;
+  workItemTitle:   string;
+  projectId:       string;
+  previousStatus:  WorkItemStatus;
+  newStatus:       WorkItemStatus;
+  adminEmail:      string | null | undefined;
   workItemRepository: SupabaseProjectWorkItemRepository;
+  preloadedTicket?: SupportTicket | null;
 }): Promise<string[]> {
   const {
     workItemId, workItemTitle, projectId,
     previousStatus, newStatus, adminEmail, workItemRepository,
+    preloadedTicket,
   } = opts;
 
   const warnings: string[] = [];
@@ -65,30 +81,39 @@ async function applyStatusSideEffects(opts: {
     );
   }
 
-  // Support note only on first transition to done, never on repeated saves.
-  if (newStatus === "done" && previousStatus !== "done") {
+  // Fetch ticket when not preloaded (inline-status path).
+  // When preloaded, caller already revalidated support routes.
+  let ticket: SupportTicket | null = null;
+  const callerHandledSupport = preloadedTicket !== undefined;
+
+  if (!callerHandledSupport) {
     const ticketResult = await getSupportTicketByWorkItemUseCase(
       workItemId,
       new SupabaseSupportTicketRepository()
     );
-
     if (ticketResult.ok && ticketResult.ticket) {
-      const noteOutcome = await createSupportTicketNoteUseCase(
-        ticketResult.ticket.id,
-        `Desarrollo marcó el work item vinculado ("${workItemTitle}") como completado. ` +
-          "El ticket permanece abierto para validación de soporte.",
-        adminEmail ?? null,
-        new SupabaseSupportTicketNoteRepository()
+      ticket = ticketResult.ticket;
+      revalidateSupportTicketRoutes(ticket);
+    }
+  } else {
+    ticket = preloadedTicket;
+  }
+
+  // Support note only on first transition to done, never on repeated saves.
+  if (newStatus === "done" && previousStatus !== "done" && ticket) {
+    const noteOutcome = await createSupportTicketNoteUseCase(
+      ticket.id,
+      `Desarrollo marcó el work item vinculado ("${workItemTitle}") como completado. ` +
+        "El ticket permanece abierto para validación de soporte.",
+      adminEmail ?? null,
+      new SupabaseSupportTicketNoteRepository()
+    );
+
+    if (!noteOutcome.ok) {
+      warnings.push(
+        "El work item se marcó como completado, pero no se pudo agregar la nota automática " +
+          "en el ticket de soporte vinculado — revisalo manualmente."
       );
-
-      revalidatePath(`/admin/support/${ticketResult.ticket.id}`);
-
-      if (!noteOutcome.ok) {
-        warnings.push(
-          "El work item se marcó como completado, pero no se pudo agregar la nota automática " +
-            "en el ticket de soporte vinculado — revisalo manualmente."
-        );
-      }
     }
   }
 
@@ -184,10 +209,11 @@ export async function updateProjectWorkItemStatusAction(
   );
   if (!outcome.ok) return { error: outcome.error };
 
-  // Always revalidate both the project and the work-item detail after any status change.
   revalidatePath(`/admin/projects/${workItem.projectId}`);
   revalidatePath(`/admin/projects/${workItem.projectId}/work-items/${workItemId}`);
 
+  // No preloadedTicket: applyStatusSideEffects fetches the ticket itself and
+  // revalidates support routes for any status transition.
   const warnings = await applyStatusSideEffects({
     workItemId,
     workItemTitle:  workItem.title,
@@ -264,10 +290,31 @@ export async function updateProjectWorkItemAction(
   revalidatePath(`/admin/projects/${projectId}/work-items/${workItemId}`);
   revalidatePath(`/admin/projects/${projectId}`);
 
-  // Skip lifecycle sync and support notes when status did not change.
-  if (newStatus === previousStatus) return {};
+  // Fetch the linked support ticket once. Revalidate its routes for any edit
+  // (not only status changes) so the handoff panel always shows fresh data.
+  const warnings: string[] = [];
+  const ticketResult = await getSupportTicketByWorkItemUseCase(
+    workItemId,
+    new SupabaseSupportTicketRepository()
+  );
 
-  const warnings = await applyStatusSideEffects({
+  let linkedTicket: SupportTicket | null = null;
+  if (!ticketResult.ok) {
+    warnings.push(
+      "El work item se actualizó, pero no se pudo sincronizar la vista del ticket de soporte vinculado."
+    );
+  } else if (ticketResult.ticket) {
+    linkedTicket = ticketResult.ticket;
+    revalidateSupportTicketRoutes(linkedTicket);
+  }
+
+  // Skip lifecycle sync and support notes when status did not change.
+  if (newStatus === previousStatus) {
+    return warnings.length > 0 ? { warning: warnings.join(" ") } : {};
+  }
+
+  // Pass the pre-fetched ticket to avoid a second DB read in applyStatusSideEffects.
+  const sideEffectWarnings = await applyStatusSideEffects({
     workItemId,
     workItemTitle:  title,
     projectId,
@@ -275,7 +322,10 @@ export async function updateProjectWorkItemAction(
     newStatus,
     adminEmail:     user.email,
     workItemRepository,
+    preloadedTicket: linkedTicket,
   });
 
-  return warnings.length > 0 ? { warning: warnings.join(" ") } : {};
+  return [...warnings, ...sideEffectWarnings].length > 0
+    ? { warning: [...warnings, ...sideEffectWarnings].join(" ") }
+    : {};
 }

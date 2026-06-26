@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+## [0.41.0] - 2026-06-25
+
+### Added
+
+- `src/features/support/domain/support-development-phase.ts` — `SupportDevelopmentPhase` type + `deriveDevelopmentPhase(ticket, workItem)` pure function. Derives phase from ticket.escalatedWorkItemId + work item status using `OPEN_WORK_ITEM_STATUSES`. No new DB column or support status.
+- `src/features/support/application/resolve-ticket-after-development.use-case.ts` — resolves ticket to `resolved` + adds validation note. Idempotent (already resolved → no duplicate note). Terminal statuses (closed/cancelled) rejected. Note failure → warning.
+- `src/features/support/application/return-ticket-to-development.use-case.ts` — updates ticket to `escalated_to_development` + adds support note with optional operator reason. Work item update and lifecycle sync handled by the action before this use case runs.
+- `resolveAfterDevelopmentAction` — validates auth, ticket existence, work item existence and status (must be done); delegates to `resolveTicketAfterDevelopmentUseCase`; revalidates support detail/list, work-item detail, project, client.
+- `returnToDevelopmentAction` — validates auth, ticket not closed/cancelled, work item open check; step 1: work item → ready; step 2: lifecycle sync (best effort); step 3+4: ticket → escalated_to_development + note via `returnTicketToDevelopmentUseCase`; explicit partial-failure warning when work item updated but ticket not synced; revalidates all affected paths.
+- `src/components/admin/support-development-handoff-panel.tsx` — client component showing phase-appropriate UI:
+  - `development_in_progress`: info panel with work item details + project/work-item links.
+  - `pending_support_validation`: success panel with "Resolver ticket" + "Devolver a desarrollo" actions.
+  - `development_cancelled`: warning panel with "Devolver a desarrollo" action.
+  - `missingWorkItemId`: integrity error panel when ticket references a non-existent work item.
+  - "Devolver a desarrollo" shows an inline reason textarea before confirming.
+
+### Changed
+
+- `src/app/admin/(shell)/support/[id]/page.tsx` — integrates `SupportDevelopmentHandoffPanel` in sidebar above Estado; derives `developmentPhase` and `missingWorkItemId` server-side; removes inline `linkedWorkItemOpen`/`linkedWorkItemCancelled` hints that were duplicating the panel's job.
+
+### Notes
+
+- No new DB columns or Supabase migrations required.
+- No new dependencies.
+- `deriveDevelopmentPhase` uses the same `OPEN_WORK_ITEM_STATUSES` from `project-lifecycle.ts`; no duplication of status lists.
+- `returnToDevelopmentAction` reuses `updateProjectWorkItemStatusUseCase` and `synchronizeProjectLifecycleUseCase` from the work-item action layer; no duplicated lifecycle logic.
+- The existing development-completion note (added when work item → done) is orthogonal; this release does not remove or replace it.
+
 ## [0.40.0] - 2026-06-25
 
 ### Added
