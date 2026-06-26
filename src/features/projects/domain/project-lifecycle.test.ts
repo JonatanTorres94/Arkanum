@@ -417,6 +417,16 @@ describe("validateProjectStatusTransition", () => {
       const result = validateProjectStatusTransition("cancelled", "paused");
       expect(result.ok).toBe(false);
     });
+
+    it("deployed → testing is rejected", () => {
+      const result = validateProjectStatusTransition("deployed", "testing");
+      expect(result.ok).toBe(false);
+    });
+
+    it("maintenance → testing is rejected", () => {
+      const result = validateProjectStatusTransition("maintenance", "testing");
+      expect(result.ok).toBe(false);
+    });
   });
 
   describe("valid reactivation from cancelled", () => {

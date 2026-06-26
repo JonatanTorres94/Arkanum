@@ -15,8 +15,8 @@ const ALLOWED_MANUAL_TRANSITIONS: Record<ProjectStatus, readonly ProjectStatus[]
   planning:       ["discovery", "in_development", "testing", "deployed", "maintenance", "paused", "cancelled"],
   in_development: ["discovery", "planning", "testing", "deployed", "maintenance", "paused", "cancelled"],
   testing:        ["discovery", "planning", "in_development", "deployed", "maintenance", "paused", "cancelled"],
-  deployed:       ["in_development", "testing", "maintenance", "paused", "cancelled"],
-  maintenance:    ["in_development", "testing", "deployed", "paused", "cancelled"],
+  deployed:       ["in_development", "maintenance", "paused", "cancelled"],
+  maintenance:    ["in_development", "deployed", "paused", "cancelled"],
   paused:         ["discovery", "planning", "in_development", "testing", "deployed", "maintenance", "cancelled"],
   cancelled:      ["discovery", "planning"],
 };
