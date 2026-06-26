@@ -1,6 +1,46 @@
 import type { Project, ProjectStatus, LifecycleWarning } from "./project.types";
 import type { ProjectWorkItem } from "./project-work-item.types";
 
+// ─── Manual transition matrix ─────────────────────────────────────────────────
+
+// Explicit set of allowed target statuses per source status for manual edits.
+// Same-status (no-op) updates are always allowed and checked separately.
+//
+// Constraints:
+// - deployed/maintenance → cannot go back to discovery/planning/testing
+//   (post-deployment projects don't restart early phases via simple edit)
+// - cancelled → can only restart from discovery or planning
+const ALLOWED_MANUAL_TRANSITIONS: Record<ProjectStatus, readonly ProjectStatus[]> = {
+  discovery:      ["planning", "in_development", "testing", "deployed", "maintenance", "paused", "cancelled"],
+  planning:       ["discovery", "in_development", "testing", "deployed", "maintenance", "paused", "cancelled"],
+  in_development: ["discovery", "planning", "testing", "deployed", "maintenance", "paused", "cancelled"],
+  testing:        ["discovery", "planning", "in_development", "deployed", "maintenance", "paused", "cancelled"],
+  deployed:       ["in_development", "testing", "maintenance", "paused", "cancelled"],
+  maintenance:    ["in_development", "testing", "deployed", "paused", "cancelled"],
+  paused:         ["discovery", "planning", "in_development", "testing", "deployed", "maintenance", "cancelled"],
+  cancelled:      ["discovery", "planning"],
+};
+
+export type ProjectStatusTransitionResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export function validateProjectStatusTransition(
+  currentStatus: ProjectStatus,
+  targetStatus:  ProjectStatus
+): ProjectStatusTransitionResult {
+  if (currentStatus === targetStatus) return { ok: true };
+
+  if (ALLOWED_MANUAL_TRANSITIONS[currentStatus].includes(targetStatus)) {
+    return { ok: true };
+  }
+
+  return {
+    ok:    false,
+    error: `No se puede cambiar el estado de "${currentStatus}" a "${targetStatus}" directamente.`,
+  };
+}
+
 // Statuses that indicate the work item is still in progress (not terminal).
 export const OPEN_WORK_ITEM_STATUSES = [
   "backlog",

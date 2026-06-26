@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { assessProjectLifecycle } from "./project-lifecycle";
+import { assessProjectLifecycle, validateProjectStatusTransition } from "./project-lifecycle";
 import type { Project } from "./project.types";
 import type { ProjectWorkItem } from "./project-work-item.types";
 
@@ -329,6 +329,111 @@ describe("assessProjectLifecycle", () => {
       );
       expect(result.warnings.length).toBe(result.inconsistencies.length);
       expect(typeof result.warnings[0].message).toBe("string");
+    });
+  });
+});
+
+// ── validateProjectStatusTransition ───────────────────────────────────────────
+
+describe("validateProjectStatusTransition", () => {
+  describe("same status — always ok (no-op)", () => {
+    const statuses = [
+      "discovery", "planning", "in_development", "testing",
+      "deployed", "maintenance", "paused", "cancelled",
+    ] as const;
+
+    for (const s of statuses) {
+      it(`${s} → ${s} is ok`, () => {
+        expect(validateProjectStatusTransition(s, s).ok).toBe(true);
+      });
+    }
+  });
+
+  describe("valid forward transitions", () => {
+    const cases: [string, string][] = [
+      ["planning",       "in_development"],
+      ["in_development", "testing"],
+      ["testing",        "deployed"],
+      ["deployed",       "maintenance"],
+      ["deployed",       "in_development"],
+      ["maintenance",    "deployed"],
+      ["paused",         "planning"],
+      ["paused",         "in_development"],
+    ];
+
+    for (const [from, to] of cases) {
+      it(`${from} → ${to} is ok`, () => {
+        const result = validateProjectStatusTransition(
+          from as import("./project.types").ProjectStatus,
+          to  as import("./project.types").ProjectStatus
+        );
+        expect(result.ok).toBe(true);
+      });
+    }
+  });
+
+  describe("blocked transitions", () => {
+    it("deployed → discovery is rejected", () => {
+      const result = validateProjectStatusTransition("deployed", "discovery");
+      expect(result.ok).toBe(false);
+    });
+
+    it("deployed → planning is rejected", () => {
+      const result = validateProjectStatusTransition("deployed", "planning");
+      expect(result.ok).toBe(false);
+    });
+
+    it("maintenance → discovery is rejected", () => {
+      const result = validateProjectStatusTransition("maintenance", "discovery");
+      expect(result.ok).toBe(false);
+    });
+
+    it("maintenance → planning is rejected", () => {
+      const result = validateProjectStatusTransition("maintenance", "planning");
+      expect(result.ok).toBe(false);
+    });
+
+    it("cancelled → in_development is rejected", () => {
+      const result = validateProjectStatusTransition("cancelled", "in_development");
+      expect(result.ok).toBe(false);
+    });
+
+    it("cancelled → testing is rejected", () => {
+      const result = validateProjectStatusTransition("cancelled", "testing");
+      expect(result.ok).toBe(false);
+    });
+
+    it("cancelled → deployed is rejected", () => {
+      const result = validateProjectStatusTransition("cancelled", "deployed");
+      expect(result.ok).toBe(false);
+    });
+
+    it("cancelled → maintenance is rejected", () => {
+      const result = validateProjectStatusTransition("cancelled", "maintenance");
+      expect(result.ok).toBe(false);
+    });
+
+    it("cancelled → paused is rejected", () => {
+      const result = validateProjectStatusTransition("cancelled", "paused");
+      expect(result.ok).toBe(false);
+    });
+  });
+
+  describe("valid reactivation from cancelled", () => {
+    it("cancelled → discovery is ok", () => {
+      expect(validateProjectStatusTransition("cancelled", "discovery").ok).toBe(true);
+    });
+
+    it("cancelled → planning is ok", () => {
+      expect(validateProjectStatusTransition("cancelled", "planning").ok).toBe(true);
+    });
+  });
+
+  describe("error message", () => {
+    it("returns a human-readable error on invalid transition", () => {
+      const result = validateProjectStatusTransition("deployed", "discovery");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(typeof result.error).toBe("string");
     });
   });
 });

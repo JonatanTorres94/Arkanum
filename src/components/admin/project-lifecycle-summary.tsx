@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import type { ProjectStatus } from "@/features/projects/domain/project.types";
 import type { ProjectWorkItem } from "@/features/projects/domain/project-work-item.types";
 import type { ProjectLifecycleAssessment } from "@/features/projects/domain/project-lifecycle";
@@ -76,24 +76,32 @@ function ApplySuggestionButton({
   suggestedStatus: ProjectStatus;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function handleClick() {
+    setError(null);
     startTransition(async () => {
-      await applyLifecycleSuggestionAction(projectId, suggestedStatus);
+      const result = await applyLifecycleSuggestionAction(projectId, suggestedStatus);
+      if (result.error) setError(result.error);
     });
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={isPending}
-      className="mt-2 rounded-lg border border-amber-400/30 px-3 py-1.5 text-xs font-medium text-amber-400 transition-colors hover:border-amber-400/60 hover:bg-amber-400/5 disabled:opacity-50"
-    >
-      {isPending
-        ? "Actualizando…"
-        : `Actualizar a ${STATUS_LABELS[suggestedStatus]}`}
-    </button>
+    <div>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isPending}
+        className="mt-2 rounded-lg border border-amber-400/30 px-3 py-1.5 text-xs font-medium text-amber-400 transition-colors hover:border-amber-400/60 hover:bg-amber-400/5 disabled:opacity-50"
+      >
+        {isPending
+          ? "Actualizando…"
+          : `Actualizar a ${STATUS_LABELS[suggestedStatus]}`}
+      </button>
+      {error && (
+        <p className="mt-1 text-xs text-admin-danger">{error}</p>
+      )}
+    </div>
   );
 }
 
