@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.45.2] - 2026-06-26
+
+### Added
+
+- `attention-item.types.ts` — 3 nuevos kinds genéricos: `support_open_ticket` (support), `development_open_work_item` (development), `development_blocked_work_item` (development). Tabla `ATTENTION_KIND_SORT_WEIGHT` para ordenar por especificidad (integrity → specific workflow → blocked → generic). `AttentionItem` unificado: `ticketId` nullable, `title`/`priority` reemplazan `ticketTitle`/`ticketPriority` para cubrir ítems de WIs sin ticket.
+
+### Changed
+
+- `attention-item.repository.ts` — `AttentionCandidate` pasa a ser union discriminada: `TicketCandidate { type: "ticket" }` y `StandaloneWorkItemCandidate { type: "standalone_work_item" }`.
+- `supabase-attention-item.repository.ts` — tres queries: (1) todos los tickets no-terminales; (2) todos los WIs activos (ready/in_progress/blocked/review/testing/awaiting_support); (3) condicional: WIs vinculados a tickets que están en done/cancelled. Produce `TicketCandidate[]` + `StandaloneWorkItemCandidate[]`. Evita N+1.
+- `get-attention-items.use-case.ts` — `candidateToItems` es ahora un dispatcher sobre la union; `ticketCandidateToItems` genera `support_open_ticket` para tickets sin ítem específico; `workItemToItems` (shared) genera `development_blocked_work_item` o `development_open_work_item`; `sortItems` usa `ATTENTION_KIND_SORT_WEIGHT` como clave primaria; interfaz de `makeItem` actualizada.
+- `attention-inbox.tsx` — usa `item.title` y `item.priority` (campos unificados); agrega indicadores visuales para los 3 nuevos kinds.
+
+### Tests
+
+- `get-attention-items.use-case.test.ts` — 42 tests (era 27): agrega grupos genéricos (Support tickets abiertos, WIs de Desarrollo), deduplicación (6 casos), sorting por especificidad y tiebreakers, badge count con candidatos mixtos.
+
 ## [0.45.1] - 2026-06-26
 
 ### Changed

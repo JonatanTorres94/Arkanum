@@ -1,152 +1,29 @@
 import type { AttentionItem, AttentionItemKind } from "@/features/operations/domain/attention-item.types";
 import {
   ATTENTION_AUDIENCE_FOR_KIND,
+  ATTENTION_KIND_SORT_WEIGHT,
   PRIORITY_SORT_WEIGHT,
 } from "@/features/operations/domain/attention-item.types";
-import type { AttentionCandidate, AttentionItemRepository } from "@/features/operations/infrastructure/attention-item.repository";
+import type {
+  AttentionCandidate,
+  AttentionItemRepository,
+  TicketCandidate,
+} from "@/features/operations/infrastructure/attention-item.repository";
 import type { TicketPriority } from "@/features/support/domain/support-ticket.types";
+import type { ProjectWorkItem } from "@/features/projects/domain/project-work-item.types";
 
 export type GetAttentionItemsResult =
   | { ok: true;  items: AttentionItem[] }
   | { ok: false; error: string };
 
-// ─── Derivation helpers ───────────────────────────────────────────────────────
-
-function candidateToItems(candidate: AttentionCandidate): AttentionItem[] {
-  const { ticket, workItem, workItemMissing } = candidate;
-  const items: AttentionItem[] = [];
-
-  // Integrity: ticket references a work item that doesn't exist.
-  if (workItemMissing) {
-    items.push(makeItem(
-      `integrity-missing-${ticket.id}`,
-      "integrity_missing_work_item",
-      ticket.id,
-      ticket.title,
-      ticket.priority,
-      null,
-      null,
-      `/admin/support/${ticket.id}`,
-      ticket.updatedAt,
-    ));
-    // Still check for other attention conditions below (the ticket may also have action_required).
-  }
-
-  // Integrity: escalated ticket with no linked work item reference.
-  if (ticket.status === "escalated_to_development" && !ticket.escalatedWorkItemId) {
-    items.push(makeItem(
-      `integrity-orphan-${ticket.id}`,
-      "integrity_orphan_escalation",
-      ticket.id,
-      ticket.title,
-      ticket.priority,
-      null,
-      null,
-      `/admin/support/${ticket.id}`,
-      ticket.updatedAt,
-    ));
-    return items;
-  }
-
-  // Support intervention pending: requires the valid pair
-  // ticket.status === "action_required" AND workItem.status === "awaiting_support".
-  // Any other combination signals an inconsistent workflow state → integrity item.
-  if (ticket.status === "action_required") {
-    // WI missing (workItemMissing already added integrity_missing_work_item above).
-    if (workItemMissing || !workItem) {
-      return items; // only the integrity_missing_work_item added earlier
-    }
-
-    // WI exists but is not in awaiting_support — inconsistent state.
-    if (workItem.status !== "awaiting_support") {
-      items.push(makeItem(
-        `integrity-action-mismatch-${ticket.id}`,
-        "integrity_action_required_mismatch",
-        ticket.id,
-        ticket.title,
-        ticket.priority,
-        workItem.id,
-        workItem.projectId,
-        `/admin/support/${ticket.id}`,
-        ticket.updatedAt,
-      ));
-      return items;
-    }
-
-    // Valid pair: ticket=action_required, WI=awaiting_support.
-    items.push(makeItem(
-      `support-intervention-${ticket.id}`,
-      "support_intervention_pending",
-      ticket.id,
-      ticket.title,
-      ticket.priority,
-      workItem.id,
-      workItem.projectId,
-      `/admin/support/${ticket.id}`,
-      ticket.updatedAt,
-    ));
-
-    // From the Development side: their WI is waiting for Support's response.
-    items.push(makeItem(
-      `dev-intervention-active-${workItem.id}`,
-      "development_intervention_active",
-      ticket.id,
-      ticket.title,
-      ticket.priority,
-      workItem.id,
-      workItem.projectId,
-      `/admin/projects/${workItem.projectId}/work-items/${workItem.id}`,
-      workItem.updatedAt,
-    ));
-
-    return items;
-  }
-
-  // From here, ticket.status === "escalated_to_development" with a resolved intervention
-  // (or a first-time escalation never interrupted).
-  if (!workItem) return items;
-
-  if (workItem.status === "done") {
-    // Support must validate completed development work.
-    items.push(makeItem(
-      `support-validation-${ticket.id}`,
-      "support_validation_pending",
-      ticket.id,
-      ticket.title,
-      ticket.priority,
-      workItem.id,
-      workItem.projectId,
-      `/admin/support/${ticket.id}`,
-      workItem.updatedAt,
-    ));
-    return items;
-  }
-
-  if (workItem.status === "cancelled") {
-    // Support must decide the next step after Development cancelled.
-    items.push(makeItem(
-      `support-cancellation-${ticket.id}`,
-      "support_cancellation_review",
-      ticket.id,
-      ticket.title,
-      ticket.priority,
-      workItem.id,
-      workItem.projectId,
-      `/admin/support/${ticket.id}`,
-      workItem.updatedAt,
-    ));
-    return items;
-  }
-
-  return items;
-}
+// ─── Item factory ─────────────────────────────────────────────────────────────
 
 function makeItem(
   id:                string,
   kind:              AttentionItemKind,
-  ticketId:          string,
-  ticketTitle:       string,
-  ticketPriority:    TicketPriority,
+  ticketId:          string | null,
+  title:             string,
+  priority:          TicketPriority,
   workItemId:        string | null,
   workItemProjectId: string | null,
   href:              string,
@@ -155,10 +32,10 @@ function makeItem(
   return {
     id,
     kind,
-    audience:          ATTENTION_AUDIENCE_FOR_KIND[kind],
+    audience:         ATTENTION_AUDIENCE_FOR_KIND[kind],
     ticketId,
-    ticketTitle,
-    ticketPriority,
+    title,
+    priority,
     workItemId,
     workItemProjectId,
     href,
@@ -166,22 +43,133 @@ function makeItem(
   };
 }
 
+// ─── Ticket candidate derivation ──────────────────────────────────────────────
+
+function ticketCandidateToItems({ ticket, workItem, workItemMissing }: TicketCandidate): AttentionItem[] {
+  const items: AttentionItem[] = [];
+
+  // Integrity: ticket references a WI that doesn't exist in the DB.
+  // This replaces all other items for this ticket — no generic fallback.
+  if (workItemMissing) {
+    items.push(makeItem(
+      `integrity-missing-${ticket.id}`,
+      "integrity_missing_work_item",
+      ticket.id, ticket.title, ticket.priority,
+      null, null,
+      `/admin/support/${ticket.id}`,
+      ticket.updatedAt,
+    ));
+    return items;
+  }
+
+  // Integrity: escalated ticket with no linked WI reference.
+  if (ticket.status === "escalated_to_development" && !ticket.escalatedWorkItemId) {
+    items.push(makeItem(
+      `integrity-orphan-${ticket.id}`,
+      "integrity_orphan_escalation",
+      ticket.id, ticket.title, ticket.priority,
+      null, null,
+      `/admin/support/${ticket.id}`,
+      ticket.updatedAt,
+    ));
+    return items;
+  }
+
+  // Support intervention: requires the valid pair ticket=action_required + WI=awaiting_support.
+  // Any other combination is a workflow inconsistency → integrity item, no operational items.
+  if (ticket.status === "action_required") {
+    if (!workItem) {
+      // Escalated but WI not found and not flagged as missing — data guard.
+      items.push(makeItem(`integrity-missing-${ticket.id}`, "integrity_missing_work_item", ticket.id, ticket.title, ticket.priority, null, null, `/admin/support/${ticket.id}`, ticket.updatedAt));
+      return items;
+    }
+    if (workItem.status !== "awaiting_support") {
+      items.push(makeItem(`integrity-action-mismatch-${ticket.id}`, "integrity_action_required_mismatch", ticket.id, ticket.title, ticket.priority, workItem.id, workItem.projectId, `/admin/support/${ticket.id}`, ticket.updatedAt));
+      return items;
+    }
+    // Valid pair: generate specific items for both audiences.
+    items.push(makeItem(`support-intervention-${ticket.id}`, "support_intervention_pending", ticket.id, ticket.title, ticket.priority, workItem.id, workItem.projectId, `/admin/support/${ticket.id}`, ticket.updatedAt));
+    items.push(makeItem(`dev-intervention-active-${workItem.id}`, "development_intervention_active", ticket.id, ticket.title, ticket.priority, workItem.id, workItem.projectId, `/admin/projects/${workItem.projectId}/work-items/${workItem.id}`, workItem.updatedAt));
+    return items;
+  }
+
+  // From here: ticket is NOT action_required.
+
+  if (!workItem) {
+    // No linked WI — generic support ticket item.
+    items.push(makeItem(`support-open-${ticket.id}`, "support_open_ticket", ticket.id, ticket.title, ticket.priority, null, null, `/admin/support/${ticket.id}`, ticket.updatedAt));
+    return items;
+  }
+
+  // Ticket has a linked WI — specific workflow states first.
+  if (workItem.status === "done") {
+    items.push(makeItem(`support-validation-${ticket.id}`, "support_validation_pending", ticket.id, ticket.title, ticket.priority, workItem.id, workItem.projectId, `/admin/support/${ticket.id}`, workItem.updatedAt));
+    return items;
+  }
+
+  if (workItem.status === "cancelled") {
+    items.push(makeItem(`support-cancellation-${ticket.id}`, "support_cancellation_review", ticket.id, ticket.title, ticket.priority, workItem.id, workItem.projectId, `/admin/support/${ticket.id}`, workItem.updatedAt));
+    return items;
+  }
+
+  // WI is in an active state — generic support ticket + development item.
+  items.push(makeItem(`support-open-${ticket.id}`, "support_open_ticket", ticket.id, ticket.title, ticket.priority, workItem.id, workItem.projectId, `/admin/support/${ticket.id}`, ticket.updatedAt));
+  items.push(...workItemToItems(workItem, ticket.id));
+
+  return items;
+}
+
+// ─── Work item derivation (shared by ticket-linked and standalone paths) ──────
+
+function workItemToItems(workItem: ProjectWorkItem, ticketId: string | null): AttentionItem[] {
+  if (workItem.status === "blocked") {
+    return [makeItem(
+      `dev-blocked-${workItem.id}`,
+      "development_blocked_work_item",
+      ticketId, workItem.title, workItem.priority as TicketPriority,
+      workItem.id, workItem.projectId,
+      `/admin/projects/${workItem.projectId}/work-items/${workItem.id}`,
+      workItem.updatedAt,
+    )];
+  }
+  return [makeItem(
+    `dev-open-${workItem.id}`,
+    "development_open_work_item",
+    ticketId, workItem.title, workItem.priority as TicketPriority,
+    workItem.id, workItem.projectId,
+    `/admin/projects/${workItem.projectId}/work-items/${workItem.id}`,
+    workItem.updatedAt,
+  )];
+}
+
+// ─── Candidate dispatcher ─────────────────────────────────────────────────────
+
+function candidateToItems(candidate: AttentionCandidate): AttentionItem[] {
+  if (candidate.type === "standalone_work_item") {
+    return workItemToItems(candidate.workItem, null);
+  }
+  return ticketCandidateToItems(candidate);
+}
+
 // ─── Sorting ──────────────────────────────────────────────────────────────────
 
 function sortItems(items: AttentionItem[]): AttentionItem[] {
   return [...items].sort((a, b) => {
-    const priorityDiff =
-      PRIORITY_SORT_WEIGHT[a.ticketPriority] - PRIORITY_SORT_WEIGHT[b.ticketPriority];
+    // Primary: specificity (integrity > specific workflow > blocked > generic).
+    const kindDiff = ATTENTION_KIND_SORT_WEIGHT[a.kind] - ATTENTION_KIND_SORT_WEIGHT[b.kind];
+    if (kindDiff !== 0) return kindDiff;
+    // Secondary: priority (urgent first).
+    const priorityDiff = PRIORITY_SORT_WEIGHT[a.priority] - PRIORITY_SORT_WEIGHT[b.priority];
     if (priorityDiff !== 0) return priorityDiff;
-    // Secondary: oldest first (most overdue).
+    // Tertiary: oldest first (most overdue).
     if (a.updatedAt < b.updatedAt) return -1;
     if (a.updatedAt > b.updatedAt) return  1;
-    // Tertiary: stable id-based tiebreaker.
+    // Quaternary: stable id-based tiebreaker.
     return a.id.localeCompare(b.id);
   });
 }
 
-// ─── Use case ─────────────────────────────────────────────────────────────────
+// ─── Use cases ────────────────────────────────────────────────────────────────
 
 export async function getAttentionItemsUseCase(
   repository: AttentionItemRepository
@@ -198,8 +186,6 @@ export async function getAttentionItemsUseCase(
 
   return { ok: true, items };
 }
-
-// ─── Nav badge use case ───────────────────────────────────────────────────────
 
 // Returns the exact derived item count — same derivation as getAttentionItemsUseCase
 // so the badge always matches what the inbox actually shows.

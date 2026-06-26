@@ -27,12 +27,16 @@ const PRIORITY_LABELS: Record<string, string> = {
 // ─── Kind indicator ───────────────────────────────────────────────────────────
 
 const KIND_INDICATOR_CLASSES: Record<string, string> = {
-  support_intervention_pending:    "bg-admin-danger",
-  support_validation_pending:      "bg-admin-accent",
-  support_cancellation_review:     "bg-orange-500",
-  development_intervention_active: "bg-admin-warning",
-  integrity_missing_work_item:     "bg-admin-text-faint",
-  integrity_orphan_escalation:     "bg-admin-text-faint",
+  support_intervention_pending:        "bg-admin-danger",
+  support_validation_pending:          "bg-admin-accent",
+  support_cancellation_review:         "bg-orange-500",
+  development_intervention_active:     "bg-admin-warning",
+  integrity_missing_work_item:         "bg-admin-text-faint",
+  integrity_orphan_escalation:         "bg-admin-text-faint",
+  integrity_action_required_mismatch:  "bg-admin-text-faint",
+  support_open_ticket:                 "bg-admin-accent/50",
+  development_open_work_item:          "bg-admin-warning/50",
+  development_blocked_work_item:       "bg-orange-500",
 };
 
 // ─── Age formatting ───────────────────────────────────────────────────────────
@@ -60,7 +64,7 @@ const AUDIENCES: Array<{ value: "all" | AttentionAudience; label: string }> = [
 
 function AttentionItemRow({ item }: { item: AttentionItem }) {
   const indicatorClass = KIND_INDICATOR_CLASSES[item.kind] ?? "bg-admin-text-faint";
-  const priorityClass  = PRIORITY_CLASSES[item.ticketPriority] ?? PRIORITY_CLASSES.low;
+  const priorityClass  = PRIORITY_CLASSES[item.priority] ?? PRIORITY_CLASSES.low;
 
   return (
     <div className="flex items-start gap-4 px-4 py-4 transition-colors hover:bg-admin-surface-hover">
@@ -76,12 +80,12 @@ function AttentionItemRow({ item }: { item: AttentionItem }) {
             {ATTENTION_KIND_LABELS[item.kind]}
           </span>
           <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${priorityClass}`}>
-            {PRIORITY_LABELS[item.ticketPriority]}
+            {PRIORITY_LABELS[item.priority]}
           </span>
           <span className="text-xs text-admin-text-faint">{formatAge(item.updatedAt)}</span>
         </div>
         <p className="truncate text-sm font-medium text-admin-text">
-          {item.ticketTitle}
+          {item.title}
         </p>
       </div>
 
