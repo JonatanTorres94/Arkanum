@@ -10,9 +10,6 @@ create table if not exists public.project_work_item_comments (
 comment on column public.project_work_item_comments.visible_to_support
   is 'When true, Soporte operators can read this comment via the support ticket handoff panel.';
 
-create index if not exists project_work_item_comments_work_item_id_idx
-  on public.project_work_item_comments(work_item_id);
-
 create index if not exists project_work_item_comments_work_item_created_at_idx
   on public.project_work_item_comments(work_item_id, created_at asc);
 

@@ -8,7 +8,6 @@ import { createProjectWorkItemCommentUseCase } from "@/features/projects/applica
 import { SupabaseProjectWorkItemCommentRepository } from "@/features/projects/infrastructure/supabase-project-work-item-comment.repository";
 import { getSupportTicketByWorkItemUseCase } from "@/features/support/application/get-support-ticket-by-work-item.use-case";
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
-import { COMMENT_MAX_LENGTH } from "@/features/projects/domain/project-work-item-comment.types";
 
 export async function createWorkItemCommentAction(
   projectId: string,
@@ -17,15 +16,9 @@ export async function createWorkItemCommentAction(
     content:          string;
     visibleToSupport: boolean;
   }
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; warning?: string }> {
   const user = await getAdminUser();
   if (!user) return { error: "No autorizado." };
-
-  const content = input.content.trim();
-  if (!content) return { error: "El comentario no puede estar vacío." };
-  if (content.length > COMMENT_MAX_LENGTH) {
-    return { error: `El comentario no puede superar los ${COMMENT_MAX_LENGTH} caracteres.` };
-  }
 
   // Validate ownership: work item must belong to the given project.
   const workItemResult = await getProjectWorkItemByIdUseCase(
@@ -37,30 +30,43 @@ export async function createWorkItemCommentAction(
     return { error: "El work item no pertenece al proyecto indicado." };
   }
 
+  // Use case handles all content validation (empty, whitespace, length, trim).
   const result = await createProjectWorkItemCommentUseCase(
     workItemId,
-    { content, visibleToSupport: input.visibleToSupport },
+    { content: input.content, visibleToSupport: input.visibleToSupport },
     user.email ?? null,
     new SupabaseProjectWorkItemCommentRepository()
   );
 
   if (!result.ok) return { error: result.error };
 
-  // Always revalidate the work item detail.
+  // Always revalidate work item detail + parent project.
   revalidatePath(`/admin/projects/${projectId}/work-items/${workItemId}`);
+  revalidatePath(`/admin/projects/${projectId}`);
 
-  // When the comment is visible to support, also revalidate the linked ticket page
-  // so the support operator sees it immediately.
-  if (input.visibleToSupport) {
-    const ticketResult = await getSupportTicketByWorkItemUseCase(
-      workItemId,
-      new SupabaseSupportTicketRepository()
-    );
-    if (ticketResult.ok && ticketResult.ticket) {
-      revalidatePath(`/admin/support/${ticketResult.ticket.id}`);
-      revalidatePath("/admin/support");
-    }
+  if (!input.visibleToSupport) return {};
+
+  // When visible to support: look up the linked ticket and revalidate accordingly.
+  const ticketResult = await getSupportTicketByWorkItemUseCase(
+    workItemId,
+    new SupabaseSupportTicketRepository()
+  );
+
+  // Ticket lookup failed unexpectedly — comment persisted but support routes may be stale.
+  if (!ticketResult.ok) {
+    return {
+      warning:
+        "El comentario se guardó, pero no se pudo determinar el ticket vinculado — las páginas de soporte pueden no reflejar el cambio de inmediato.",
+    };
   }
+
+  // Work item is not linked to any support ticket — no support routes to revalidate.
+  if (!ticketResult.ticket) return {};
+
+  const { ticket } = ticketResult;
+  revalidatePath(`/admin/support/${ticket.id}`);
+  revalidatePath("/admin/support");
+  if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
 
   return {};
 }
