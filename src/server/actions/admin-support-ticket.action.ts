@@ -35,6 +35,7 @@ import { resolveSupportInterventionUseCase } from "@/features/support/applicatio
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 import { updateProjectWorkItemStatusUseCase } from "@/features/projects/application/update-project-work-item-status.use-case";
 import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
+import { reopenProjectForDevelopmentUseCase } from "@/features/projects/application/reopen-project-for-development.use-case";
 import { OPEN_WORK_ITEM_STATUSES } from "@/features/projects/domain/project-lifecycle";
 
 // A linked work item that finished or was scrapped no longer blocks support
@@ -317,24 +318,28 @@ export async function escalateSupportTicketAction(id: string): Promise<{ error?:
     };
   }
 
-  // Lifecycle sync is best effort: work item + ticket are already persisted.
-  // A project in testing with a new backlog work item must regress to in_development.
-  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+  // Support escalation is an explicit rework trigger. Even if the created WI
+  // starts in backlog, the project must reopen from testing/deployed/maintenance
+  // into in_development because Development work has been requested.
+  // Ordinary synchronizeProjectLifecycleUseCase intentionally does not regress
+  // from testing — the dedicated reopen use case handles this path.
+  const reopenOutcome = await reopenProjectForDevelopmentUseCase(
     ticket.projectId,
     new SupabaseProjectRepository(),
-    workItemRepository
+    "support_intervention"
   );
 
   revalidatePath(`/admin/support/${id}`);
   revalidatePath("/admin/support");
   revalidatePath(`/admin/projects/${ticket.projectId}`);
   revalidatePath(`/admin/projects/${ticket.projectId}/work-items/${workItemResult.id}`);
+  revalidatePath("/admin/attention");
   if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
 
-  if (!syncOutcome.ok) {
+  if (!reopenOutcome.ok) {
     return {
       warning:
-        "El ticket fue escalado y el work item se creó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente.",
+        "El ticket fue escalado y el work item se creó, pero no se pudo reabrir el proyecto para desarrollo — revisalo manualmente.",
     };
   }
 
