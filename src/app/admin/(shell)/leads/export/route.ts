@@ -46,7 +46,7 @@ const HEADER = [
   "WhatsApp",
   "Rubro",
   "Tamaño",
-  "Proceso a mejorar",
+  "Proceso operativo",
   "Problema actual",
   "Herramientas actuales",
   "Horas semanales perdidas",

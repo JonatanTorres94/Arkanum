@@ -17,8 +17,10 @@ export async function notifyLeadUseCase(
   await emailService.send({
     from,
     to,
-    subject: `Nuevo lead: ${input.fullName} — ${input.industry}`,
+    subject: `Nuevo diagnóstico: ${input.fullName} — ${input.industry}`,
     text: [
+      "Nuevo diagnóstico solicitado desde la web",
+      "",
       `ID: ${leadId}`,
       `Nombre: ${input.fullName}`,
       `Email: ${input.email}`,
@@ -26,7 +28,7 @@ export async function notifyLeadUseCase(
       input.role ? `Rol: ${input.role}` : null,
       input.whatsapp ? `WhatsApp: ${input.whatsapp}` : null,
       `Industria: ${input.industry}`,
-      `Proceso a mejorar: ${input.processToImprove}`,
+      `Proceso a ordenar/automatizar/integrar: ${input.processToImprove}`,
       `Problema actual: ${input.currentProblem}`,
       `Urgencia: ${input.urgency}`,
       `Presupuesto: ${input.budget}`,
