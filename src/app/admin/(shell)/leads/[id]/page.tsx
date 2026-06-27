@@ -103,6 +103,21 @@ export default async function AdminLeadDetailPage({
             </div>
           </AdminSection>
 
+          {/* Origen y atribución */}
+          {(lead.landingPath || lead.referrer || lead.utmSource || lead.utmMedium || lead.utmCampaign || lead.utmContent || lead.utmTerm) && (
+            <AdminSection title="Origen y atribución">
+              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="Landing"      value={lead.landingPath} />
+                <Field label="Referrer"     value={lead.referrer} />
+                <Field label="UTM source"   value={lead.utmSource} />
+                <Field label="UTM medium"   value={lead.utmMedium} />
+                <Field label="UTM campaign" value={lead.utmCampaign} />
+                <Field label="UTM content"  value={lead.utmContent} />
+                <Field label="UTM term"     value={lead.utmTerm} />
+              </dl>
+            </AdminSection>
+          )}
+
           {/* Datos de contacto */}
           <AdminSection title="Datos de contacto">
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">

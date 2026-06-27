@@ -36,6 +36,13 @@ export async function notifyLeadUseCase(
       input.currentTools?.length ? `Herramientas actuales: ${input.currentTools.join(", ")}` : null,
       input.weeklyHoursLost ? `Horas perdidas por semana: ${input.weeklyHoursLost}` : null,
       input.additionalMessage ? `Mensaje adicional: ${input.additionalMessage}` : null,
+      input.landingPath  ? `Landing: ${input.landingPath}`        : null,
+      input.referrer     ? `Referrer: ${input.referrer}`          : null,
+      input.utmSource    ? `UTM source: ${input.utmSource}`       : null,
+      input.utmMedium    ? `UTM medium: ${input.utmMedium}`       : null,
+      input.utmCampaign  ? `UTM campaign: ${input.utmCampaign}`   : null,
+      input.utmContent   ? `UTM content: ${input.utmContent}`     : null,
+      input.utmTerm      ? `UTM term: ${input.utmTerm}`           : null,
     ]
       .filter(Boolean)
       .join("\n"),

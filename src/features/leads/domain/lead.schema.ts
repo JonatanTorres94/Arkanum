@@ -72,6 +72,15 @@ export const leadSchema = z.object({
 
   // Honeypot — must be empty on submit; bots fill it, humans don't
   website:          z.string().optional(),
+
+  // Attribution — captured client-side on mount; all optional, never block submission
+  landingPath:  z.string().optional(),
+  referrer:     z.string().optional(),
+  utmSource:    z.string().optional(),
+  utmMedium:    z.string().optional(),
+  utmCampaign:  z.string().optional(),
+  utmContent:   z.string().optional(),
+  utmTerm:      z.string().optional(),
 });
 
 export type LeadFormData = z.infer<typeof leadSchema>;

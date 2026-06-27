@@ -28,6 +28,13 @@ function leadToRow(lead: Lead): string {
     escapeField(lead.urgency),
     escapeField(lead.additionalMessage),
     escapeField(lead.status),
+    escapeField(lead.landingPath),
+    escapeField(lead.referrer),
+    escapeField(lead.utmSource),
+    escapeField(lead.utmMedium),
+    escapeField(lead.utmCampaign),
+    escapeField(lead.utmContent),
+    escapeField(lead.utmTerm),
     escapeField(
       new Date(lead.createdAt).toLocaleDateString("es-AR", {
         day: "2-digit",
@@ -54,6 +61,13 @@ const HEADER = [
   "Urgencia",
   "Mensaje adicional",
   "Estado",
+  "Landing path",
+  "Referrer",
+  "UTM source",
+  "UTM medium",
+  "UTM campaign",
+  "UTM content",
+  "UTM term",
   "Fecha",
 ].join(",");
 
