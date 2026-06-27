@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { SupportDevelopmentPhase } from "@/features/support/domain/support-development-phase";
 import type { WorkItemStatus } from "@/features/projects/domain/project-work-item.types";
-import type { TicketStatus } from "@/features/support/domain/support-ticket.types";
+import { TERMINAL_TICKET_STATUSES, type TicketStatus } from "@/features/support/domain/support-ticket.types";
 import type { ProjectWorkItemComment } from "@/features/projects/domain/project-work-item-comment.types";
 import { WORK_ITEM_STATUS_LABELS } from "@/features/projects/domain/project-work-item-labels";
 import {
@@ -14,7 +14,6 @@ import {
   resolveSupportInterventionAction,
 } from "@/server/actions/admin-support-ticket.action";
 
-const TERMINAL_TICKET_STATUSES = new Set<TicketStatus>(["resolved", "closed", "cancelled"]);
 
 type LinkedWorkItem = {
   id:        string;

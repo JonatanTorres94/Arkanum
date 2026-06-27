@@ -18,8 +18,6 @@ export const ALLOWED_ATTACHMENT_MIME_TYPES = [
 // Short-lived: enough for a browser to start a download.
 export const SIGNED_URL_EXPIRY_SECONDS = 60;
 
-// Terminal ticket statuses — attachments become read-only.
-export const TERMINAL_TICKET_STATUSES = new Set(["resolved", "closed", "cancelled"]);
 
 export interface SupportTicketAttachment {
   id:         string;

@@ -9,7 +9,8 @@ import { getSupportTicketAttachmentSignedUrlUseCase } from "@/features/support/a
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import { SupabaseSupportTicketAttachmentRepository } from "@/features/support/infrastructure/supabase-support-ticket-attachment.repository";
 import { SupabaseSupportTicketAttachmentStorage } from "@/features/support/infrastructure/supabase-support-ticket-attachment-storage";
-import { ATTACHMENT_MAX_SIZE_BYTES, TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket-attachment.types";
+import { ATTACHMENT_MAX_SIZE_BYTES } from "@/features/support/domain/support-ticket-attachment.types";
+import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket.types";
 
 // ─── Upload ───────────────────────────────────────────────────────────────────
 

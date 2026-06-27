@@ -2,7 +2,7 @@ import type {
   EscalateSupportTicketInput,
   EscalateSupportTicketResult,
 } from "@/features/support/domain/support-ticket.types";
-import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket-attachment.types";
+import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket.types";
 import type { SupportTicketRepository } from "@/features/support/infrastructure/support-ticket.repository";
 
 // Persists escalation metadata on the ticket. Also performs a terminal-status

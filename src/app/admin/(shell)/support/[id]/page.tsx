@@ -32,7 +32,7 @@ import {
 import { AdminSection } from "@/components/admin/admin-card";
 import { AdminDetailLayout } from "@/components/admin/admin-detail-layout";
 import type { TicketSource } from "@/features/support/domain/support-ticket.types";
-import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket-attachment.types";
+import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket.types";
 
 export const metadata = { title: "Ticket — Admin", robots: { index: false, follow: false } };
 

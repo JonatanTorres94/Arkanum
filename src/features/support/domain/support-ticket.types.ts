@@ -26,6 +26,8 @@ export const TICKET_STATUSES = [
 ] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
 
+export const TERMINAL_TICKET_STATUSES = new Set<TicketStatus>(["resolved", "closed", "cancelled"]);
+
 export const TICKET_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
 export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
 

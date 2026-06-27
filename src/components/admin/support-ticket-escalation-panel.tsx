@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { escalateSupportTicketAction } from "@/server/actions/admin-support-ticket.action";
-import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket-attachment.types";
+import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket.types";
 import type { TicketStatus } from "@/features/support/domain/support-ticket.types";
 
 export function SupportTicketEscalationPanel({

@@ -36,7 +36,7 @@ import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastr
 import { updateProjectWorkItemStatusUseCase } from "@/features/projects/application/update-project-work-item-status.use-case";
 import { reconcileProjectLifecycleAfterOperationalChange } from "@/features/projects/application/reconcile-project-lifecycle.use-case";
 import { OPEN_WORK_ITEM_STATUSES } from "@/features/projects/domain/project-lifecycle";
-import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket-attachment.types";
+import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket.types";
 
 // A linked work item that finished or was scrapped no longer blocks support
 // resolution — only an actually-open work item should hold a ticket back.
