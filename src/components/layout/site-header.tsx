@@ -5,9 +5,10 @@ import { siteConfig } from "@/config/site";
 
 const navLinksByLocale = {
   es: [
-    { label: "Soluciones", href: "#soluciones" },
-    { label: "Método", href: "#metodo" },
-    { label: "Diagnóstico", href: "#diagnostico" },
+    { label: "Soluciones",   href: "/#soluciones" },
+    { label: "Plataformas",  href: "/plataforma" },
+    { label: "Método",       href: "/#metodo" },
+    { label: "Diagnóstico",  href: "/diagnostico" },
   ],
   "pt-BR": [
     { label: "Soluções", href: "#solucoes" },
