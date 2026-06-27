@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [0.46.1] - 2026-06-27
+
+### Fixed
+
+- Lifecycle synchronization regression: `requestSupportInterventionAction` and `createProjectWorkItemAction` now call `reopenProjectForDevelopmentUseCase` for explicit rework triggers instead of (or in addition to) ordinary sync, so a project in `testing` is correctly reopened to `in_development` when a Support intervention occurs or a new active-development WI is created.
+
+### Added
+
+- `reopen-project-for-development.use-case.ts` — dedicated use case for explicit rework triggers (`support_intervention`, `new_active_work_item`). Eligible statuses: `planning/testing/deployed/maintenance → in_development`; `paused/cancelled/discovery` are never auto-mutated. Includes concurrency guard (re-read before write) and startDate initialization only for `planning → in_development` transitions.
+- `createProjectWorkItemAction` now revalidates `/admin/projects` and `/admin/attention` on success.
+- `requestSupportInterventionAction` now revalidates `/admin/projects` on success.
+
+### Changed
+
+- `createProjectWorkItemAction`: when the new WI has an active development status (`in_progress`, `blocked`, `review`), uses `reopenProjectForDevelopmentUseCase` instead of ordinary sync so testing projects are reopened. All other statuses keep ordinary sync.
+- `requestSupportInterventionAction`: replaced `synchronizeProjectLifecycleUseCase` with `reopenProjectForDevelopmentUseCase("support_intervention")` so testing projects are reopened when an intervention succeeds.
+- Ordinary sync (`updateProjectWorkItemStatusAction`, `updateProjectWorkItemAction`, `applyStatusSideEffects`) is unchanged — no generic regression from testing.
+
+### Tests
+
+- `reopen-project-for-development.use-case.test.ts` (new) — 22 tests covering: support_intervention (all eligible statuses, startDate preservation, non-eligible: cancelled/paused/discovery, deployed/maintenance rework, failure cases), new_active_work_item (testing reopens for in_progress/blocked/review, startDate preserved), non-eligible states loop.
+
 ## [0.46.0] - 2026-06-26
 
 ### Added
