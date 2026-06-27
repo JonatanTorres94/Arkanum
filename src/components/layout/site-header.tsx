@@ -11,7 +11,7 @@ const navLinksByLocale = {
     { label: "Diagnóstico",  href: "/diagnostico" },
   ],
   "pt-BR": [
-    { label: "Soluções", href: "#solucoes" },
+    { label: "Soluções", href: "/pt-BR#solucoes" },
     { label: "Diagnóstico", href: "/pt-BR/diagnostico" },
   ],
 } as const;
