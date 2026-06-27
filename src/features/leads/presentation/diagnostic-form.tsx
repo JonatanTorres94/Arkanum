@@ -63,9 +63,9 @@ const messages = {
     industryPlaceholder: "Seleccioná un rubro",
     companySize: "Personas en la empresa",
     companySizePlaceholder: "Seleccioná una opción",
-    processToImprove: "¿Qué proceso querés mejorar?",
+    processToImprove: "¿Qué proceso querés ordenar, automatizar o integrar?",
     processToImprovePlaceholder:
-      "Ej: Gestión de pedidos de clientes, hoy lo hacemos por WhatsApp y planilla.",
+      "Ej: Gestión de pedidos por WhatsApp y planilla. Integrar el sistema de stock con el de ventas. Automatizar reportes que se hacen a mano. Crear un panel para el equipo de campo.",
     toolsLabel: "¿Qué herramientas usan hoy?",
     currentProblem: "¿Qué problema les genera?",
     currentProblemPlaceholder:
@@ -80,7 +80,7 @@ const messages = {
     submitIdle: "Solicitar diagnóstico sin cargo",
     submitLoading: "Enviando…",
     submitHint:
-      "Sin compromiso. Si no tiene sentido construir software a medida para tu caso, también te lo vamos a decir.",
+      "Sin compromiso. Evaluamos si software a medida, una plataforma operativa, una integración o una automatización es lo que mejor resuelve tu proceso. Si no conviene construir algo, también te lo vamos a decir.",
     errors: {
       fullName: "Ingresá tu nombre completo",
       email: "Ingresá un email válido",
@@ -114,9 +114,9 @@ const messages = {
     industryPlaceholder: "Selecione um setor",
     companySize: "Pessoas na empresa",
     companySizePlaceholder: "Selecione uma opção",
-    processToImprove: "Qual processo você quer melhorar?",
+    processToImprove: "Qual processo você quer organizar, automatizar ou integrar?",
     processToImprovePlaceholder:
-      "Ex: Gestão de pedidos de clientes, hoje fazemos por WhatsApp e planilha.",
+      "Ex: Gestão de pedidos por WhatsApp e planilha. Integrar o sistema de estoque com o de vendas. Automatizar relatórios feitos manualmente. Criar um painel para a equipe em campo.",
     toolsLabel: "Quais ferramentas vocês usam hoje?",
     currentProblem: "Que problema isso gera?",
     currentProblemPlaceholder:
@@ -131,7 +131,7 @@ const messages = {
     submitIdle: "Solicitar diagnóstico sem custo",
     submitLoading: "Enviando…",
     submitHint:
-      "Sem compromisso. Se não fizer sentido construir um software sob medida para o seu caso, também te dizemos.",
+      "Sem compromisso. Avaliamos se software sob medida, uma plataforma operacional, uma integração ou uma automação é o que melhor resolve o seu processo. Se não fizer sentido construir algo, também te dizemos.",
     errors: {
       fullName: "Informe seu nome completo",
       email: "Informe um email válido",

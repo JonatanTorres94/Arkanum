@@ -5,14 +5,24 @@ import { DiagnosticForm } from "@/features/leads/presentation/diagnostic-form";
 import { getBilingualAlternates, getCanonicalUrl } from "@/lib/seo/canonical";
 
 export const metadata: Metadata = {
-  title: "Diagnóstico inicial",
+  title: "Diagnóstico de processos e software sob medida | Arkanum",
   description:
-    "Conte o que você quer melhorar. Analisamos seu caso e indicamos se uma solução digital sob medida faz sentido.",
+    "Conte qual processo você quer organizar, automatizar ou integrar. Avaliamos se uma solução digital sob medida faz sentido para a sua empresa.",
   alternates: {
     canonical: getCanonicalUrl("/pt-BR/diagnostico"),
     languages: getBilingualAlternates("/diagnostico", "/pt-BR/diagnostico"),
   },
 };
+
+const examples = [
+  "Dashboard de gestão",
+  "Sistema web interno",
+  "App móvel para equipes em campo",
+  "Integração entre sistemas",
+  "Automação de processos",
+  "Software + hardware / sensores",
+  "Plataforma operacional B2B",
+];
 
 export default function PtBRDiagnosticoPage() {
   return (
@@ -25,13 +35,24 @@ export default function PtBRDiagnosticoPage() {
               Diagnóstico inicial sem custo
             </p>
             <h1 className="mb-4 text-3xl font-semibold leading-snug text-slate-50">
-              Conte seu processo. Nós dizemos se tem solução.
+              Conte qual processo você quer organizar, automatizar ou integrar.
             </h1>
-            <p className="text-base leading-relaxed text-slate-400">
-              Analisamos sua operação atual e indicamos se uma solução digital sob medida pode
-              ajudar a reduzir carga manual, organizar informações ou conectar sistemas. Se não
-              fizer sentido, também te dizemos.
+            <p className="mb-6 text-base leading-relaxed text-slate-400">
+              Avaliamos se convém resolver com software sob medida, uma plataforma operacional,
+              uma integração ou uma automação. Se não fizer sentido construir algo, também
+              te dizemos.
             </p>
+
+            <div className="flex flex-wrap gap-2">
+              {examples.map((ex) => (
+                <span
+                  key={ex}
+                  className="rounded-md border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-xs text-slate-400"
+                >
+                  {ex}
+                </span>
+              ))}
+            </div>
           </div>
 
           <DiagnosticForm locale="pt-BR" redirectTo="/pt-BR/obrigado" />
