@@ -12,6 +12,7 @@ export type PublicRoute = {
 
 export const publicRoutes: readonly PublicRoute[] = [
   { path: "/",                              priority: 1.0, changeFrequency: "monthly" },
+  { path: "/plataforma",                    priority: 0.9, changeFrequency: "monthly" },
   { path: "/software-a-medida",             priority: 0.9, changeFrequency: "monthly" },
   { path: "/automatizacion-de-procesos",    priority: 0.9, changeFrequency: "monthly" },
   { path: "/sistemas-para-distribuidoras",  priority: 0.8, changeFrequency: "monthly" },
