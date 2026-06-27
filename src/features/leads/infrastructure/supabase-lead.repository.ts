@@ -31,6 +31,13 @@ type LeadRow = {
   next_action: string | null;
   follow_up_date: string | null;
   source: string;
+  landing_path:  string | null;
+  referrer:      string | null;
+  utm_source:    string | null;
+  utm_medium:    string | null;
+  utm_campaign:  string | null;
+  utm_content:   string | null;
+  utm_term:      string | null;
   created_at: string;
   updated_at: string;
   converted_to_client: boolean;
@@ -62,6 +69,13 @@ function toLeadDomain(row: LeadRow): Lead {
     nextAction:       row.next_action,
     followUpDate:     row.follow_up_date,
     source:           row.source as "website",
+    landingPath:      row.landing_path,
+    referrer:         row.referrer,
+    utmSource:        row.utm_source,
+    utmMedium:        row.utm_medium,
+    utmCampaign:      row.utm_campaign,
+    utmContent:       row.utm_content,
+    utmTerm:          row.utm_term,
     createdAt:        row.created_at,
     updatedAt:        row.updated_at,
     convertedToClient:  row.converted_to_client,
@@ -93,6 +107,13 @@ export class SupabaseLeadRepository implements LeadRepository {
         current_tools:      input.currentTools      ?? [],
         weekly_hours_lost:  input.weeklyHoursLost   || null,
         additional_message: input.additionalMessage || null,
+        landing_path:       input.landingPath       || null,
+        referrer:           input.referrer          || null,
+        utm_source:         input.utmSource         || null,
+        utm_medium:         input.utmMedium         || null,
+        utm_campaign:       input.utmCampaign       || null,
+        utm_content:        input.utmContent        || null,
+        utm_term:           input.utmTerm           || null,
       })
       .select("id")
       .single<{ id: string }>();

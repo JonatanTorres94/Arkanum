@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -158,6 +158,7 @@ export function DiagnosticForm({ locale = "es", redirectTo = "/gracias" }: Diagn
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LeadFormData>({
     resolver: zodResolver(leadSchema),
@@ -167,6 +168,18 @@ export function DiagnosticForm({ locale = "es", redirectTo = "/gracias" }: Diagn
     // nothing if nobody checks at least one tool.
     defaultValues: { currentTools: [] },
   });
+
+  useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    setValue("landingPath", window.location.pathname + window.location.search);
+    if (document.referrer) setValue("referrer", document.referrer);
+    const utm = (key: string) => search.get(key) ?? undefined;
+    if (utm("utm_source"))   setValue("utmSource",   utm("utm_source"));
+    if (utm("utm_medium"))   setValue("utmMedium",   utm("utm_medium"));
+    if (utm("utm_campaign")) setValue("utmCampaign", utm("utm_campaign"));
+    if (utm("utm_content"))  setValue("utmContent",  utm("utm_content"));
+    if (utm("utm_term"))     setValue("utmTerm",     utm("utm_term"));
+  }, [setValue]);
 
   const onSubmit = async (data: LeadFormData) => {
     setServerError(null);
@@ -190,6 +203,15 @@ export function DiagnosticForm({ locale = "es", redirectTo = "/gracias" }: Diagn
         aria-hidden="true"
         className="absolute left-[-9999px] h-0 w-0 overflow-hidden opacity-0"
       />
+
+      {/* Attribution: populated by useEffect on mount, never shown to user */}
+      <input type="hidden" {...register("landingPath")} />
+      <input type="hidden" {...register("referrer")} />
+      <input type="hidden" {...register("utmSource")} />
+      <input type="hidden" {...register("utmMedium")} />
+      <input type="hidden" {...register("utmCampaign")} />
+      <input type="hidden" {...register("utmContent")} />
+      <input type="hidden" {...register("utmTerm")} />
 
       <fieldset className="space-y-5">
         <legend className="text-xs font-semibold uppercase tracking-widest text-cyan-400">

@@ -35,6 +35,13 @@ export interface Lead {
   nextAction: string | null;
   followUpDate: string | null;
   source: LeadSource;
+  landingPath:  string | null;
+  referrer:     string | null;
+  utmSource:    string | null;
+  utmMedium:    string | null;
+  utmCampaign:  string | null;
+  utmContent:   string | null;
+  utmTerm:      string | null;
   createdAt: string;
   updatedAt: string;
   convertedToClient: boolean;
