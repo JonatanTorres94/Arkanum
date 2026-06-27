@@ -2,7 +2,7 @@
 
 ## Conceptual model
 
-The platform has three distinct operational units:
+The platform has four distinct operational units:
 
 - **Project** — the operational container. Represents a client engagement. Its `status` reflects the overall state of the engagement, not the state of any single work unit.
 - **Work Item** — a technical work unit owned by Development. Each belongs to a Project. Its `status` tracks granular progress from `backlog` through `done`.
