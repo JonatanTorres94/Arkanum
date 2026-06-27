@@ -34,8 +34,7 @@ import { closeTicketAfterDevelopmentCancellationUseCase } from "@/features/suppo
 import { resolveSupportInterventionUseCase } from "@/features/support/application/resolve-support-intervention.use-case";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 import { updateProjectWorkItemStatusUseCase } from "@/features/projects/application/update-project-work-item-status.use-case";
-import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
-import { reopenProjectForDevelopmentUseCase } from "@/features/projects/application/reopen-project-for-development.use-case";
+import { reconcileProjectLifecycleAfterOperationalChange } from "@/features/projects/application/reconcile-project-lifecycle.use-case";
 import { OPEN_WORK_ITEM_STATUSES } from "@/features/projects/domain/project-lifecycle";
 
 // A linked work item that finished or was scrapped no longer blocks support
@@ -318,15 +317,11 @@ export async function escalateSupportTicketAction(id: string): Promise<{ error?:
     };
   }
 
-  // Support escalation is an explicit rework trigger. Even if the created WI
-  // starts in backlog, the project must reopen from testing/deployed/maintenance
-  // into in_development because Development work has been requested.
-  // Ordinary synchronizeProjectLifecycleUseCase intentionally does not regress
-  // from testing — the dedicated reopen use case handles this path.
-  const reopenOutcome = await reopenProjectForDevelopmentUseCase(
+  const reopenOutcome = await reconcileProjectLifecycleAfterOperationalChange(
     ticket.projectId,
     new SupabaseProjectRepository(),
-    "support_intervention"
+    workItemRepository,
+    "support_ticket_escalated"
   );
 
   revalidatePath(`/admin/support/${id}`);
@@ -459,13 +454,14 @@ export async function returnToDevelopmentAction(
   );
   revalidatePath(`/admin/projects/${workItem.projectId}`);
 
-  // Step 2 — lifecycle sync (best effort).
-  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+  // Step 2 — lifecycle reconciliation (best effort).
+  const reconcileOutcome = await reconcileProjectLifecycleAfterOperationalChange(
     workItem.projectId,
     new SupabaseProjectRepository(),
-    workItemRepository
+    workItemRepository,
+    "work_item_status_changed"
   );
-  if (!syncOutcome.ok) {
+  if (!reconcileOutcome.ok) {
     warnings.push(
       "El work item se devolvió a Desarrollo, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
     );
@@ -587,15 +583,15 @@ export async function resolveSupportInterventionAction(
     return { error: outcome.error };
   }
 
-  // Lifecycle sync — WI goes to 'ready' (still open), project may remain in_development.
   const warnings: string[] = [];
   if (ticket?.projectId) {
-    const syncOutcome = await synchronizeProjectLifecycleUseCase(
+    const reconcileOutcome = await reconcileProjectLifecycleAfterOperationalChange(
       ticket.projectId,
       new SupabaseProjectRepository(),
-      workItemRepository
+      workItemRepository,
+      "work_item_status_changed"
     );
-    if (!syncOutcome.ok) {
+    if (!reconcileOutcome.ok) {
       warnings.push(
         "La intervención se atendió, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
       );

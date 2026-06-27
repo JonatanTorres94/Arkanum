@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+## [0.46.2] - 2026-06-27
+
+### Fixed
+
+- **Project stuck in `in_development`**: after all work items are `done` or `cancelled` (with at least one `done`), the project now automatically advances to `testing`. This was missing from the original sync use case (Bug 1).
+
+### Added
+
+- `reconcile-project-lifecycle.use-case.ts` — single centralized use case that handles all automatic lifecycle transitions. Replaces the patchwork of `synchronizeProjectLifecycleUseCase` and `reopenProjectForDevelopmentUseCase` calls scattered across action files. Introduces `ReconcileReason` (`new_work_item`, `support_ticket_escalated`, `support_intervention`, `work_item_status_changed`, `support_ticket_resolved`, `support_ticket_closed`, `support_ticket_cancelled`). Rules applied in order:
+  1. **Reopen/activate**: rework reasons (`new_work_item`, `support_ticket_escalated`, `support_intervention`) advance `planning/testing/deployed/maintenance → in_development`. Only mechanism for `testing/deployed/maintenance` regression.
+  2. **Rule 1**: `planning + in_progress WI → in_development` (startDate initialized).
+  3. **Rule 2**: `planning/in_development + testing WI → testing`.
+  4. **Rule 3** *(new)*: `in_development + no open WIs (backlog counts as open) + at least one done → testing`.
+  - `paused/cancelled/discovery` are never auto-mutated.
+  - Concurrency guard: re-reads project before writing; skips if status changed concurrently.
+
+### Changed
+
+- All lifecycle call sites replaced with `reconcileProjectLifecycleAfterOperationalChange`:
+  - `applyStatusSideEffects` (WI status changes) → reason `work_item_status_changed`
+  - `createProjectWorkItemAction` → reason `new_work_item` (no longer needs `isNewWorkItemReopenTrigger` conditional)
+  - `requestSupportInterventionAction` → reason `support_intervention`
+  - `escalateSupportTicketAction` → reason `support_ticket_escalated`
+  - `returnToDevelopmentAction` → reason `work_item_status_changed`
+  - `resolveSupportInterventionAction` → reason `work_item_status_changed`
+- `synchronizeProjectLifecycleUseCase` and `reopenProjectForDevelopmentUseCase` are no longer called from any action file. The use case files and their tests remain for reference.
+
+### Tests
+
+- `reconcile-project-lifecycle.use-case.test.ts` (new) — 29 tests covering: reopen by rework reason (testing/deployed/maintenance/planning), no-auto-mutation statuses (paused/cancelled/discovery), Rule 1, Rule 2, Rule 3 (including the Bug 1 scenario and all blocking conditions), reopen + Rule 3 interaction (backlog WI blocks immediate re-close), no-op cases, failure cases.
+
 ## [0.46.1] - 2026-06-27
 
 ### Fixed

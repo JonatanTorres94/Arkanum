@@ -23,9 +23,7 @@ import { requestSupportInterventionUseCase } from "@/features/projects/applicati
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 import { SupabaseProjectWorkItemCommentRepository } from "@/features/projects/infrastructure/supabase-project-work-item-comment.repository";
-import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
-import { reopenProjectForDevelopmentUseCase } from "@/features/projects/application/reopen-project-for-development.use-case";
-import { isNewWorkItemReopenTrigger } from "@/features/projects/domain/project-lifecycle";
+import { reconcileProjectLifecycleAfterOperationalChange } from "@/features/projects/application/reconcile-project-lifecycle.use-case";
 import type { SupportTicket } from "@/features/support/domain/support-ticket.types";
 import { COMMENT_MAX_LENGTH } from "@/features/projects/domain/project-work-item-comment.types";
 
@@ -75,13 +73,14 @@ async function applyStatusSideEffects(opts: {
 
   const warnings: string[] = [];
 
-  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+  const reconcileOutcome = await reconcileProjectLifecycleAfterOperationalChange(
     projectId,
     new SupabaseProjectRepository(),
-    workItemRepository
+    workItemRepository,
+    "work_item_status_changed"
   );
 
-  if (!syncOutcome.ok) {
+  if (!reconcileOutcome.ok) {
     warnings.push(
       "El work item se actualizó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
     );
@@ -173,24 +172,12 @@ export async function createProjectWorkItemAction(
 
   if (!result.ok) return { error: result.error };
 
-  // Any new development work (backlog/ready/in_progress/blocked/review) is an
-  // explicit rework signal — it must reopen the project even if it was in testing.
-  // The policy is centralized in isNewWorkItemReopenTrigger so it is not
-  // duplicated as ad-hoc arrays across call sites.
-  // terminal and testing statuses use ordinary sync (which only advances).
-  const isReopenTrigger = isNewWorkItemReopenTrigger(input.status as WorkItemStatus);
-
-  const lifecycleOutcome = isReopenTrigger
-    ? await reopenProjectForDevelopmentUseCase(
-        projectId,
-        new SupabaseProjectRepository(),
-        "new_active_work_item"
-      )
-    : await synchronizeProjectLifecycleUseCase(
-        projectId,
-        new SupabaseProjectRepository(),
-        repository
-      );
+  const lifecycleOutcome = await reconcileProjectLifecycleAfterOperationalChange(
+    projectId,
+    new SupabaseProjectRepository(),
+    repository,
+    "new_work_item"
+  );
 
   revalidatePath(`/admin/projects/${projectId}`);
   revalidatePath("/admin/projects");
@@ -421,13 +408,10 @@ export async function requestSupportInterventionAction(
     return { error: outcome.error };
   }
 
-  // Support intervention is an explicit rework trigger — use the dedicated reopen
-  // use case so that a project in testing is correctly reopened to in_development.
-  // Ordinary lifecycle sync would not regress from testing, which is correct for
-  // routine status churn, but wrong here.
-  const reopenOutcome = await reopenProjectForDevelopmentUseCase(
+  const reopenOutcome = await reconcileProjectLifecycleAfterOperationalChange(
     projectId,
     new SupabaseProjectRepository(),
+    new SupabaseProjectWorkItemRepository(),
     "support_intervention"
   );
 
@@ -444,7 +428,7 @@ export async function requestSupportInterventionAction(
   if (outcome.warning) warnings.push(outcome.warning);
   if (!reopenOutcome.ok) {
     warnings.push(
-      "El work item se actualizó, pero no se pudo reabrir el proyecto para desarrollo — revisalo manualmente."
+      "La intervención se registró, pero no se pudo reconciliar el estado del proyecto — revisalo manualmente."
     );
   }
 
