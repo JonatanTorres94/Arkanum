@@ -1,33 +1,33 @@
 const modules = [
   {
-    name: "Clientes / CRM",
+    name: "Dashboard operativo",
     description:
-      "Perfil completo por cliente: proyectos activos, historial de tickets, estado operativo y notas internas.",
+      "Vista unificada del estado real del negocio: proyectos, tareas, clientes, alertas y métricas clave. Configurable según los datos que importan en cada operación.",
   },
   {
-    name: "Proyectos",
+    name: "Gestión de clientes y procesos",
     description:
-      "Ciclo de vida del proyecto desde planning hasta deployed. El estado se sincroniza automáticamente con el trabajo técnico.",
+      "Módulo central para registrar clientes, oportunidades y procesos asociados. En empresas de servicios puede operar como CRM; en otros contextos, como gestión de cuentas o contratos.",
   },
   {
-    name: "Work Items",
+    name: "Flujos de trabajo",
     description:
-      "Unidades de trabajo técnico vinculadas al proyecto. Flujo desde backlog hasta done con estados intermedios controlados.",
+      "Secuencias de estados y tareas adaptadas al proceso real. Para una empresa de software/servicios: proyectos, work items y soporte. Para logística: viajes, cargas y entregas.",
   },
   {
-    name: "Tickets de Soporte",
+    name: "Integraciones entre sistemas",
     description:
-      "Registro de reportes, bugs e intervenciones de clientes. Pueden escalar a work items cuando requieren trabajo técnico.",
+      "Conexiones con ERP, facturación, e-commerce, hardware, APIs externas o sistemas legacy. La plataforma actúa como hub operativo sin reemplazar lo que ya funciona.",
   },
   {
-    name: "Attention Inbox",
+    name: "Automatización",
     description:
-      "Bandeja operativa derivada del estado real del sistema. Muestra qué necesita acción sin configuración manual.",
+      "Reglas automáticas que actualizan estados, envían alertas, crean tareas o sincronizan datos sin intervención manual. El sistema trabaja mientras el equipo se enfoca en lo importante.",
   },
   {
-    name: "Lifecycle Reconciliation",
+    name: "Reportes y trazabilidad",
     description:
-      "El estado del proyecto se reconcilia automáticamente cuando cambia el trabajo técnico o el soporte. Sin sincronización manual.",
+      "Historial completo de cada entidad del sistema. Quién hizo qué, cuándo y por qué. Reportes por período, cliente, área o proceso para tomar decisiones con datos reales.",
   },
 ];
 
@@ -37,13 +37,14 @@ export function PlatformModules() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-16 max-w-2xl">
           <p className="mb-3 text-xs font-medium uppercase tracking-widest text-cyan-400">
-            Módulos
+            Capacidades
           </p>
           <h2 className="mb-4 text-3xl font-semibold leading-tight text-slate-50 md:text-4xl">
-            Todo el sistema en un lugar
+            Los bloques que se combinan para cubrir tu operación
           </h2>
           <p className="text-slate-400">
-            Cada módulo resuelve un problema específico. Juntos cubren el ciclo completo de la operación.
+            Cada plataforma se construye seleccionando y adaptando las capacidades que la operación
+            requiere. No todos los módulos aplican a todos los clientes.
           </p>
         </div>
 

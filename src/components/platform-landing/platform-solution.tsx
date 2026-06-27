@@ -1,19 +1,23 @@
-const loop = [
+const pillars = [
   {
-    label: "CRM",
-    description: "Gestioná clientes y oportunidades comerciales con contexto completo.",
+    label: "Diseñado para tu operación",
+    description:
+      "No adaptamos una plantilla. Analizamos tu proceso real y construimos el sistema que refleja cómo trabaja tu empresa.",
   },
   {
-    label: "Delivery",
-    description: "Organizá proyectos y work items desde el primer commit hasta el cierre.",
+    label: "Módulos que se necesitan, no los que sobran",
+    description:
+      "Una empresa de logística no necesita CRM de ventas. Una distribuidora no necesita un panel de soporte técnico. El sistema se construye alrededor del negocio.",
   },
   {
-    label: "Support",
-    description: "Registrá y resolvé tickets de soporte vinculados al trabajo técnico.",
+    label: "Integrado con lo que ya tenés",
+    description:
+      "ERP, sistemas legacy, hardware de campo, APIs externas, dispositivos IoT. La plataforma conecta con lo que ya existe en lugar de reemplazarlo todo.",
   },
   {
-    label: "Attention",
-    description: "Una bandeja operativa que muestra qué necesita acción en este momento.",
+    label: "Preparado para crecer",
+    description:
+      "Arquitectura limpia, documentación, control de accesos y base de datos robusta. Un sistema que puede evolucionar sin reescribirse desde cero.",
   },
 ];
 
@@ -26,32 +30,25 @@ export function PlatformSolution() {
             La solución
           </p>
           <h2 className="mb-4 text-3xl font-semibold leading-tight text-slate-50 md:text-4xl">
-            Un ciclo operativo completo
+            Una plataforma operativa diseñada alrededor de tu negocio
           </h2>
           <p className="text-slate-400">
-            Arkanum conecta los cuatro ejes de la operación en un único sistema. Cada módulo alimenta
-            al siguiente.
+            Arkanum diseña y construye el sistema operativo que cada cliente necesita. No existe
+            un producto único: existe una plataforma diseñada a medida para cada operación.
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {loop.map((step, i) => (
+        <div className="grid gap-6 sm:grid-cols-2">
+          {pillars.map((pillar) => (
             <div
-              key={step.label}
-              className="relative rounded-xl border border-slate-800 bg-slate-900/50 p-6"
+              key={pillar.label}
+              className="rounded-xl border border-slate-800 bg-slate-900/50 p-6"
             >
-              <span className="mb-4 flex h-8 w-8 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10 text-xs font-semibold text-cyan-400">
-                {i + 1}
-              </span>
-              <h3 className="mb-2 font-semibold text-slate-50">{step.label}</h3>
-              <p className="text-sm leading-relaxed text-slate-400">{step.description}</p>
+              <h3 className="mb-2 font-semibold text-slate-50">{pillar.label}</h3>
+              <p className="text-sm leading-relaxed text-slate-400">{pillar.description}</p>
             </div>
           ))}
         </div>
-
-        <p className="mt-8 text-center text-sm text-slate-500">
-          CRM → Delivery → Support → Attention → CRM
-        </p>
       </div>
     </section>
   );
