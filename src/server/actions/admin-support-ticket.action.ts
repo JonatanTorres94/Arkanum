@@ -36,6 +36,7 @@ import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastr
 import { updateProjectWorkItemStatusUseCase } from "@/features/projects/application/update-project-work-item-status.use-case";
 import { reconcileProjectLifecycleAfterOperationalChange } from "@/features/projects/application/reconcile-project-lifecycle.use-case";
 import { OPEN_WORK_ITEM_STATUSES } from "@/features/projects/domain/project-lifecycle";
+import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket-attachment.types";
 
 // A linked work item that finished or was scrapped no longer blocks support
 // resolution — only an actually-open work item should hold a ticket back.
@@ -270,6 +271,10 @@ export async function escalateSupportTicketAction(id: string): Promise<{ error?:
 
   if (ticket.escalatedWorkItemId) {
     return { error: "Este ticket ya fue escalado a desarrollo." };
+  }
+
+  if (TERMINAL_TICKET_STATUSES.has(ticket.status)) {
+    return { error: "No se puede escalar a desarrollo un ticket resuelto, cerrado o cancelado." };
   }
 
   if (!ticket.projectId) {

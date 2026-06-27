@@ -3,15 +3,19 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { escalateSupportTicketAction } from "@/server/actions/admin-support-ticket.action";
+import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket-attachment.types";
+import type { TicketStatus } from "@/features/support/domain/support-ticket.types";
 
 export function SupportTicketEscalationPanel({
   ticketId,
+  ticketStatus,
   projectId,
   escalatedWorkItemId,
   escalatedAt,
   escalatedBy,
 }: {
   ticketId: string;
+  ticketStatus: TicketStatus;
   projectId: string | null;
   escalatedWorkItemId: string | null;
   escalatedAt: string | null;
@@ -38,6 +42,14 @@ export function SupportTicketEscalationPanel({
           </Link>
         )}
       </div>
+    );
+  }
+
+  if (TERMINAL_TICKET_STATUSES.has(ticketStatus)) {
+    return (
+      <p className="text-sm text-admin-text-faint">
+        Ticket cerrado — no se puede escalar a desarrollo un ticket resuelto, cerrado o cancelado.
+      </p>
     );
   }
 

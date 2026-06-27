@@ -228,6 +228,7 @@ export default async function AdminSupportDetailPage({
           <AdminSection title="Escalación a desarrollo">
             <SupportTicketEscalationPanel
               ticketId={ticket.id}
+              ticketStatus={ticket.status}
               projectId={ticket.projectId}
               escalatedWorkItemId={ticket.escalatedWorkItemId}
               escalatedAt={ticket.escalatedAt}
