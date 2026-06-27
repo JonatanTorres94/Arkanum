@@ -1,10 +1,11 @@
 import { createServerClient } from "@/lib/supabase/server";
-import type {
-  TicketCategory,
-  TicketPriority,
-  TicketSource,
-  TicketStatus,
-  SupportTicket,
+import {
+  TERMINAL_TICKET_STATUSES,
+  type TicketCategory,
+  type TicketPriority,
+  type TicketSource,
+  type TicketStatus,
+  type SupportTicket,
 } from "@/features/support/domain/support-ticket.types";
 import type {
   WorkItemCategory,
@@ -95,7 +96,6 @@ function workItemToDomain(row: ProjectWorkItemRow): ProjectWorkItem {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TERMINAL_TICKET_STATUSES = ["resolved", "closed", "cancelled"];
 
 // Work item statuses that represent actionable active work.
 // Excludes: backlog (not started, not actionable), done, cancelled (terminal/completed).
@@ -113,7 +113,7 @@ export class SupabaseAttentionItemRepository implements AttentionItemRepository 
     const { data: ticketRows, error: ticketError } = await supabase
       .from("support_tickets")
       .select("*")
-      .not("status", "in", `(${TERMINAL_TICKET_STATUSES.map((s) => `"${s}"`).join(",")})`)
+      .not("status", "in", `(${[...TERMINAL_TICKET_STATUSES].map((s) => `"${s}"`).join(",")})`)
       .returns<SupportTicketRow[]>();
 
     if (ticketError) throw new Error("SupabaseAttentionItemRepository: ticket query failed");

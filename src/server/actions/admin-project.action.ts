@@ -11,6 +11,7 @@ import { getClientByIdUseCase } from "@/features/clients/application/get-client-
 import { SupabaseClientRepository } from "@/features/clients/infrastructure/supabase-client.repository";
 import { getProjectByIdUseCase } from "@/features/projects/application/get-project-by-id.use-case";
 import { isValidCalendarDate } from "@/lib/validation/calendar-date";
+import { PROTECTED_PROJECT_STATUSES } from "@/features/projects/domain/project-lifecycle";
 
 const NAME_MAX_LENGTH = 200;
 
@@ -132,5 +133,51 @@ export async function updateProjectAction(
   if (!result.ok) return { error: result.error };
 
   revalidatePath(`/admin/projects/${projectId}`);
+  revalidatePath("/admin/projects");
+  revalidatePath("/admin/attention");
+  return {};
+}
+
+// Applies the suggested lifecycle status derived from work-item state.
+// This is an explicit admin action — it goes through the same update use case
+// and validation as a manual edit. Opening a page never triggers this.
+export async function applyLifecycleSuggestionAction(
+  projectId: string,
+  suggestedStatus: string
+): Promise<{ error?: string }> {
+  const user = await getAdminUser();
+  if (!user) return { error: "No autorizado." };
+
+  if (!isValidStatus(suggestedStatus)) return { error: "Estado sugerido inválido." };
+
+  // Suggestions always advance the project — never to a protected state.
+  if (PROTECTED_PROJECT_STATUSES.includes(suggestedStatus as ProjectStatus)) {
+    return { error: "No se puede aplicar automáticamente una transición hacia un estado protegido." };
+  }
+
+  const repository = new SupabaseProjectRepository();
+  const projectResult = await getProjectByIdUseCase(projectId, repository);
+  if (!projectResult.ok) return { error: "El proyecto no existe." };
+
+  const { project } = projectResult;
+
+  const result = await updateProjectUseCase(
+    projectId,
+    {
+      name:        project.name,
+      description: project.description,
+      status:      suggestedStatus as ProjectStatus,
+      startDate:   project.startDate,
+      targetDate:  project.targetDate,
+      notes:       project.notes,
+    },
+    repository
+  );
+
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath(`/admin/projects/${projectId}`);
+  revalidatePath("/admin/projects");
+  revalidatePath("/admin/attention");
   return {};
 }

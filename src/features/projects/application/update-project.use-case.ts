@@ -1,4 +1,5 @@
 import type { UpdateProjectInput, UpdateProjectResult } from "@/features/projects/domain/project.types";
+import { validateProjectStatusTransition } from "@/features/projects/domain/project-lifecycle";
 import type { ProjectRepository } from "@/features/projects/infrastructure/project.repository";
 
 // Argentina never observes DST — offset is always UTC-3.
@@ -16,6 +17,9 @@ export async function updateProjectUseCase(
   try {
     const existingProject = await repository.findById(id);
     if (!existingProject) return { ok: false, error: "Proyecto no encontrado." };
+
+    const transitionResult = validateProjectStatusTransition(existingProject.status, input.status);
+    if (!transitionResult.ok) return { ok: false, error: transitionResult.error };
 
     // For in_development: an explicit date from the admin always wins; a null
     // input falls back to the persisted date; if neither exists, auto-set today.

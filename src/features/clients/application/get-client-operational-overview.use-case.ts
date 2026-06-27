@@ -1,9 +1,7 @@
 import type { Project } from "@/features/projects/domain/project.types";
-import type { SupportTicket } from "@/features/support/domain/support-ticket.types";
+import { TERMINAL_TICKET_STATUSES, type SupportTicket } from "@/features/support/domain/support-ticket.types";
 import type { ProjectRepository } from "@/features/projects/infrastructure/project.repository";
 import type { SupportTicketRepository } from "@/features/support/infrastructure/support-ticket.repository";
-
-const TERMINAL_TICKET_STATUSES = new Set(["resolved", "closed", "cancelled"]);
 
 type ProjectsSummary = {
   total:         number;

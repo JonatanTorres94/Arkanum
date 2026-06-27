@@ -34,8 +34,9 @@ import { closeTicketAfterDevelopmentCancellationUseCase } from "@/features/suppo
 import { resolveSupportInterventionUseCase } from "@/features/support/application/resolve-support-intervention.use-case";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 import { updateProjectWorkItemStatusUseCase } from "@/features/projects/application/update-project-work-item-status.use-case";
-import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
+import { reconcileProjectLifecycleAfterOperationalChange } from "@/features/projects/application/reconcile-project-lifecycle.use-case";
 import { OPEN_WORK_ITEM_STATUSES } from "@/features/projects/domain/project-lifecycle";
+import { TERMINAL_TICKET_STATUSES } from "@/features/support/domain/support-ticket.types";
 
 // A linked work item that finished or was scrapped no longer blocks support
 // resolution — only an actually-open work item should hold a ticket back.
@@ -272,6 +273,10 @@ export async function escalateSupportTicketAction(id: string): Promise<{ error?:
     return { error: "Este ticket ya fue escalado a desarrollo." };
   }
 
+  if (TERMINAL_TICKET_STATUSES.has(ticket.status)) {
+    return { error: "No se puede escalar a desarrollo un ticket resuelto, cerrado o cancelado." };
+  }
+
   if (!ticket.projectId) {
     return { error: "El ticket necesita un proyecto asociado para poder escalarse." };
   }
@@ -317,24 +322,24 @@ export async function escalateSupportTicketAction(id: string): Promise<{ error?:
     };
   }
 
-  // Lifecycle sync is best effort: work item + ticket are already persisted.
-  // A project in testing with a new backlog work item must regress to in_development.
-  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+  const reopenOutcome = await reconcileProjectLifecycleAfterOperationalChange(
     ticket.projectId,
     new SupabaseProjectRepository(),
-    workItemRepository
+    workItemRepository,
+    "support_ticket_escalated"
   );
 
   revalidatePath(`/admin/support/${id}`);
   revalidatePath("/admin/support");
   revalidatePath(`/admin/projects/${ticket.projectId}`);
   revalidatePath(`/admin/projects/${ticket.projectId}/work-items/${workItemResult.id}`);
+  revalidatePath("/admin/attention");
   if (ticket.clientId) revalidatePath(`/admin/clients/${ticket.clientId}`);
 
-  if (!syncOutcome.ok) {
+  if (!reopenOutcome.ok) {
     return {
       warning:
-        "El ticket fue escalado y el work item se creó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente.",
+        "El ticket fue escalado y el work item se creó, pero no se pudo reabrir el proyecto para desarrollo — revisalo manualmente.",
     };
   }
 
@@ -454,13 +459,14 @@ export async function returnToDevelopmentAction(
   );
   revalidatePath(`/admin/projects/${workItem.projectId}`);
 
-  // Step 2 — lifecycle sync (best effort).
-  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+  // Step 2 — lifecycle reconciliation (best effort).
+  const reconcileOutcome = await reconcileProjectLifecycleAfterOperationalChange(
     workItem.projectId,
     new SupabaseProjectRepository(),
-    workItemRepository
+    workItemRepository,
+    "work_item_status_changed"
   );
-  if (!syncOutcome.ok) {
+  if (!reconcileOutcome.ok) {
     warnings.push(
       "El work item se devolvió a Desarrollo, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
     );
@@ -582,15 +588,15 @@ export async function resolveSupportInterventionAction(
     return { error: outcome.error };
   }
 
-  // Lifecycle sync — WI goes to 'ready' (still open), project may remain in_development.
   const warnings: string[] = [];
   if (ticket?.projectId) {
-    const syncOutcome = await synchronizeProjectLifecycleUseCase(
+    const reconcileOutcome = await reconcileProjectLifecycleAfterOperationalChange(
       ticket.projectId,
       new SupabaseProjectRepository(),
-      workItemRepository
+      workItemRepository,
+      "work_item_status_changed"
     );
-    if (!syncOutcome.ok) {
+    if (!reconcileOutcome.ok) {
       warnings.push(
         "La intervención se atendió, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
       );

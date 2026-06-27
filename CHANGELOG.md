@@ -2,6 +2,78 @@
 
 ## [Unreleased]
 
+## [0.46.2] - 2026-06-27
+
+### Fixed
+
+- **Project stuck in `in_development`**: after all work items are `done` or `cancelled` (with at least one `done`), the project now automatically advances to `testing`. This was missing from the original sync use case (Bug 1).
+
+### Added
+
+- `reconcile-project-lifecycle.use-case.ts` — single centralized use case that handles all automatic lifecycle transitions. Replaces the patchwork of `synchronizeProjectLifecycleUseCase` and `reopenProjectForDevelopmentUseCase` calls scattered across action files. Introduces `ReconcileReason` (`new_work_item`, `support_ticket_escalated`, `support_intervention`, `work_item_status_changed`, `support_ticket_resolved`, `support_ticket_closed`, `support_ticket_cancelled`). Rules applied in order:
+  1. **Reopen/activate**: rework reasons (`new_work_item`, `support_ticket_escalated`, `support_intervention`) advance `planning/testing/deployed/maintenance → in_development`. Only mechanism for `testing/deployed/maintenance` regression.
+  2. **Rule 1**: `planning + in_progress WI → in_development` (startDate initialized).
+  3. **Rule 2**: `planning/in_development + testing WI → testing`.
+  4. **Rule 3** *(new)*: `in_development + no open WIs (backlog counts as open) + at least one done → testing`.
+  - `paused/cancelled/discovery` are never auto-mutated.
+  - Concurrency guard: re-reads project before writing; skips if status changed concurrently.
+
+### Changed
+
+- All lifecycle call sites replaced with `reconcileProjectLifecycleAfterOperationalChange`:
+  - `applyStatusSideEffects` (WI status changes) → reason `work_item_status_changed`
+  - `createProjectWorkItemAction` → reason `new_work_item` (no longer needs `isNewWorkItemReopenTrigger` conditional)
+  - `requestSupportInterventionAction` → reason `support_intervention`
+  - `escalateSupportTicketAction` → reason `support_ticket_escalated`
+  - `returnToDevelopmentAction` → reason `work_item_status_changed`
+  - `resolveSupportInterventionAction` → reason `work_item_status_changed`
+- `synchronizeProjectLifecycleUseCase` and `reopenProjectForDevelopmentUseCase` are no longer called from any action file. The use case files and their tests remain for reference.
+
+### Tests
+
+- `reconcile-project-lifecycle.use-case.test.ts` (new) — 29 tests covering: reopen by rework reason (testing/deployed/maintenance/planning), no-auto-mutation statuses (paused/cancelled/discovery), Rule 1, Rule 2, Rule 3 (including the Bug 1 scenario and all blocking conditions), reopen + Rule 3 interaction (backlog WI blocks immediate re-close), no-op cases, failure cases.
+
+## [0.46.1] - 2026-06-27
+
+### Fixed
+
+- Lifecycle synchronization regression: `requestSupportInterventionAction` and `createProjectWorkItemAction` now call `reopenProjectForDevelopmentUseCase` for explicit rework triggers instead of (or in addition to) ordinary sync, so a project in `testing` is correctly reopened to `in_development` when a Support intervention occurs or a new active-development WI is created.
+
+### Added
+
+- `reopen-project-for-development.use-case.ts` — dedicated use case for explicit rework triggers (`support_intervention`, `new_active_work_item`). Eligible statuses: `planning/testing/deployed/maintenance → in_development`; `paused/cancelled/discovery` are never auto-mutated. Includes concurrency guard (re-read before write) and startDate initialization only for `planning → in_development` transitions.
+- `createProjectWorkItemAction` now revalidates `/admin/projects` and `/admin/attention` on success.
+- `requestSupportInterventionAction` now revalidates `/admin/projects` on success.
+
+### Changed
+
+- `createProjectWorkItemAction`: when the new WI has an active development status (`in_progress`, `blocked`, `review`), uses `reopenProjectForDevelopmentUseCase` instead of ordinary sync so testing projects are reopened. All other statuses keep ordinary sync.
+- `requestSupportInterventionAction`: replaced `synchronizeProjectLifecycleUseCase` with `reopenProjectForDevelopmentUseCase("support_intervention")` so testing projects are reopened when an intervention succeeds.
+- Ordinary sync (`updateProjectWorkItemStatusAction`, `updateProjectWorkItemAction`, `applyStatusSideEffects`) is unchanged — no generic regression from testing.
+
+### Tests
+
+- `reopen-project-for-development.use-case.test.ts` (new) — 22 tests covering: support_intervention (all eligible statuses, startDate preservation, non-eligible: cancelled/paused/discovery, deployed/maintenance rework, failure cases), new_active_work_item (testing reopens for in_progress/blocked/review, startDate preserved), non-eligible states loop.
+
+## [0.46.0] - 2026-06-26
+
+### Added
+
+- `project-lifecycle.ts` — `assessProjectLifecycle()` con 7 casos de inconsistencia: `planning_while_execution_exists`, `planning_while_testing_exists`, `in_development_while_testing_exists`, `ahead_of_execution`, `completed_with_active_work`, `execution_status_missing_start_date`, `all_work_items_cancelled`. Retorna `ProjectLifecycleAssessment` con `consistent`, `inconsistencies[]`, `suggestedStatus`, `severity` y `warnings[]` compatible hacia atrás. Agrega constantes `PROTECTED_PROJECT_STATUSES` y `EXECUTION_WI_STATUSES`.
+- `project-lifecycle-summary.tsx` — componente `ProjectLifecycleSummary` para el sidebar del detalle de proyecto: tabla de progreso de WIs por estado, advertencias de inconsistencia con severidad visual (warning/info), botón "Actualizar a {Estado}" que aplica la sugerencia via server action.
+- `admin-project.action.ts` — `applyLifecycleSuggestionAction()`: aplica la transición de estado sugerida pasando por la misma validación de `updateProjectUseCase`; rechaza transiciones hacia estados protegidos.
+
+### Changed
+
+- `synchronize-project-lifecycle.use-case.ts` — regla de trigger de testing reemplaza la antigua regla de regresión: (Regla 2) `planning/in_development → testing` cuando cualquier WI entra en `testing`. Elimina Regla 3 (regresión `testing → in_development`): un proyecto en testing permanece allí hasta que el admin lo cambie explícitamente. `planning → testing` directo inicializa `startDate` si es null.
+- `admin-project.action.ts` — `updateProjectAction` revalida `/admin/projects` y `/admin/attention` además del detalle del proyecto.
+- `page.tsx` (detalle de proyecto) — reemplaza la lista de advertencias legacy por `ProjectLifecycleSummary` en el sidebar.
+
+### Tests
+
+- `project-lifecycle.test.ts` (nuevo) — 30 tests: cubre `assessProjectLifecycle` con cada caso de inconsistencia, casos consistent, top-level fields y retrocompatibilidad de `warnings[]`.
+- `synchronize-project-lifecycle-escalation.test.ts` — reescrito con 27 tests: Regla 1 (planning→in_development), Regla 2 (→testing), no-regresión (4 escenarios de testing), estados protegidos (4), no-op, y fallas de repositorio.
+
 ## [0.45.3] - 2026-06-26
 
 ### Added

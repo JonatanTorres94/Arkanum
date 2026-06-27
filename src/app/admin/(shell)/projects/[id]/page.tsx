@@ -12,7 +12,7 @@ import { getProjectWorkItemsUseCase } from "@/features/projects/application/get-
 import { SupabaseProjectWorkItemRepository } from "@/features/projects/infrastructure/supabase-project-work-item.repository";
 import { getSupportTicketByWorkItemUseCase } from "@/features/support/application/get-support-ticket-by-work-item.use-case";
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
-import { computeLifecycleWarnings } from "@/features/projects/domain/project-lifecycle";
+import { assessProjectLifecycle } from "@/features/projects/domain/project-lifecycle";
 import type { TicketStatus } from "@/features/support/domain/support-ticket.types";
 import { ProjectStatusBadge } from "@/components/admin/project-status-badge";
 import { ProjectRepositoryForm } from "@/components/admin/project-repository-form";
@@ -27,6 +27,7 @@ import {
   EditProjectButton,
   ProjectDetailsSection,
 } from "@/components/admin/project-workspace";
+import { ProjectLifecycleSummary } from "@/components/admin/project-lifecycle-summary";
 
 // Badge accent hues stay literal (not tokenized): translucent tinted badges
 // read fine on both light and dark surfaces by construction, and there are
@@ -110,7 +111,7 @@ export default async function AdminProjectDetailPage({
 
   const workItems = workItemsResult.ok ? workItemsResult.workItems : [];
 
-  const lifecycleWarnings = computeLifecycleWarnings(project, workItems);
+  const lifecycleAssessment = assessProjectLifecycle(project, workItems);
 
   // Origin ticket lookup stays per-item (no bulk method) — work item lists are
   // small in this MVP, so N lookups is simpler than introducing a batched query.
@@ -335,20 +336,13 @@ export default async function AdminProjectDetailPage({
         }
         sidebar={
           <>
-            {lifecycleWarnings.length > 0 && (
-              <AdminSection title="Advertencias">
-                <ul className="space-y-2">
-                  {lifecycleWarnings.map((w, i) => (
-                    <li
-                      key={i}
-                      className="rounded-lg border border-amber-400/20 bg-amber-400/5 px-3 py-2.5 text-xs text-amber-400"
-                    >
-                      {w.message}
-                    </li>
-                  ))}
-                </ul>
-              </AdminSection>
-            )}
+            <AdminSection title="Progreso">
+              <ProjectLifecycleSummary
+                projectId={project.id}
+                workItems={workItems}
+                assessment={lifecycleAssessment}
+              />
+            </AdminSection>
 
             <AdminSection title="Metadata">
               <dl className="space-y-4">

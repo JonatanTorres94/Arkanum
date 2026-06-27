@@ -23,7 +23,7 @@ import { requestSupportInterventionUseCase } from "@/features/projects/applicati
 import { SupabaseSupportTicketRepository } from "@/features/support/infrastructure/supabase-support-ticket.repository";
 import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastructure/supabase-support-ticket-note.repository";
 import { SupabaseProjectWorkItemCommentRepository } from "@/features/projects/infrastructure/supabase-project-work-item-comment.repository";
-import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
+import { reconcileProjectLifecycleAfterOperationalChange } from "@/features/projects/application/reconcile-project-lifecycle.use-case";
 import type { SupportTicket } from "@/features/support/domain/support-ticket.types";
 import { COMMENT_MAX_LENGTH } from "@/features/projects/domain/project-work-item-comment.types";
 
@@ -73,13 +73,14 @@ async function applyStatusSideEffects(opts: {
 
   const warnings: string[] = [];
 
-  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+  const reconcileOutcome = await reconcileProjectLifecycleAfterOperationalChange(
     projectId,
     new SupabaseProjectRepository(),
-    workItemRepository
+    workItemRepository,
+    "work_item_status_changed"
   );
 
-  if (!syncOutcome.ok) {
+  if (!reconcileOutcome.ok) {
     warnings.push(
       "El work item se actualizó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
     );
@@ -171,15 +172,18 @@ export async function createProjectWorkItemAction(
 
   if (!result.ok) return { error: result.error };
 
-  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+  const lifecycleOutcome = await reconcileProjectLifecycleAfterOperationalChange(
     projectId,
     new SupabaseProjectRepository(),
-    repository
+    repository,
+    "new_work_item"
   );
 
   revalidatePath(`/admin/projects/${projectId}`);
+  revalidatePath("/admin/projects");
+  revalidatePath("/admin/attention");
 
-  if (!syncOutcome.ok) {
+  if (!lifecycleOutcome.ok) {
     return {
       warning:
         "El work item se creó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente.",
@@ -404,16 +408,17 @@ export async function requestSupportInterventionAction(
     return { error: outcome.error };
   }
 
-  // Lifecycle sync — awaiting_support is an OPEN status, so project stays in_development.
-  const syncOutcome = await synchronizeProjectLifecycleUseCase(
+  const reopenOutcome = await reconcileProjectLifecycleAfterOperationalChange(
     projectId,
     new SupabaseProjectRepository(),
-    workItemRepository
+    new SupabaseProjectWorkItemRepository(),
+    "support_intervention"
   );
 
   // Revalidate all affected routes.
   revalidatePath(`/admin/projects/${projectId}/work-items/${workItemId}`);
   revalidatePath(`/admin/projects/${projectId}`);
+  revalidatePath("/admin/projects");
   revalidatePath(`/admin/support/${ticket.id}`);
   revalidatePath("/admin/support");
   revalidatePath("/admin/attention");
@@ -421,9 +426,9 @@ export async function requestSupportInterventionAction(
 
   const warnings: string[] = [];
   if (outcome.warning) warnings.push(outcome.warning);
-  if (!syncOutcome.ok) {
+  if (!reopenOutcome.ok) {
     warnings.push(
-      "El work item se actualizó, pero no se pudo sincronizar el estado del proyecto — revisalo manualmente."
+      "La intervención se registró, pero no se pudo reconciliar el estado del proyecto — revisalo manualmente."
     );
   }
 
