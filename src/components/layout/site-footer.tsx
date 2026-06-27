@@ -4,6 +4,7 @@ import { siteConfig } from "@/config/site";
 const footerLinksByLocale = {
   es: [
     { label: "Soluciones",                   href: "/#soluciones" },
+    { label: "Plataformas",                  href: "/plataforma" },
     { label: "Método",                        href: "/#metodo" },
     { label: "Diagnóstico",                  href: "/diagnostico" },
     { label: "Software a medida",            href: "/software-a-medida" },

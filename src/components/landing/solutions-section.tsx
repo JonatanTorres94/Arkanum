@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Section } from "@/components/ui/section";
 import { Card } from "@/components/ui/card";
 
@@ -60,6 +61,19 @@ export function SolutionsSection() {
             </div>
           </Card>
         ))}
+      </div>
+
+      <div className="mt-10 border-t border-slate-800/60 pt-8">
+        <p className="mb-3 text-sm text-slate-400">
+          ¿Necesitás una plataforma operativa completa que combine dashboards, flujos de trabajo,
+          soporte e integraciones en un solo sistema?
+        </p>
+        <Link
+          href="/plataforma"
+          className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
+        >
+          Ver plataformas operativas a medida →
+        </Link>
       </div>
     </Section>
   );
