@@ -1,5 +1,29 @@
 import type { Project, ProjectStatus, LifecycleWarning } from "./project.types";
-import type { ProjectWorkItem } from "./project-work-item.types";
+import type { ProjectWorkItem, WorkItemStatus } from "./project-work-item.types";
+
+// ─── New work item reopen policy ─────────────────────────────────────────────
+
+// Returns true when creating a NEW work item with the given status should
+// reopen the project to in_development (even if the project is in testing).
+// The rule applies only to *creation* — ordinary status churn of existing WIs
+// does not use this function and must not trigger a regression from testing.
+//
+// Excluded statuses:
+// - testing: project is already in a testing phase; no regression needed
+// - awaiting_support: rework path goes through support_intervention trigger
+// - done / cancelled: terminal statuses; no new development is starting
+export function isNewWorkItemReopenTrigger(status: WorkItemStatus): boolean {
+  switch (status) {
+    case "backlog":
+    case "ready":
+    case "in_progress":
+    case "blocked":
+    case "review":
+      return true;
+    default:
+      return false;
+  }
+}
 
 // ─── Manual transition matrix ─────────────────────────────────────────────────
 

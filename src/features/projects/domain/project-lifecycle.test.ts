@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { assessProjectLifecycle, validateProjectStatusTransition } from "./project-lifecycle";
+import {
+  assessProjectLifecycle,
+  validateProjectStatusTransition,
+  isNewWorkItemReopenTrigger,
+} from "./project-lifecycle";
 import type { Project } from "./project.types";
 import type { ProjectWorkItem } from "./project-work-item.types";
 
@@ -444,6 +448,36 @@ describe("validateProjectStatusTransition", () => {
       const result = validateProjectStatusTransition("deployed", "discovery");
       expect(result.ok).toBe(false);
       if (!result.ok) expect(typeof result.error).toBe("string");
+    });
+  });
+});
+
+// ── isNewWorkItemReopenTrigger ─────────────────────────────────────────────────
+
+describe("isNewWorkItemReopenTrigger", () => {
+  describe("returns true — new development work signals a project reopen", () => {
+    it("backlog → true", () => expect(isNewWorkItemReopenTrigger("backlog")).toBe(true));
+    it("ready → true",   () => expect(isNewWorkItemReopenTrigger("ready")).toBe(true));
+    it("in_progress → true", () => expect(isNewWorkItemReopenTrigger("in_progress")).toBe(true));
+    it("blocked → true", () => expect(isNewWorkItemReopenTrigger("blocked")).toBe(true));
+    it("review → true",  () => expect(isNewWorkItemReopenTrigger("review")).toBe(true));
+  });
+
+  describe("returns false — no reopen for these statuses", () => {
+    it("testing → false (project already in testing phase)", () => {
+      expect(isNewWorkItemReopenTrigger("testing")).toBe(false);
+    });
+
+    it("awaiting_support → false (goes through support_intervention trigger)", () => {
+      expect(isNewWorkItemReopenTrigger("awaiting_support")).toBe(false);
+    });
+
+    it("done → false (terminal status)", () => {
+      expect(isNewWorkItemReopenTrigger("done")).toBe(false);
+    });
+
+    it("cancelled → false (terminal status)", () => {
+      expect(isNewWorkItemReopenTrigger("cancelled")).toBe(false);
     });
   });
 });

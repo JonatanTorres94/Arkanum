@@ -25,6 +25,7 @@ import { SupabaseSupportTicketNoteRepository } from "@/features/support/infrastr
 import { SupabaseProjectWorkItemCommentRepository } from "@/features/projects/infrastructure/supabase-project-work-item-comment.repository";
 import { synchronizeProjectLifecycleUseCase } from "@/features/projects/application/synchronize-project-lifecycle.use-case";
 import { reopenProjectForDevelopmentUseCase } from "@/features/projects/application/reopen-project-for-development.use-case";
+import { isNewWorkItemReopenTrigger } from "@/features/projects/domain/project-lifecycle";
 import type { SupportTicket } from "@/features/support/domain/support-ticket.types";
 import { COMMENT_MAX_LENGTH } from "@/features/projects/domain/project-work-item-comment.types";
 
@@ -172,11 +173,12 @@ export async function createProjectWorkItemAction(
 
   if (!result.ok) return { error: result.error };
 
-  // Active development statuses on a new WI are explicit rework signals —
-  // they must reopen the project even if it was already in testing.
-  // All other statuses use ordinary sync which only advances, never regresses.
-  const REOPEN_TRIGGER_STATUSES: WorkItemStatus[] = ["in_progress", "blocked", "review"];
-  const isReopenTrigger = REOPEN_TRIGGER_STATUSES.includes(input.status as WorkItemStatus);
+  // Any new development work (backlog/ready/in_progress/blocked/review) is an
+  // explicit rework signal — it must reopen the project even if it was in testing.
+  // The policy is centralized in isNewWorkItemReopenTrigger so it is not
+  // duplicated as ad-hoc arrays across call sites.
+  // terminal and testing statuses use ordinary sync (which only advances).
+  const isReopenTrigger = isNewWorkItemReopenTrigger(input.status as WorkItemStatus);
 
   const lifecycleOutcome = isReopenTrigger
     ? await reopenProjectForDevelopmentUseCase(
