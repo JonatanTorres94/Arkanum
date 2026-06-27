@@ -568,3 +568,101 @@ describe("getAttentionItemsUseCase — empty state", () => {
     if (result.ok) expect(result.items).toHaveLength(0);
   });
 });
+
+// ─── Route integrity ──────────────────────────────────────────────────────────
+
+describe("getAttentionItemsUseCase — route integrity (href patterns)", () => {
+  it("support_validation_pending href → /admin/support/:ticketId", async () => {
+    const candidate = makeTicketCandidate({ workItem: { status: "done" } });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const item = result.items.find((i) => i.kind === "support_validation_pending");
+    expect(item?.href).toBe("/admin/support/ticket-1");
+  });
+
+  it("support_cancellation_review href → /admin/support/:ticketId", async () => {
+    const candidate = makeTicketCandidate({ workItem: { status: "cancelled" } });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const item = result.items.find((i) => i.kind === "support_cancellation_review");
+    expect(item?.href).toBe("/admin/support/ticket-1");
+  });
+
+  it("development_blocked_work_item (standalone) href → /admin/projects/:projectId/work-items/:wiId", async () => {
+    const result = await getAttentionItemsUseCase(buildRepo([
+      makeStandaloneWi({ id: "wi-1", projectId: "project-1", status: "blocked" }),
+    ]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const item = result.items.find((i) => i.kind === "development_blocked_work_item");
+    expect(item?.href).toBe("/admin/projects/project-1/work-items/wi-1");
+  });
+
+  it("integrity_missing_work_item href → /admin/support/:ticketId", async () => {
+    const candidate = makeTicketCandidate({
+      ticket:          { escalatedWorkItemId: "wi-missing" },
+      workItem:        null,
+      workItemMissing: true,
+    });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const item = result.items.find((i) => i.kind === "integrity_missing_work_item");
+    expect(item?.href).toBe("/admin/support/ticket-1");
+  });
+
+  it("integrity_orphan_escalation href → /admin/support/:ticketId", async () => {
+    const candidate = makeTicketCandidate({
+      ticket:   { status: "escalated_to_development", escalatedWorkItemId: null },
+      workItem: null,
+    });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const item = result.items.find((i) => i.kind === "integrity_orphan_escalation");
+    expect(item?.href).toBe("/admin/support/ticket-1");
+  });
+
+  it("integrity_action_required_mismatch href → /admin/support/:ticketId", async () => {
+    const candidate = makeTicketCandidate({
+      ticket:   { status: "action_required", escalatedWorkItemId: "wi-1" },
+      workItem: { status: "in_progress" },
+    });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const item = result.items.find((i) => i.kind === "integrity_action_required_mismatch");
+    expect(item?.href).toBe("/admin/support/ticket-1");
+  });
+
+  it("integrity_awaiting_support_mismatch (standalone WI) href → /admin/projects/:projectId/work-items/:wiId", async () => {
+    const result = await getAttentionItemsUseCase(buildRepo([
+      makeStandaloneWi({ id: "wi-1", projectId: "project-1", status: "awaiting_support" }),
+    ]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const item = result.items.find((i) => i.kind === "integrity_awaiting_support_mismatch");
+    expect(item?.href).toBe("/admin/projects/project-1/work-items/wi-1");
+  });
+});
+
+// ─── Invariant: backlog WI in ticket context ─────────────────────────────────
+
+describe("getAttentionItemsUseCase — invariant: backlog WI linked to non-terminal ticket", () => {
+  it("generates support_open_ticket + development_open_work_item (backlog is actionable in ticket context)", async () => {
+    // Repository fetches backlog WIs via Query 3 (inactive linked WIs) when a ticket references them.
+    // The use case treats them as active work — backlog is not a terminal state.
+    const candidate = makeTicketCandidate({
+      ticket:   { status: "escalated_to_development", escalatedWorkItemId: "wi-1" },
+      workItem: { id: "wi-1", projectId: "project-1", status: "backlog" },
+    });
+    const result = await getAttentionItemsUseCase(buildRepo([candidate]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.items.find((i) => i.kind === "support_open_ticket")).toBeDefined();
+    expect(result.items.find((i) => i.kind === "development_open_work_item")).toBeDefined();
+    expect(result.items).toHaveLength(2);
+  });
+});
