@@ -94,10 +94,10 @@ export default async function AdminLeadDetailPage({
       }
       main={
         <>
-          {/* Proceso a mejorar */}
-          <AdminSection title="Proceso a mejorar">
+          {/* Proceso operativo */}
+          <AdminSection title="Proceso operativo">
             <div className="space-y-4">
-              <Field label="Proceso a mejorar"     value={lead.processToImprove} />
+              <Field label="Proceso operativo"     value={lead.processToImprove} />
               <Field label="Problema actual"       value={lead.currentProblem} />
               <Field label="Herramientas actuales" value={lead.currentTools.join(", ") || null} />
             </div>

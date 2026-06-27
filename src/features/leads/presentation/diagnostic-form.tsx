@@ -45,7 +45,7 @@ const messages = {
   es: {
     sectionYourData: "Tus datos",
     sectionYourCompany: "Tu empresa",
-    sectionProcess: "El proceso a mejorar",
+    sectionProcess: "El proceso operativo",
     sectionContext: "Contexto",
     fullName: "Nombre y apellido",
     fullNamePlaceholder: "Juan García",
@@ -96,7 +96,7 @@ const messages = {
   "pt-BR": {
     sectionYourData: "Seus dados",
     sectionYourCompany: "Sua empresa",
-    sectionProcess: "O processo a melhorar",
+    sectionProcess: "O processo operativo",
     sectionContext: "Contexto",
     fullName: "Nome completo",
     fullNamePlaceholder: "João Silva",
