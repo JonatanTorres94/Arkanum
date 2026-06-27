@@ -81,6 +81,8 @@ export async function GET(request: NextRequest) {
   const activeBudget         = params.get("budget")         ?? "";
   const activeUrgency        = params.get("urgency")        ?? "";
   const activeQualifiedStage = params.get("qualifiedStage") ?? "";
+  const activeLandingPath    = params.get("landingPath")    ?? "";
+  const activeUtmSource      = params.get("utmSource")      ?? "";
 
   const repository = new SupabaseLeadRepository();
   const result     = await getLeadsUseCase(repository);
@@ -105,6 +107,8 @@ export async function GET(request: NextRequest) {
         return false;
       }
     }
+    if (activeLandingPath && lead.landingPath !== activeLandingPath) return false;
+    if (activeUtmSource   && lead.utmSource   !== activeUtmSource)   return false;
     return true;
   });
 

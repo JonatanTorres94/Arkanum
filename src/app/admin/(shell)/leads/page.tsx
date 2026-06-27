@@ -7,6 +7,7 @@ import { LeadFilters } from "@/components/admin/lead-filters";
 import { LeadSummaryCards } from "@/components/admin/lead-summary-cards";
 import { LeadOperationalMetrics } from "@/components/admin/lead-operational-metrics";
 import { LeadPipelineDistribution } from "@/components/admin/lead-pipeline-distribution";
+import { LeadAttributionSummary } from "@/components/admin/lead-attribution-summary";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminEmptyState } from "@/components/admin/admin-empty-state";
 
@@ -27,9 +28,12 @@ export default async function AdminLeadsPage({
   const activeBudget         = typeof filters.budget         === "string" ? filters.budget         : "";
   const activeUrgency        = typeof filters.urgency        === "string" ? filters.urgency        : "";
   const activeQualifiedStage = typeof filters.qualifiedStage === "string" ? filters.qualifiedStage : "";
+  const activeLandingPath    = typeof filters.landingPath    === "string" ? filters.landingPath    : "";
+  const activeUtmSource      = typeof filters.utmSource      === "string" ? filters.utmSource      : "";
 
   const hasFilters = !!(
-    activeStatus || activeIndustry || activeCompanySize || activeBudget || activeUrgency || activeQualifiedStage
+    activeStatus || activeIndustry || activeCompanySize || activeBudget ||
+    activeUrgency || activeQualifiedStage || activeLandingPath || activeUtmSource
   );
 
   const exportParams = new URLSearchParams();
@@ -39,7 +43,17 @@ export default async function AdminLeadsPage({
   if (activeBudget)         exportParams.set("budget",         activeBudget);
   if (activeUrgency)        exportParams.set("urgency",        activeUrgency);
   if (activeQualifiedStage) exportParams.set("qualifiedStage", activeQualifiedStage);
+  if (activeLandingPath)    exportParams.set("landingPath",    activeLandingPath);
+  if (activeUtmSource)      exportParams.set("utmSource",      activeUtmSource);
   const exportHref = `/admin/leads/export${exportParams.size > 0 ? `?${exportParams.toString()}` : ""}`;
+
+  // Dynamic options for attribution filters — unique non-null values from loaded leads
+  const landingPaths = result.ok
+    ? [...new Set(result.leads.map((l) => l.landingPath).filter(Boolean) as string[])]
+    : [];
+  const utmSources = result.ok
+    ? [...new Set(result.leads.map((l) => l.utmSource).filter(Boolean) as string[])]
+    : [];
 
   const filteredLeads = result.ok
     ? result.leads.filter((lead) => {
@@ -58,6 +72,8 @@ export default async function AdminLeadsPage({
             return false;
           }
         }
+        if (activeLandingPath && lead.landingPath !== activeLandingPath) return false;
+        if (activeUtmSource   && lead.utmSource   !== activeUtmSource)   return false;
         return true;
       })
     : [];
@@ -91,10 +107,15 @@ export default async function AdminLeadsPage({
         {/* Summary */}
         {result.ok && result.leads.length > 0 && <LeadSummaryCards leads={result.leads} />}
 
+        {/* Attribution */}
+        {result.ok && result.leads.length > 0 && (
+          <LeadAttributionSummary leads={result.leads} />
+        )}
+
         {/* Filters */}
         {result.ok && result.leads.length > 0 && (
           <Suspense>
-            <LeadFilters />
+            <LeadFilters landingPaths={landingPaths} utmSources={utmSources} />
           </Suspense>
         )}
 
