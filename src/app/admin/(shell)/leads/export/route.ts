@@ -3,6 +3,7 @@ import { verifyAdmin } from "@/lib/auth/verify-admin";
 import { getLeadsUseCase } from "@/features/leads/application/get-leads.use-case";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
 import type { Lead } from "@/features/leads/domain/lead.types";
+import { deriveLeadPriority, type LeadPriority } from "@/features/leads/domain/lead-priority";
 
 function escapeField(value: string | null | undefined): string {
   if (value == null || value === "") return "";
@@ -83,6 +84,7 @@ export async function GET(request: NextRequest) {
   const activeQualifiedStage = params.get("qualifiedStage") ?? "";
   const activeLandingPath    = params.get("landingPath")    ?? "";
   const activeUtmSource      = params.get("utmSource")      ?? "";
+  const activePriority       = params.get("priority")       ?? "";
 
   const repository = new SupabaseLeadRepository();
   const result     = await getLeadsUseCase(repository);
@@ -109,6 +111,7 @@ export async function GET(request: NextRequest) {
     }
     if (activeLandingPath && lead.landingPath !== activeLandingPath) return false;
     if (activeUtmSource   && lead.utmSource   !== activeUtmSource)   return false;
+    if (activePriority    && deriveLeadPriority(lead) !== activePriority as LeadPriority) return false;
     return true;
   });
 

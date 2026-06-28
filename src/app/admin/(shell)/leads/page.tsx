@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getLeadsUseCase } from "@/features/leads/application/get-leads.use-case";
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
 import { LeadStatusBadge } from "@/components/admin/lead-status-badge";
+import { LeadPriorityBadge } from "@/components/admin/lead-priority-badge";
 import { LeadFilters } from "@/components/admin/lead-filters";
 import { LeadSummaryCards } from "@/components/admin/lead-summary-cards";
 import { LeadOperationalMetrics } from "@/components/admin/lead-operational-metrics";
@@ -10,6 +11,7 @@ import { LeadPipelineDistribution } from "@/components/admin/lead-pipeline-distr
 import { LeadAttributionSummary } from "@/components/admin/lead-attribution-summary";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminEmptyState } from "@/components/admin/admin-empty-state";
+import { deriveLeadPriority, type LeadPriority } from "@/features/leads/domain/lead-priority";
 
 export const metadata = { title: "Leads — Admin", robots: { index: false, follow: false } };
 
@@ -30,10 +32,12 @@ export default async function AdminLeadsPage({
   const activeQualifiedStage = typeof filters.qualifiedStage === "string" ? filters.qualifiedStage : "";
   const activeLandingPath    = typeof filters.landingPath    === "string" ? filters.landingPath    : "";
   const activeUtmSource      = typeof filters.utmSource      === "string" ? filters.utmSource      : "";
+  const activePriority       = typeof filters.priority       === "string" ? filters.priority       : "";
 
   const hasFilters = !!(
     activeStatus || activeIndustry || activeCompanySize || activeBudget ||
-    activeUrgency || activeQualifiedStage || activeLandingPath || activeUtmSource
+    activeUrgency || activeQualifiedStage || activeLandingPath || activeUtmSource ||
+    activePriority
   );
 
   const exportParams = new URLSearchParams();
@@ -45,6 +49,7 @@ export default async function AdminLeadsPage({
   if (activeQualifiedStage) exportParams.set("qualifiedStage", activeQualifiedStage);
   if (activeLandingPath)    exportParams.set("landingPath",    activeLandingPath);
   if (activeUtmSource)      exportParams.set("utmSource",      activeUtmSource);
+  if (activePriority)       exportParams.set("priority",       activePriority);
   const exportHref = `/admin/leads/export${exportParams.size > 0 ? `?${exportParams.toString()}` : ""}`;
 
   // Dynamic options for attribution filters — unique non-null values from loaded leads
@@ -74,6 +79,7 @@ export default async function AdminLeadsPage({
         }
         if (activeLandingPath && lead.landingPath !== activeLandingPath) return false;
         if (activeUtmSource   && lead.utmSource   !== activeUtmSource)   return false;
+        if (activePriority    && deriveLeadPriority(lead) !== activePriority as LeadPriority) return false;
         return true;
       })
     : [];
@@ -146,6 +152,7 @@ export default async function AdminLeadsPage({
                 <tr className="border-b border-admin-border bg-admin-surface-hover">
                   <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Nombre</th>
                   <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Estado</th>
+                  <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Prioridad</th>
                   <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted md:table-cell">Presupuesto</th>
                   <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted lg:table-cell">Urgencia</th>
                   <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted md:table-cell">Rubro</th>
@@ -172,6 +179,9 @@ export default async function AdminLeadsPage({
                     </td>
                     <td className="px-4 py-3.5">
                       <LeadStatusBadge status={lead.status} />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <LeadPriorityBadge priority={deriveLeadPriority(lead)} />
                     </td>
                     <td className="hidden px-4 py-3.5 text-admin-text-secondary md:table-cell">
                       {lead.budget}
