@@ -1,10 +1,8 @@
 import type { Lead } from "@/features/leads/domain/lead.types";
+import { deriveLeadPriority } from "@/features/leads/domain/lead-priority";
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Highest-urgency tier and "no defined budget" option, per lead.schema.ts —
-// not stored as separate flags, so we match against the literal enum values.
-const HIGH_URGENCY_VALUE = "Lo necesitamos cuanto antes";
 const UNDEFINED_BUDGET_VALUE = "No tenemos cifra definida aún";
 
 export function LeadOperationalMetrics({ leads }: { leads: Lead[] }) {
@@ -20,8 +18,8 @@ export function LeadOperationalMetrics({ leads }: { leads: Lead[] }) {
       value: leads.filter((l) => l.status === "qualified").length,
     },
     {
-      label: "Alta urgencia",
-      value: leads.filter((l) => l.urgency === HIGH_URGENCY_VALUE).length,
+      label: "Alta prioridad",
+      value: leads.filter((l) => deriveLeadPriority(l) === "alta").length,
     },
     {
       label: "Con presupuesto definido",

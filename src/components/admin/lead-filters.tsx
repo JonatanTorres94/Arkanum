@@ -14,6 +14,7 @@ import {
   BUDGET_OPTIONS,
   URGENCY_OPTIONS,
 } from "@/features/leads/domain/lead.schema";
+import type { LeadPriority } from "@/features/leads/domain/lead-priority";
 
 const STATUS_LABELS: Record<LeadStatus, string> = {
   new:          "Nuevo",
@@ -21,6 +22,14 @@ const STATUS_LABELS: Record<LeadStatus, string> = {
   qualified:    "Calificado",
   disqualified: "Descartado",
 };
+
+const PRIORITY_LABELS: Record<LeadPriority, string> = {
+  alta:  "Alta",
+  media: "Media",
+  baja:  "Baja",
+};
+
+const PRIORITIES: LeadPriority[] = ["alta", "media", "baja"];
 
 const QUALIFIED_STAGE_LABELS: Record<QualifiedStage, string> = {
   discovery_pending: "Discovery pendiente",
@@ -62,10 +71,18 @@ export function LeadFilters({ landingPaths = [], utmSources = [] }: LeadFiltersP
     "qualifiedStage",
     "landingPath",
     "utmSource",
+    "priority",
   ].some((k) => params.get(k));
 
   return (
     <div className="flex flex-wrap items-center gap-3">
+      <select className={selectClass} value={val("priority")} onChange={(e) => set("priority", e.target.value)}>
+        <option value="">Prioridad</option>
+        {PRIORITIES.map((p) => (
+          <option key={p} value={p}>{PRIORITY_LABELS[p]}</option>
+        ))}
+      </select>
+
       <select className={selectClass} value={val("status")} onChange={(e) => set("status", e.target.value)}>
         <option value="">Estado</option>
         {LEAD_STATUSES.map((s) => (
