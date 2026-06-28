@@ -35,7 +35,12 @@ const QUALIFIED_STAGE_LABELS: Record<QualifiedStage, string> = {
 const selectClass =
   "rounded-lg border border-admin-border-strong bg-admin-bg px-3 py-2 text-sm text-admin-text-secondary transition-colors focus:border-admin-accent focus:outline-none cursor-pointer";
 
-export function LeadFilters() {
+interface LeadFiltersProps {
+  landingPaths?: string[];
+  utmSources?: string[];
+}
+
+export function LeadFilters({ landingPaths = [], utmSources = [] }: LeadFiltersProps) {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -55,6 +60,8 @@ export function LeadFilters() {
     "budget",
     "urgency",
     "qualifiedStage",
+    "landingPath",
+    "utmSource",
   ].some((k) => params.get(k));
 
   return (
@@ -105,6 +112,32 @@ export function LeadFilters() {
           <option key={s} value={s}>{QUALIFIED_STAGE_LABELS[s]}</option>
         ))}
       </select>
+
+      {landingPaths.length > 0 && (
+        <select
+          className={selectClass}
+          value={val("landingPath")}
+          onChange={(e) => set("landingPath", e.target.value)}
+        >
+          <option value="">Landing</option>
+          {landingPaths.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+      )}
+
+      {utmSources.length > 0 && (
+        <select
+          className={selectClass}
+          value={val("utmSource")}
+          onChange={(e) => set("utmSource", e.target.value)}
+        >
+          <option value="">UTM source</option>
+          {utmSources.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      )}
 
       {hasFilters && (
         <Link
