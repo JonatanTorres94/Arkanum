@@ -9,18 +9,18 @@ const TOMORROW = "2026-06-29";
 const LAST_WEEK = "2026-06-21";
 const NEXT_WEEK = "2026-07-05";
 
-function make(followUpDate: string | null) {
-  return { followUpDate };
+function make(followUpDate: string | null, nextAction: string | null = null) {
+  return { followUpDate, nextAction };
 }
 
 // ── missing ───────────────────────────────────────────────────────────────────
 
 describe("missing", () => {
-  it("returns missing when followUpDate is null", () => {
+  it("returns missing when followUpDate and nextAction are null", () => {
     expect(deriveLeadFollowUpState(make(null), TODAY)).toBe("missing");
   });
 
-  it("returns missing when followUpDate is empty string", () => {
+  it("returns missing when followUpDate is empty and nextAction is null", () => {
     // An empty string from an uncleared date input should behave as missing.
     expect(deriveLeadFollowUpState(make(""), TODAY)).toBe("missing");
   });
@@ -75,5 +75,9 @@ describe("scheduled", () => {
 
   it("returns scheduled for a date in the next year", () => {
     expect(deriveLeadFollowUpState(make("2027-01-01"), TODAY)).toBe("scheduled");
+  });
+
+  it("returns scheduled when nextAction exists without followUpDate", () => {
+    expect(deriveLeadFollowUpState(make(null, "Llamar para coordinar reunión"), TODAY)).toBe("scheduled");
   });
 });
