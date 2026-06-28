@@ -4,6 +4,7 @@ import { getLeadsUseCase } from "@/features/leads/application/get-leads.use-case
 import { SupabaseLeadRepository } from "@/features/leads/infrastructure/supabase-lead.repository";
 import type { Lead } from "@/features/leads/domain/lead.types";
 import { deriveLeadPriority, type LeadPriority } from "@/features/leads/domain/lead-priority";
+import { deriveLeadFollowUpState, type LeadFollowUpState } from "@/features/leads/domain/lead-follow-up-state";
 
 function escapeField(value: string | null | undefined): string {
   if (value == null || value === "") return "";
@@ -12,7 +13,14 @@ function escapeField(value: string | null | undefined): string {
   return s;
 }
 
-function leadToRow(lead: Lead): string {
+const FOLLOW_UP_STATE_LABELS: Record<LeadFollowUpState, string> = {
+  overdue:   "Vencido",
+  today:     "Hoy",
+  scheduled: "Programado",
+  missing:   "Sin acción",
+};
+
+function leadToRow(lead: Lead, today: string): string {
   return [
     escapeField(lead.fullName),
     escapeField(lead.email),
@@ -29,6 +37,8 @@ function leadToRow(lead: Lead): string {
     escapeField(lead.urgency),
     escapeField(lead.additionalMessage),
     escapeField(lead.status),
+    escapeField(lead.followUpDate),
+    escapeField(FOLLOW_UP_STATE_LABELS[deriveLeadFollowUpState(lead, today)]),
     escapeField(lead.landingPath),
     escapeField(lead.referrer),
     escapeField(lead.utmSource),
@@ -62,6 +72,8 @@ const HEADER = [
   "Urgencia",
   "Mensaje adicional",
   "Estado",
+  "Fecha seguimiento",
+  "Estado seguimiento",
   "Landing path",
   "Referrer",
   "UTM source",
@@ -85,6 +97,11 @@ export async function GET(request: NextRequest) {
   const activeLandingPath    = params.get("landingPath")    ?? "";
   const activeUtmSource      = params.get("utmSource")      ?? "";
   const activePriority       = params.get("priority")       ?? "";
+  const activeFollowUp       = params.get("followUp")       ?? "";
+
+  const todayStr = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).format(new Date());
 
   const repository = new SupabaseLeadRepository();
   const result     = await getLeadsUseCase(repository);
@@ -112,10 +129,11 @@ export async function GET(request: NextRequest) {
     if (activeLandingPath && lead.landingPath !== activeLandingPath) return false;
     if (activeUtmSource   && lead.utmSource   !== activeUtmSource)   return false;
     if (activePriority    && deriveLeadPriority(lead) !== activePriority as LeadPriority) return false;
+    if (activeFollowUp    && deriveLeadFollowUpState(lead, todayStr) !== activeFollowUp as LeadFollowUpState) return false;
     return true;
   });
 
-  const csv      = [HEADER, ...leads.map(leadToRow)].join("\r\n");
+  const csv      = [HEADER, ...leads.map((l) => leadToRow(l, todayStr))].join("\r\n");
   const filename = `leads-${new Date().toISOString().slice(0, 10)}.csv`;
 
   return new NextResponse(csv, {

@@ -15,6 +15,7 @@ import {
   URGENCY_OPTIONS,
 } from "@/features/leads/domain/lead.schema";
 import type { LeadPriority } from "@/features/leads/domain/lead-priority";
+import type { LeadFollowUpState } from "@/features/leads/domain/lead-follow-up-state";
 
 const STATUS_LABELS: Record<LeadStatus, string> = {
   new:          "Nuevo",
@@ -30,6 +31,15 @@ const PRIORITY_LABELS: Record<LeadPriority, string> = {
 };
 
 const PRIORITIES: LeadPriority[] = ["alta", "media", "baja"];
+
+const FOLLOW_UP_LABELS: Record<LeadFollowUpState, string> = {
+  overdue:   "Vencido",
+  today:     "Hoy",
+  scheduled: "Programado",
+  missing:   "Sin acción",
+};
+
+const FOLLOW_UP_STATES: LeadFollowUpState[] = ["overdue", "today", "scheduled", "missing"];
 
 const QUALIFIED_STAGE_LABELS: Record<QualifiedStage, string> = {
   discovery_pending: "Discovery pendiente",
@@ -72,6 +82,7 @@ export function LeadFilters({ landingPaths = [], utmSources = [] }: LeadFiltersP
     "landingPath",
     "utmSource",
     "priority",
+    "followUp",
   ].some((k) => params.get(k));
 
   return (
@@ -80,6 +91,13 @@ export function LeadFilters({ landingPaths = [], utmSources = [] }: LeadFiltersP
         <option value="">Prioridad</option>
         {PRIORITIES.map((p) => (
           <option key={p} value={p}>{PRIORITY_LABELS[p]}</option>
+        ))}
+      </select>
+
+      <select className={selectClass} value={val("followUp")} onChange={(e) => set("followUp", e.target.value)}>
+        <option value="">Seguimiento</option>
+        {FOLLOW_UP_STATES.map((s) => (
+          <option key={s} value={s}>{FOLLOW_UP_LABELS[s]}</option>
         ))}
       </select>
 

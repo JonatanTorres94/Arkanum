@@ -12,6 +12,8 @@ import { LeadAttributionSummary } from "@/components/admin/lead-attribution-summ
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminEmptyState } from "@/components/admin/admin-empty-state";
 import { deriveLeadPriority, type LeadPriority } from "@/features/leads/domain/lead-priority";
+import { deriveLeadFollowUpState, type LeadFollowUpState } from "@/features/leads/domain/lead-follow-up-state";
+import { LeadFollowUpStateBadge } from "@/components/admin/lead-follow-up-state-badge";
 
 export const metadata = { title: "Leads — Admin", robots: { index: false, follow: false } };
 
@@ -24,6 +26,12 @@ export default async function AdminLeadsPage({
   const repository = new SupabaseLeadRepository();
   const result     = await getLeadsUseCase(repository);
 
+  // Date-only string in Argentina's timezone so the follow-up state is
+  // evaluated against the local calendar date, not the UTC date.
+  const todayStr = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).format(new Date());
+
   const activeStatus         = typeof filters.status         === "string" ? filters.status         : "";
   const activeIndustry       = typeof filters.industry       === "string" ? filters.industry       : "";
   const activeCompanySize    = typeof filters.companySize    === "string" ? filters.companySize    : "";
@@ -33,11 +41,12 @@ export default async function AdminLeadsPage({
   const activeLandingPath    = typeof filters.landingPath    === "string" ? filters.landingPath    : "";
   const activeUtmSource      = typeof filters.utmSource      === "string" ? filters.utmSource      : "";
   const activePriority       = typeof filters.priority       === "string" ? filters.priority       : "";
+  const activeFollowUp       = typeof filters.followUp       === "string" ? filters.followUp       : "";
 
   const hasFilters = !!(
     activeStatus || activeIndustry || activeCompanySize || activeBudget ||
     activeUrgency || activeQualifiedStage || activeLandingPath || activeUtmSource ||
-    activePriority
+    activePriority || activeFollowUp
   );
 
   const exportParams = new URLSearchParams();
@@ -50,6 +59,7 @@ export default async function AdminLeadsPage({
   if (activeLandingPath)    exportParams.set("landingPath",    activeLandingPath);
   if (activeUtmSource)      exportParams.set("utmSource",      activeUtmSource);
   if (activePriority)       exportParams.set("priority",       activePriority);
+  if (activeFollowUp)       exportParams.set("followUp",       activeFollowUp);
   const exportHref = `/admin/leads/export${exportParams.size > 0 ? `?${exportParams.toString()}` : ""}`;
 
   // Dynamic options for attribution filters — unique non-null values from loaded leads
@@ -80,6 +90,7 @@ export default async function AdminLeadsPage({
         if (activeLandingPath && lead.landingPath !== activeLandingPath) return false;
         if (activeUtmSource   && lead.utmSource   !== activeUtmSource)   return false;
         if (activePriority    && deriveLeadPriority(lead) !== activePriority as LeadPriority) return false;
+        if (activeFollowUp    && deriveLeadFollowUpState(lead, todayStr) !== activeFollowUp as LeadFollowUpState) return false;
         return true;
       })
     : [];
@@ -153,6 +164,7 @@ export default async function AdminLeadsPage({
                   <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Nombre</th>
                   <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Estado</th>
                   <th className="px-4 py-3 text-left font-medium text-admin-text-muted">Prioridad</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted sm:table-cell">Seguimiento</th>
                   <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted md:table-cell">Presupuesto</th>
                   <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted lg:table-cell">Urgencia</th>
                   <th className="hidden px-4 py-3 text-left font-medium text-admin-text-muted md:table-cell">Rubro</th>
@@ -182,6 +194,9 @@ export default async function AdminLeadsPage({
                     </td>
                     <td className="px-4 py-3.5">
                       <LeadPriorityBadge priority={deriveLeadPriority(lead)} />
+                    </td>
+                    <td className="hidden px-4 py-3.5 sm:table-cell">
+                      <LeadFollowUpStateBadge state={deriveLeadFollowUpState(lead, todayStr)} />
                     </td>
                     <td className="hidden px-4 py-3.5 text-admin-text-secondary md:table-cell">
                       {lead.budget}
