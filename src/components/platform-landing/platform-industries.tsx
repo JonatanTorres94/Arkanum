@@ -25,6 +25,8 @@ const industries = [
   },
 ];
 
+import { Card } from "@/components/ui/card";
+
 export function PlatformIndustries() {
   return (
     <section id="operaciones" className="px-6 py-24 border-t border-slate-800/60">
@@ -44,16 +46,13 @@ export function PlatformIndustries() {
 
         <div className="grid gap-6 sm:grid-cols-2">
           {industries.map((ind) => (
-            <div
-              key={ind.sector}
-              className="rounded-xl border border-slate-800 bg-slate-900/50 p-6"
-            >
+            <Card key={ind.sector}>
               <p className="mb-1 text-xs font-medium uppercase tracking-widest text-cyan-400/70">
                 {ind.sector}
               </p>
               <p className="mb-3 text-sm font-medium text-slate-200">{ind.modules}</p>
               <p className="text-sm leading-relaxed text-slate-400">{ind.detail}</p>
-            </div>
+            </Card>
           ))}
         </div>
       </div>

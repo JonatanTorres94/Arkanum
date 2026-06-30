@@ -7,6 +7,8 @@ const steps = [
   { step: "06", text: "Soporte valida, cierra el ticket. La bandeja de atención se limpia automáticamente." },
 ];
 
+import { Card } from "@/components/ui/card";
+
 export function PlatformWorkflow() {
   return (
     <section id="como-funciona" className="px-6 py-24 border-t border-slate-800/60">
@@ -27,15 +29,12 @@ export function PlatformWorkflow() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {steps.map(({ step, text }) => (
-            <div
-              key={step}
-              className="rounded-xl border border-slate-800 bg-slate-900/50 p-6"
-            >
+            <Card key={step}>
               <span className="mb-4 block font-mono text-xs font-semibold text-cyan-400/60">
                 {step}
               </span>
               <p className="text-sm leading-relaxed text-slate-300">{text}</p>
-            </div>
+            </Card>
           ))}
         </div>
       </div>
