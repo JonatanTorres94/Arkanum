@@ -4,8 +4,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { HeroSection } from "@/components/landing/hero-section";
 import { ProblemsSection } from "@/components/landing/problems-section";
-import { SolutionsSection } from "@/components/landing/solutions-section";
-import { ServiceLinksSection } from "@/components/landing/service-links-section";
+import { ArkStudioSection } from "@/components/landing/ark-studio-section";
+import { PillarsSection } from "@/components/landing/pillars-section";
 import { UseCasesSection } from "@/components/landing/use-cases-section";
 import { ProcessSection } from "@/components/landing/process-section";
 import { TrustSection } from "@/components/landing/trust-section";
@@ -29,8 +29,8 @@ export default function HomePage() {
       <main>
         <HeroSection />
         <ProblemsSection />
-        <SolutionsSection />
-        <ServiceLinksSection />
+        <ArkStudioSection />
+        <PillarsSection />
         <UseCasesSection />
         <ProcessSection />
         <TrustSection />
