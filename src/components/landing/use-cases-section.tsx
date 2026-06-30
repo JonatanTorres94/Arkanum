@@ -28,10 +28,12 @@ export function UseCasesSection() {
         {cases.map((item) => (
           <li
             key={item}
-            className="flex items-start gap-3 rounded-lg border border-slate-800 bg-slate-900 px-4 py-3"
+            className="group flex items-start gap-3 rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 transition-colors hover:border-slate-700 hover:bg-slate-800/60"
           >
             <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
-            <span className="text-sm leading-relaxed text-slate-300">{item}</span>
+            <span className="text-sm leading-relaxed text-slate-300 transition-colors group-hover:text-slate-100">
+              {item}
+            </span>
           </li>
         ))}
       </ul>

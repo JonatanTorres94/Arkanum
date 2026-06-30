@@ -159,3 +159,9 @@ body {
     animation: none;
   }
 }
+
+/* Stagger delays — pair with .reveal for sequential entry */
+@utility reveal-1 { animation-delay: 100ms; }
+@utility reveal-2 { animation-delay: 200ms; }
+@utility reveal-3 { animation-delay: 300ms; }
+@utility reveal-4 { animation-delay: 400ms; }

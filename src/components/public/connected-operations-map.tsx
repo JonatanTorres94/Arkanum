@@ -38,9 +38,11 @@ export function ConnectedOperationsMap() {
           {businessAreas.map((area) => (
             <div
               key={area}
-              className="flex items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2.5 transition-colors hover:border-slate-700"
+              className="group flex items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2.5 transition-colors hover:border-slate-700"
             >
-              <span className="text-xs text-slate-400">{area}</span>
+              <span className="text-xs text-slate-400 transition-colors group-hover:text-slate-100">
+                {area}
+              </span>
               {/* Connector pointing toward center (right on desktop) */}
               <div className="flex shrink-0 items-center gap-1">
                 <div className="h-px w-4 bg-gradient-to-r from-transparent to-slate-700" />
@@ -53,7 +55,7 @@ export function ConnectedOperationsMap() {
 
       {/* Center: Arkanum Core — shown first on mobile (order-1) */}
       <div className="order-1 lg:order-2 lg:w-64 lg:shrink-0">
-        <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-cyan-400/25 bg-public-surface-raised p-6 text-center shadow-[0_0_48px_rgba(34,211,238,0.08)]">
+        <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-cyan-400/25 bg-public-surface-raised p-6 text-center shadow-[0_0_48px_rgba(34,211,238,0.08)] transition-shadow duration-300 hover:shadow-[0_0_72px_rgba(34,211,238,0.16)]">
           <div className="mb-4 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3.5 py-1 text-xs font-medium tracking-wide text-cyan-400">
             Plataforma operativa
           </div>
@@ -83,7 +85,7 @@ export function ConnectedOperationsMap() {
           {systemCapabilities.map((cap) => (
             <div
               key={cap.label}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 transition-colors ${
+              className={`group flex items-center gap-2 rounded-lg border px-3 py-2.5 transition-colors ${
                 cap.conditional
                   ? "border-slate-800/50 bg-slate-900/40 hover:border-slate-700/50"
                   : "border-slate-800 bg-slate-900/80 hover:border-slate-700"
@@ -98,7 +100,11 @@ export function ConnectedOperationsMap() {
               </div>
               <div className="min-w-0">
                 <span
-                  className={`text-xs ${cap.conditional ? "text-slate-500" : "text-slate-400"}`}
+                  className={`text-xs transition-colors ${
+                    cap.conditional
+                      ? "text-slate-500 group-hover:text-slate-300"
+                      : "text-slate-400 group-hover:text-slate-100"
+                  }`}
                 >
                   {cap.label}
                 </span>

@@ -13,19 +13,21 @@ export function HeroSection() {
       />
 
       <div className="relative mx-auto max-w-4xl">
-        <SectionEyebrow>Arkanum Studio — sistemas a medida para tu operación</SectionEyebrow>
+        <SectionEyebrow className="reveal">
+          Arkanum Studio — sistemas a medida para tu operación
+        </SectionEyebrow>
 
-        <h1 className="mb-6 text-4xl font-semibold leading-tight tracking-tight text-slate-50 md:text-6xl">
+        <h1 className="mb-6 text-4xl font-semibold leading-tight tracking-tight text-slate-50 reveal reveal-1 md:text-6xl">
           Tu empresa creció.
           <br className="hidden md:block" /> Tus sistemas, no.
         </h1>
 
-        <p className="mb-10 max-w-2xl text-lg leading-relaxed text-slate-400">
+        <p className="mb-10 max-w-2xl text-lg leading-relaxed text-slate-400 reveal reveal-2">
           Arkanum diseña y construye sistemas operativos a medida para ordenar procesos,
           conectar áreas y hacer evolucionar tu operación.
         </p>
 
-        <div className="flex flex-col gap-4 sm:flex-row">
+        <div className="flex flex-col gap-4 reveal reveal-3 sm:flex-row">
           <HomeCtaButton location="hero" variant="primary" className="px-8 py-3.5 text-sm">
             Diagnosticar mi proceso sin cargo
           </HomeCtaButton>
@@ -34,7 +36,7 @@ export function HeroSection() {
           </Button>
         </div>
 
-        <p className="mt-6 text-xs text-slate-500">
+        <p className="mt-6 text-xs text-slate-500 reveal reveal-4">
           Primero entendemos tu operación. Después definimos si una solución a medida tiene sentido.
         </p>
       </div>

@@ -6,7 +6,7 @@ import { MiniDashboardPreview } from "@/components/public/mini-dashboard-preview
 export function DashboardPreviewSection() {
   return (
     <Section id="plataforma-preview" className="bg-slate-950">
-      <div className="mb-10 max-w-2xl">
+      <div className="mb-10 max-w-2xl reveal">
         <SectionEyebrow>El producto en acción</SectionEyebrow>
 
         <GradientTitle as="h2" className="mb-4 text-2xl font-semibold leading-snug md:text-3xl">
