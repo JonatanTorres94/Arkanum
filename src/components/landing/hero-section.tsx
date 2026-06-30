@@ -1,13 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { HomeCtaButton } from "@/components/ui/tracked-cta-button";
+import { SectionEyebrow } from "@/components/public/section-eyebrow";
+import { BlueprintGridBackground } from "@/components/public/blueprint-grid-background";
 
 export function HeroSection() {
   return (
-    <section className="px-6 pb-24 pt-20 md:pt-32">
-      <div className="mx-auto max-w-4xl">
-        <p className="mb-6 inline-block rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1.5 text-xs font-medium text-cyan-400">
-          Automatización operativa y software a medida
-        </p>
+    <section className="relative overflow-hidden px-6 pb-24 pt-20 md:pt-32">
+      <BlueprintGridBackground />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 left-1/2 h-80 w-[700px] -translate-x-1/2 rounded-full bg-cyan-400/5 blur-3xl"
+      />
+
+      <div className="relative mx-auto max-w-4xl">
+        <SectionEyebrow>Automatización operativa y software a medida</SectionEyebrow>
 
         <h1 className="mb-6 text-4xl font-semibold leading-tight tracking-tight text-slate-50 md:text-6xl">
           Automatizamos y modernizamos procesos de tu empresa.

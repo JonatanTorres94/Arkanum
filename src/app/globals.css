@@ -65,3 +65,97 @@ body {
   --admin-warning: #d97706;
   --admin-success: #059669;
 }
+
+/*
+ * Public design tokens — always dark, never scoped to a theme toggle.
+ * Admin tokens above are isolated via data-admin-theme; public tokens
+ * live permanently in :root and are never read by admin components.
+ */
+@theme {
+  --color-public-bg:             var(--public-bg);
+  --color-public-surface:        var(--public-surface);
+  --color-public-surface-raised: var(--public-surface-raised);
+  --color-public-surface-card:   var(--public-surface-card);
+}
+
+:root {
+  /* surfaces */
+  --public-bg:             #020817;
+  --public-surface:        #080f1e;
+  --public-surface-raised: #0d1829;
+  --public-surface-card:   #0a1426;
+
+  /* borders */
+  --public-border:         rgba(148, 163, 184, 0.08);
+  --public-border-glow:    rgba(34, 211, 238, 0.20);
+
+  /* layered shadows */
+  --public-card-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 2px 4px rgba(0, 0, 0, 0.28),
+    0 8px 32px rgba(0, 0, 0, 0.18);
+  --public-glow-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.14),
+    0 4px 20px rgba(34, 211, 238, 0.06);
+
+  /* blueprint / circuit grid line */
+  --public-grid-line: rgba(148, 163, 184, 0.05);
+}
+
+/* Subtle circuit-board grid for background layers */
+@utility blueprint-grid {
+  background-image:
+    linear-gradient(var(--public-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--public-grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Card surface with gradient depth and layered shadows */
+@utility card-depth {
+  background: linear-gradient(
+    145deg,
+    var(--public-surface-raised) 0%,
+    var(--public-surface-card) 100%
+  );
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--public-border);
+  box-shadow: var(--public-card-shadow);
+}
+
+/* Static glow accent — overrides border-color from card-depth when combined */
+@utility glow-border {
+  border-color: var(--public-border-glow);
+  box-shadow: var(--public-glow-shadow);
+}
+
+/* Interactive glow on hover for cards and surfaces */
+@utility card-glow-hover {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  &:hover {
+    border-color: var(--public-border-glow);
+    box-shadow: var(--public-glow-shadow);
+  }
+}
+
+/* Reveal-on-load animation — opacity + subtle lift */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility reveal {
+  animation: reveal-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+  }
+}
