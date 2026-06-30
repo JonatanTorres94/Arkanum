@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { PlatformHero } from "@/components/platform-landing/platform-hero";
 import { PlatformProblem } from "@/components/platform-landing/platform-problem";
 import { PlatformDefinition } from "@/components/platform-landing/platform-definition";
+import { PlatformMapSection } from "@/components/platform-landing/platform-map-section";
 import { PlatformLayers } from "@/components/platform-landing/platform-layers";
 import { PlatformEvolution } from "@/components/platform-landing/platform-evolution";
 import { PlatformIndustries } from "@/components/platform-landing/platform-industries";
@@ -35,6 +36,7 @@ export default function PlataformaPage() {
         <PlatformHero />
         <PlatformProblem />
         <PlatformDefinition />
+        <PlatformMapSection />
         <PlatformLayers />
         <PlatformEvolution />
         <PlatformIndustries />
