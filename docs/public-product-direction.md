@@ -181,21 +181,46 @@ Cuando el proceso no termina en una pantalla, Arkanum conecta software, IA y el 
 
 El sitio debe preparar espacio para nombrar capacidades o productos de Arkanum sin sobrevender un catálogo SaaS rígido demasiado pronto.
 
-Posible estructura de naming:
+La arquitectura pública debe usar **nombre comercial suave + explicación clara + valor concreto**. Ningún nombre interno debe aparecer solo, porque para un cliente frío `Core`, `Flow` o `Agents` no significan nada si no se traducen inmediatamente a un beneficio operativo.
+
+### Arkanum Studio como paraguas
+
+**Arkanum Studio** será el paraguas comercial inicial: la casa donde se diseñan, adaptan y combinan las capacidades de Arkanum según el problema de cada empresa.
+
+Arkanum Studio no debe presentarse como una agencia genérica ni como un quinto pilar equivalente. Debe funcionar como el método/casa que combina los pilares.
+
+Posible framing:
 
 ```text
-Arkanum Core       — plataforma operativa / capa central
-Arkanum Agents     — agentes IA conectados a sistemas, datos y reglas
-Arkanum Flow       — automatización e integraciones
+En Arkanum Studio diseñamos soluciones a medida combinando software, automatización, IA e integración física según el problema de tu empresa.
+```
+
+### Cuatro pilares combinables
+
+```text
+Arkanum Core           — plataforma operativa / capa central
+Arkanum Flow           — automatización e integraciones
+Arkanum Agents         — agentes IA conectados a sistemas, datos y reglas
 Arkanum Hardware Layer — software conectado a dispositivos, sensores, terminales o infraestructura física
 ```
 
+Traducción pública recomendada:
+
+| Pilar | Explicación clara | Valor para el cliente |
+|---|---|---|
+| Arkanum Core | Plataformas operativas para centralizar procesos, datos, equipos y decisiones. | Ver y controlar la operación desde un solo lugar. |
+| Arkanum Flow | Automatización e integración entre áreas, sistemas, APIs y tareas repetitivas. | Hacer que los sistemas trabajen entre sí. |
+| Arkanum Agents | Agentes IA conectados a datos, reglas y operaciones reales. | Pedir acciones inteligentes a una IA que entiende el negocio. |
+| Arkanum Hardware Layer | Software conectado a sensores, dispositivos, terminales y procesos físicos. | Conectar el mundo físico con el sistema. |
+
 Recomendaciones:
 
+- mostrar Arkanum Studio como paraguas público inicial
 - mostrar Arkanum Core como el concepto principal de plataforma
-- mostrar el resto como líneas de capacidad o familias de producto
+- mostrar Flow, Agents y Hardware Layer como capacidades combinables
 - evitar que la oferta parezca un catálogo SaaS fijo
 - evitar que la empresa parezca que hace trabajo custom sin estructura
+- cada nombre debe ir siempre acompañado de explicación clara y valor concreto
 
 ---
 
@@ -276,6 +301,7 @@ El sitio no es un libro, pero tampoco es un juego. Es una experiencia comercial 
 ## 9. Escenas visuales a definir antes de codificar
 
 - hero con promesa clara y autoridad fuerte
+- Arkanum Studio como paraguas comercial
 - mini dashboard / preview de plataforma
 - mapa operativo conectado
 - IA como inteligencia integrada, no chatbot
@@ -298,6 +324,14 @@ Arco narrativo:
 Tenés un proceso que ya no puede correr con herramientas improvisadas.
 Arkanum diseña y construye el sistema operativo que tu negocio necesita.
 Podés empezar con un módulo enfocado y evolucionar hacia una plataforma conectada, automatizada e inteligente.
+```
+
+Arkanum Studio debe funcionar como el puente entre necesidad y solución:
+
+```text
+No vendemos una plantilla.
+No forzamos un producto cerrado.
+En Arkanum Studio diseñamos la solución que tu operación necesita, combinando Core, Flow, Agents y Hardware Layer cuando el caso lo requiere.
 ```
 
 ---
@@ -345,3 +379,4 @@ Avanzar con Arkanum fue una gran decisión. Son tanto el presente como el futuro
 - No hacer que toda solución parezca requerir IA.
 - No hacer que el sitio público apunte a `/admin`.
 - No presentar un catálogo SaaS rígido si la solución es todavía custom/adaptativa.
+- No usar nombres como Studio, Core, Flow, Agents o Hardware Layer sin explicación clara y valor concreto.
