@@ -6,6 +6,7 @@ import { HeroSection } from "@/components/landing/hero-section";
 import { ProblemsSection } from "@/components/landing/problems-section";
 import { ArkStudioSection } from "@/components/landing/ark-studio-section";
 import { PillarsSection } from "@/components/landing/pillars-section";
+import { DashboardPreviewSection } from "@/components/landing/dashboard-preview-section";
 import { UseCasesSection } from "@/components/landing/use-cases-section";
 import { ProcessSection } from "@/components/landing/process-section";
 import { TrustSection } from "@/components/landing/trust-section";
@@ -31,6 +32,7 @@ export default function HomePage() {
         <ProblemsSection />
         <ArkStudioSection />
         <PillarsSection />
+        <DashboardPreviewSection />
         <UseCasesSection />
         <ProcessSection />
         <TrustSection />
