@@ -25,6 +25,8 @@ const problems = [
   },
 ];
 
+import { Card } from "@/components/ui/card";
+
 export function PlatformProblem() {
   return (
     <section id="problema" className="px-6 py-24 border-t border-slate-800/60">
@@ -44,13 +46,10 @@ export function PlatformProblem() {
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {problems.map((p) => (
-            <div
-              key={p.heading}
-              className="rounded-xl border border-slate-800 bg-slate-900/50 p-6"
-            >
+            <Card key={p.heading}>
               <h3 className="mb-2 font-medium text-slate-100">{p.heading}</h3>
               <p className="text-sm leading-relaxed text-slate-400">{p.body}</p>
-            </div>
+            </Card>
           ))}
         </div>
       </div>
