@@ -5,18 +5,24 @@ import { GradientTitle } from "@/components/public/gradient-title";
 
 export function ArkStudioSection() {
   return (
-    <Section id="como-trabajamos" className="bg-slate-950">
-      <div className="mx-auto max-w-3xl">
+    <Section id="como-trabajamos" className="relative overflow-hidden bg-slate-950">
+      {/* Ambient glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-64 -top-32 h-80 w-80 rounded-full bg-cyan-400/5 blur-3xl"
+      />
+
+      <div className="relative mx-auto max-w-3xl">
         <SectionEyebrow>Cómo trabajamos</SectionEyebrow>
 
         <GradientTitle
           as="h2"
-          className="mb-6 text-2xl font-semibold leading-snug md:text-3xl"
+          className="mb-6 text-2xl font-semibold leading-snug reveal md:text-3xl"
         >
           Un sistema diseñado para tu operación. No una plantilla adaptada.
         </GradientTitle>
 
-        <div className="space-y-4 text-base leading-relaxed text-slate-400">
+        <div className="space-y-4 text-base leading-relaxed text-slate-400 reveal reveal-1">
           <p>
             En{" "}
             <span className="font-medium text-slate-200">Arkanum Studio</span>{" "}
@@ -35,7 +41,7 @@ export function ArkStudioSection() {
           </p>
         </div>
 
-        <PremiumCard className="mt-8">
+        <PremiumCard className="mt-8 reveal reveal-2">
           <p className="text-sm italic leading-relaxed text-slate-300">
             &ldquo;Primero arquitectura. Luego automatización. Luego IA, cuando realmente incrementa
             el valor operativo.&rdquo;

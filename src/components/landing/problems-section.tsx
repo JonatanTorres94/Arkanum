@@ -38,10 +38,10 @@ export function ProblemsSection() {
   return (
     <Section id="problemas" className="bg-slate-950">
       <div className="mb-12">
-        <h2 className="mb-4 text-2xl font-semibold leading-snug text-slate-50 md:text-3xl">
+        <h2 className="mb-4 text-2xl font-semibold leading-snug text-slate-50 reveal md:text-3xl">
           Cuando la operación crece, las herramientas improvisadas empiezan a fallar.
         </h2>
-        <p className="max-w-2xl text-base leading-relaxed text-slate-400">
+        <p className="max-w-2xl text-base leading-relaxed text-slate-400 reveal reveal-1">
           Excel, WhatsApp y los sistemas viejos pueden funcionar al principio. Pero cuando aumentan
           los pedidos, el stock, los empleados o la administración, empiezan los errores, la carga
           duplicada y la falta de control.

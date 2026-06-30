@@ -165,3 +165,19 @@ body {
 @utility reveal-2 { animation-delay: 200ms; }
 @utility reveal-3 { animation-delay: 300ms; }
 @utility reveal-4 { animation-delay: 400ms; }
+
+/* Fast opacity fade — used for dashboard module content switch */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@utility fade-in-quick {
+  animation: fade-in 0.18s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-quick {
+    animation: none;
+  }
+}

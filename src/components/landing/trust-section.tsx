@@ -32,10 +32,10 @@ export function TrustSection() {
   return (
     <Section className="bg-slate-950">
       <div className="mb-12">
-        <h2 className="mb-4 text-2xl font-semibold leading-snug text-slate-50 md:text-3xl">
+        <h2 className="mb-4 text-2xl font-semibold leading-snug text-slate-50 reveal md:text-3xl">
           Software pensado para crecer, no para romperse a los dos meses.
         </h2>
-        <p className="max-w-2xl text-base leading-relaxed text-slate-400">
+        <p className="max-w-2xl text-base leading-relaxed text-slate-400 reveal reveal-1">
           Trabajamos con arquitectura clara, validaciones, control de accesos, bases de datos
           robustas y documentación. La solución debe ser útil hoy y mantenible mañana.
         </p>
