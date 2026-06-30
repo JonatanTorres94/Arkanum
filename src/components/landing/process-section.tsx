@@ -37,10 +37,10 @@ export function ProcessSection() {
   return (
     <Section id="metodo" className="bg-slate-900/40">
       <div className="mb-12">
-        <h2 className="mb-4 text-2xl font-semibold leading-snug text-slate-50 md:text-3xl">
+        <h2 className="mb-4 text-2xl font-semibold leading-snug text-slate-50 reveal md:text-3xl">
           Primero entendemos el proceso. Después construimos la solución.
         </h2>
-        <p className="max-w-2xl text-base leading-relaxed text-slate-400">
+        <p className="max-w-2xl text-base leading-relaxed text-slate-400 reveal reveal-1">
           El software a medida solo tiene sentido cuando responde a un problema real. Por eso
           empezamos con diagnóstico, definimos alcance y avanzamos por etapas.
         </p>
