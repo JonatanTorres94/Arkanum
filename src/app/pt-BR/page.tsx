@@ -392,7 +392,7 @@ export default function PtBRHomePage() {
         <Section className="bg-slate-950">
           <div className="mb-12">
             <h2 className="mb-4 text-2xl font-semibold leading-snug text-slate-50 reveal md:text-3xl">
-              Software pensado para crescer, não para quebrar em dois meses.
+              Software projetado para acompanhar o crescimento da sua operação.
             </h2>
             <p className="max-w-2xl text-base leading-relaxed text-slate-400 reveal reveal-1">
               Trabalhamos com arquitetura clara, validações, controle de acesso, bancos de dados
