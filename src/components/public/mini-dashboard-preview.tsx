@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { trackDashboardModuleSwitch } from "@/lib/analytics/track";
 
 type MetricCard = { value: string; label: string; sub: string };
 
@@ -205,6 +206,11 @@ export function MiniDashboardPreview() {
   const [activeId, setActiveId] = useState<string>("operacion");
   const active = modules.find((m) => m.id === activeId) ?? modules[0];
 
+  const handleModuleSwitch = useCallback((id: string) => {
+    setActiveId(id);
+    trackDashboardModuleSwitch(id);
+  }, []);
+
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-800 shadow-2xl shadow-black/60">
       {/* Chrome bar */}
@@ -236,7 +242,7 @@ export function MiniDashboardPreview() {
             key={mod.id}
             role="tab"
             aria-selected={mod.id === activeId}
-            onClick={() => setActiveId(mod.id)}
+            onClick={() => handleModuleSwitch(mod.id)}
             className={`shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-xs font-medium transition-colors ${
               mod.id === activeId
                 ? "border-cyan-400 text-cyan-400"
@@ -261,7 +267,7 @@ export function MiniDashboardPreview() {
                 key={mod.id}
                 role="tab"
                 aria-selected={mod.id === activeId}
-                onClick={() => setActiveId(mod.id)}
+                onClick={() => handleModuleSwitch(mod.id)}
                 className={`mb-0.5 w-full rounded-md px-2.5 py-1.5 text-left text-xs transition-colors ${
                   mod.id === activeId
                     ? "bg-cyan-400/10 font-medium text-cyan-400"

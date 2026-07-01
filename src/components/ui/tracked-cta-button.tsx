@@ -3,8 +3,10 @@
 import { Button } from "@/components/ui/button";
 import {
   trackCtaDiagnosticClick,
+  trackHeaderCtaClick,
   trackIntentPageCta,
   type DiagnosticCtaLocation,
+  type Locale,
   type ServiceSlug,
 } from "@/lib/analytics/track";
 import type { ComponentProps } from "react";
@@ -18,6 +20,35 @@ export function HomeCtaButton({
 }: BaseProps & { location: DiagnosticCtaLocation }) {
   return (
     <Button href="/diagnostico" onClick={() => trackCtaDiagnosticClick(location)} {...props}>
+      {children}
+    </Button>
+  );
+}
+
+export function HeaderCtaButton({
+  locale,
+  href,
+  children,
+  ...props
+}: BaseProps & { locale: Locale; href: string }) {
+  return (
+    <Button href={href} onClick={() => trackHeaderCtaClick(locale)} {...props}>
+      {children}
+    </Button>
+  );
+}
+
+export function PtBRCtaButton({
+  location,
+  children,
+  ...props
+}: BaseProps & { location: DiagnosticCtaLocation }) {
+  return (
+    <Button
+      href="/pt-BR/diagnostico"
+      onClick={() => trackCtaDiagnosticClick(location)}
+      {...props}
+    >
       {children}
     </Button>
   );

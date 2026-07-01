@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { HeaderCtaButton } from "@/components/ui/tracked-cta-button";
+import { TrackedNavLink } from "@/components/ui/tracked-nav-link";
 import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 import { siteConfig } from "@/config/site";
 
@@ -46,21 +47,23 @@ export function SiteHeader({ locale = "es" }: SiteHeaderProps) {
 
         <nav className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
-            <Link
+            <TrackedNavLink
               key={link.href}
               href={link.href}
+              trackLabel={link.label}
+              locale={locale}
               className="text-sm text-slate-400 hover:text-slate-100 transition-colors"
             >
               {link.label}
-            </Link>
+            </TrackedNavLink>
           ))}
         </nav>
 
         <div className="flex items-center gap-4">
           <LocaleSwitcher />
-          <Button href={cta.href} variant="primary" className="text-xs px-4 py-2">
+          <HeaderCtaButton locale={locale} href={cta.href} variant="primary" className="text-xs px-4 py-2">
             {cta.label}
-          </Button>
+          </HeaderCtaButton>
         </div>
       </div>
     </header>
