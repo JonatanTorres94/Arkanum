@@ -317,7 +317,7 @@ Evolucionamos la solución según uso real, nuevas necesidades y crecimiento de 
 ### Título
 
 ```text
-Software pensado para crecer, no para romperse a los dos meses.
+Software diseñado para acompañar el crecimiento de tu operación.
 ```
 
 ### Descripción

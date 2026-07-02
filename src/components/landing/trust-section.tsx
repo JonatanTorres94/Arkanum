@@ -33,7 +33,7 @@ export function TrustSection() {
     <Section className="bg-slate-950">
       <div className="mb-12">
         <h2 className="mb-4 text-2xl font-semibold leading-snug text-slate-50 reveal md:text-3xl">
-          Software pensado para crecer, no para romperse a los dos meses.
+          Software diseñado para acompañar el crecimiento de tu operación.
         </h2>
         <p className="max-w-2xl text-base leading-relaxed text-slate-400 reveal reveal-1">
           Trabajamos con arquitectura clara, validaciones, control de accesos, bases de datos
