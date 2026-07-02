@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { Section } from "@/components/ui/section";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PtBRCtaButton } from "@/components/ui/tracked-cta-button";
 import { SectionEyebrow } from "@/components/public/section-eyebrow";
 import { GradientTitle } from "@/components/public/gradient-title";
 import { PremiumCard } from "@/components/public/premium-card";
@@ -205,13 +206,13 @@ export default function PtBRHomePage() {
               conectar áreas e fazer evoluir sua operação.
             </p>
             <div className="flex flex-col gap-4 reveal reveal-3 sm:flex-row">
-              <Button
-                href="/pt-BR/diagnostico"
+              <PtBRCtaButton
+                location="pt_br_hero"
                 variant="primary"
                 className="px-8 py-3.5 text-sm"
               >
                 Diagnosticar meu processo sem custo
-              </Button>
+              </PtBRCtaButton>
               <Button
                 href="#capacidades"
                 variant="secondary"
@@ -428,13 +429,13 @@ export default function PtBRHomePage() {
               sistemas.
             </p>
             <div className="reveal reveal-2">
-              <Button
-                href="/pt-BR/diagnostico"
+              <PtBRCtaButton
+                location="pt_br_final_cta"
                 variant="primary"
                 className="px-10 py-3.5 text-sm"
               >
                 Diagnosticar meu processo sem custo
-              </Button>
+              </PtBRCtaButton>
               <p className="mt-4 text-xs text-slate-500">
                 Sem compromisso. Se não fizer sentido desenvolver software sob medida para o seu
                 caso, também te dizemos.

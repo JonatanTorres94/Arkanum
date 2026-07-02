@@ -17,7 +17,11 @@ import {
   submitDiagnosticAction,
   type DiagnosticRedirectTarget,
 } from "@/server/actions/diagnostic.action";
-import { trackDiagnosticSubmitSuccess, trackDiagnosticSubmitError } from "@/lib/analytics/track";
+import {
+  trackDiagnosticSubmitSuccess,
+  trackDiagnosticSubmitError,
+  trackBotHoneypotFilled,
+} from "@/lib/analytics/track";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -183,12 +187,16 @@ export function DiagnosticForm({ locale = "es", redirectTo = "/gracias" }: Diagn
 
   const onSubmit = async (data: LeadFormData) => {
     setServerError(null);
+    if (data.website) {
+      trackBotHoneypotFilled();
+      return;
+    }
     const result = await submitDiagnosticAction(data, redirectTo);
     if (result?.error) {
       setServerError(result.error);
-      trackDiagnosticSubmitError();
+      trackDiagnosticSubmitError(locale);
     } else {
-      trackDiagnosticSubmitSuccess();
+      trackDiagnosticSubmitSuccess(locale);
     }
   };
 
